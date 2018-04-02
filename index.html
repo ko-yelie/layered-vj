@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Webcam x Particle</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="./script/minMatrix.js"></script>
+    <script src="./script/script.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <div id="mode">
+      <label><input type="radio" v-model="mode" value="points">POINTS</label>
+      <label><input type="radio" v-model="mode" value="line_strip">LINE_STRIP</label>
+      <label><input type="radio" v-model="mode" value="triangles">TRIANGLES</label>
+    </div>
+  </body>
+</html>
