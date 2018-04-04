@@ -332,15 +332,15 @@
         gl.activeTexture(gl.TEXTURE0 + VELOCITY_BUFFER_INDEX + 1);
         gl.bindTexture(gl.TEXTURE_2D, velocityFramebuffers[1].texture);
 
-        // reset framebuffers
+        // reset video
         gl.useProgram(videoPrg.program);
         gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION]);
         gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0);
         setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO);
         gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION);
-        for(let i = 0; i <= 1; ++i){
+        for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
             // video buffer
-            gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[i].framebuffer);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer);
             gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
@@ -356,20 +356,34 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+        // reset picture
+        gl.useProgram(picturePrg.program);
+        gl[picturePrg.uniType[0]](picturePrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION]);
+        gl[picturePrg.uniType[1]](picturePrg.uniLocation[1], 0);
+        setAttribute(planeVBO, picturePrg.attLocation, picturePrg.attStride);
+        gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION);
+        for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
+            // picture buffer
+            gl.bindFramebuffer(gl.FRAMEBUFFER, pictureFramebuffers[targetBufferIndex].framebuffer);
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
+        }
+
         // reset particle position
         gl.useProgram(resetPrg.program);
         gl[resetPrg.uniType[0]](resetPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION]);
         gl[resetPrg.uniType[1]](resetPrg.uniLocation[1], 0);
         setAttribute(planeVBO, resetPrg.attLocation, resetPrg.attStride, planeIBO);
         gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION);
-        for(let i = 0; i <= 1; ++i){
+        for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
             // velocity buffer
-            gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[i].framebuffer);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[targetBufferIndex].framebuffer);
             gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
             // position buffer
-            gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[i].framebuffer);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[targetBufferIndex].framebuffer);
             gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
@@ -414,7 +428,6 @@
 
         function render(){
             nowTime = (Date.now() - startTime) / 1000;
-            ++loopCount;
             let targetBufferIndex = loopCount % 2;
             let prevBufferIndex = 1 - targetBufferIndex;
 
@@ -493,6 +506,8 @@
             gl.drawArrays(mode, 0, (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1));
 
             gl.flush();
+
+            ++loopCount;
 
             // animation loop
             if(run){requestAnimationFrame(render);}
