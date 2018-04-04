@@ -398,30 +398,54 @@
         let startTime = Date.now();
         let nowTime = 0;
         let loopCount = 0;
-        let mode = 'points';
+        let mode;
         run = true;
         render();
 
+        // control
         new Vue({
-          el: '#mode',
+          el: '#setting',
           data: {
-            mode
+            mode: 'points',
+            color: 'black'
           },
-          watch: {
-            mode: function (val) {
+          methods: {
+            setMode (val) {
               switch (val) {
-                case 'points':
-                  mode = gl.POINTS
-                  break;
                 case 'line_strip':
-                  mode = gl.LINE_STRIP
+                  mode = gl.LINE_STRIP;
                   break;
                 case 'triangles':
-                  mode = gl.TRIANGLES
+                  mode = gl.TRIANGLES;
                   break;
+                case 'points':
                 default:
-                  mode = gl.POINTS
+                  mode = gl.POINTS;
               }
+            },
+            setColor (val) {
+              let color;
+              switch (val) {
+                case 'white':
+                  color = 'white';
+                  break;
+                case 'black':
+                default:
+                  color = 'black';
+              }
+              canvas.style.backgroundColor = color;
+            }
+          },
+          mounted () {
+            this.setMode(this.mode);
+            this.setColor(this.color);
+          },
+          watch: {
+            mode (val) {
+              this.setMode(val);
+            },
+            color (val) {
+              this.setColor(val);
             }
           }
         });
@@ -489,7 +513,7 @@
             gl.useProgram(scenePrg.program);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             setAttribute(pointVBO, scenePrg.attLocation, scenePrg.attStride);
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clearDepth(1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.viewport(0, 0, canvasWidth, canvasHeight);

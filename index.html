@@ -10,10 +10,19 @@
   <body>
     <canvas id="canvas"></canvas>
 
-    <div id="mode">
-      <label><input type="radio" v-model="mode" value="points">POINTS</label>
-      <label><input type="radio" v-model="mode" value="line_strip">LINE_STRIP</label>
-      <label><input type="radio" v-model="mode" value="triangles">TRIANGLES</label>
+    <div id="setting">
+      <fieldset>
+        <legend>drawArrays mode</legend>
+        <label><input type="radio" v-model="mode" value="points">POINTS</label>
+        <label><input type="radio" v-model="mode" value="line_strip">LINE_STRIP</label>
+        <label><input type="radio" v-model="mode" value="triangles">TRIANGLES</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>background-color</legend>
+        <label><input type="radio" v-model="color" value="black">black</label>
+        <label><input type="radio" v-model="color" value="white">white</label>
+      </fieldset>
     </div>
   </body>
 </html>

@@ -16,7 +16,7 @@ canvas {
     margin: 0px auto;
 }
 
-#mode {
+#setting {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -24,6 +24,6 @@ canvas {
   text-align: left;
 }
 
-#mode label {
+#setting label {
   display: block;
 }
