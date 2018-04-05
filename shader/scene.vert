@@ -3,7 +3,7 @@ uniform   mat4 mvpMatrix;
 uniform sampler2D positionTexture;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
-const float pointSize = 5.;
+const float pointSize = 10.;
 void main(){
   vTexCoord = texCoord;
   vec4 position = texture2D(positionTexture, texCoord);

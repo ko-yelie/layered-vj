@@ -9,7 +9,6 @@
   let mat;
   let textures = [];
   let mouse = [0.0, 0.0];
-  let isMouseDown = false;
 
   let scenePrg;
   let videoPrg;
@@ -50,14 +49,7 @@
       run = eve.keyCode !== 27;
     }, false);
 
-    window.addEventListener('mousedown', () => {
-      isMouseDown = true;
-    }, false);
-    window.addEventListener('mouseup', () => {
-      isMouseDown = false;
-    }, false);
     window.addEventListener('mousemove', (eve) => {
-      if(isMouseDown !== true){return;};
       let x = (eve.clientX / canvasWidth) * 2.0 - 1.0;
       let y = (eve.clientY / canvasHeight) * 2.0 - 1.0;
       mouse = [x, -y];
@@ -222,25 +214,23 @@
     velocityPrg.uniLocation[1] = gl.getUniformLocation(velocityPrg.program, 'positionTexture');
     velocityPrg.uniLocation[2] = gl.getUniformLocation(velocityPrg.program, 'resolution');
     velocityPrg.uniLocation[3] = gl.getUniformLocation(velocityPrg.program, 'time');
-    velocityPrg.uniLocation[4] = gl.getUniformLocation(velocityPrg.program, 'move');
-    velocityPrg.uniLocation[5] = gl.getUniformLocation(velocityPrg.program, 'mouse');
+    velocityPrg.uniLocation[4] = gl.getUniformLocation(velocityPrg.program, 'mouse');
     velocityPrg.uniType[0]   = 'uniform1i';
     velocityPrg.uniType[1]   = 'uniform1i';
     velocityPrg.uniType[2]   = 'uniform2fv';
     velocityPrg.uniType[3]   = 'uniform1f';
-    velocityPrg.uniType[4]   = 'uniform1i';
-    velocityPrg.uniType[5]   = 'uniform2fv';
+    velocityPrg.uniType[4]   = 'uniform2fv';
 
     positionPrg.attLocation[0] = gl.getAttribLocation(positionPrg.program, 'position');
     positionPrg.attStride[0]   = 3;
     positionPrg.uniLocation[0] = gl.getUniformLocation(positionPrg.program, 'prevPositionTexture');
-    positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'pictureTexture');
-    positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'resolution');
-    positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'move');
+    positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'velocityTexture');
+    positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'pictureTexture');
+    positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'resolution');
     positionPrg.uniType[0]   = 'uniform1i';
     positionPrg.uniType[1]   = 'uniform1i';
-    positionPrg.uniType[2]   = 'uniform2fv';
-    positionPrg.uniType[3]   = 'uniform1i';
+    positionPrg.uniType[2]   = 'uniform1i';
+    positionPrg.uniType[3]   = 'uniform2fv';
 
     let pointTexCoord = [];
     const sWidth = 256;
@@ -495,17 +485,16 @@
       gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], POSITION_BUFFER_INDEX + prevBufferIndex);
       gl[velocityPrg.uniType[2]](velocityPrg.uniLocation[2], [POINT_RESOLUTION, POINT_RESOLUTION]);
       gl[velocityPrg.uniType[3]](velocityPrg.uniLocation[3], nowTime);
-      gl[velocityPrg.uniType[4]](velocityPrg.uniLocation[4], isMouseDown);
-      gl[velocityPrg.uniType[5]](velocityPrg.uniLocation[5], mouse);
+      gl[velocityPrg.uniType[4]](velocityPrg.uniLocation[4], mouse);
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
       // position update
       gl.useProgram(positionPrg.program);
       gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[targetBufferIndex].framebuffer);
       setAttribute(planeVBO, positionPrg.attLocation, positionPrg.attStride, planeIBO);
       gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], POSITION_BUFFER_INDEX + prevBufferIndex);
-      gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], PICTURE_BUFFER_INDEX + targetBufferIndex);
-      gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], [POINT_RESOLUTION, POINT_RESOLUTION]);
-      gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], isMouseDown);
+      gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], VELOCITY_BUFFER_INDEX + targetBufferIndex);
+      gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], PICTURE_BUFFER_INDEX + targetBufferIndex);
+      gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION]);
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
 
       // render to canvas -------------------------------------------
