@@ -19,6 +19,18 @@
       </fieldset>
 
       <fieldset>
+        <legend>shape</legend>
+        <label><input type="radio" v-model="shape" value="line">line</label>
+        <label><input type="radio" v-model="shape" value="mesh">mesh</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>animation</legend>
+        <label><input type="radio" v-model="animation" value="0">1</label>
+        <label><input type="radio" v-model="animation" value="1">2</label>
+      </fieldset>
+
+      <fieldset>
         <legend>background-color</legend>
         <label><input type="radio" v-model="color" value="black">black</label>
         <label><input type="radio" v-model="color" value="white">white</label>

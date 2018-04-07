@@ -2,16 +2,15 @@
  * velocity update shader
  * ---------------------------------------------------------------------------- */
 precision mediump float;
-uniform sampler2D prevTexture;
-uniform sampler2D positionTexture;
+uniform sampler2D prevVelocityTexture;
+uniform sampler2D pictureTexture;
 uniform vec2      resolution;
 uniform float     time;
 uniform vec2      mouse;
 void main(){
     vec2 coord = gl_FragCoord.st / resolution;
-    vec4 prevVelocity = texture2D(prevTexture, coord);
-    vec4 position = texture2D(positionTexture, coord);
-    vec3 velocity = prevVelocity.xyz;
-    prevVelocity.z -= pow(position.z, 2.) * 1.;
-    gl_FragColor = vec4(normalize(velocity), 0.0);
+    vec4 prevVelocity = texture2D(prevVelocityTexture, coord);
+    vec4 picture = texture2D(pictureTexture, coord);
+    float velocityZ = (0.001 + prevVelocity.z) * (1. - picture.w);
+    gl_FragColor = vec4(prevVelocity.xy, velocityZ, 0.0);
 }

@@ -17,5 +17,5 @@ void main(){
     float diff = abs(((video.r + video.g + video.b) - (prevVideo.r + prevVideo.g + prevVideo.b))) / 3.;
     float isMove = step(threshold, diff);
     vec3 prevColor = prevPicture.rgb * attenuationRate * (1. - isMove);
-    gl_FragColor = vec4(video.rgb, 1.) * isMove + vec4(prevColor, 1.);
+    gl_FragColor = vec4(video.rgb, 1.) * isMove + vec4(prevColor, 0.);
 }

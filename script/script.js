@@ -210,8 +210,8 @@
 
     velocityPrg.attLocation[0] = gl.getAttribLocation(velocityPrg.program, 'position');
     velocityPrg.attStride[0]   = 3;
-    velocityPrg.uniLocation[0] = gl.getUniformLocation(velocityPrg.program, 'prevTexture');
-    velocityPrg.uniLocation[1] = gl.getUniformLocation(velocityPrg.program, 'positionTexture');
+    velocityPrg.uniLocation[0] = gl.getUniformLocation(velocityPrg.program, 'prevVelocityTexture');
+    velocityPrg.uniLocation[1] = gl.getUniformLocation(velocityPrg.program, 'pictureTexture');
     velocityPrg.uniLocation[2] = gl.getUniformLocation(velocityPrg.program, 'resolution');
     velocityPrg.uniLocation[3] = gl.getUniformLocation(velocityPrg.program, 'time');
     velocityPrg.uniLocation[4] = gl.getUniformLocation(velocityPrg.program, 'mouse');
@@ -227,16 +227,29 @@
     positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'velocityTexture');
     positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'pictureTexture');
     positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'resolution');
+    positionPrg.uniLocation[4] = gl.getUniformLocation(positionPrg.program, 'animation');
     positionPrg.uniType[0]   = 'uniform1i';
     positionPrg.uniType[1]   = 'uniform1i';
     positionPrg.uniType[2]   = 'uniform1i';
     positionPrg.uniType[3]   = 'uniform2fv';
+    positionPrg.uniType[4]   = 'uniform1f';
 
-    let pointTexCoord = [];
     const sWidth = 256;
     const tHeight = 256;
     const sInterval = (sWidth / POINT_RESOLUTION) / sWidth;
     const tInterval = (tHeight / POINT_RESOLUTION) / tHeight;
+
+    let pointTexCoord = [];
+    for(let t = 0; t < 1; t += tInterval){
+      const back = t % (tInterval * 2) === tInterval;
+      for(let s = 0; s < 1; s += sInterval){
+        const cS = (back ? 1 : 0) + s * (back ? -1 : 1);
+        pointTexCoord.push(cS, t);
+      }
+    }
+    const pointVBO = [createVbo(pointTexCoord)];
+
+    pointTexCoord = [];
     for(let t = 0; t < 1 - tInterval; t += tInterval){
       for(let s = 0; s < 1; s += sInterval){
         if (s === sWidth - sInterval) {
@@ -250,7 +263,7 @@
         }
       }
     }
-    let pointVBO = [createVbo(pointTexCoord)];
+    const meshPointVBO = [createVbo(pointTexCoord)];
 
     // vertices
     let planePosition = [
@@ -389,6 +402,8 @@
     let nowTime = 0;
     let loopCount = 0;
     let mode;
+    let shape;
+    let animation;
     run = true;
     render();
 
@@ -397,6 +412,8 @@
       el: '#setting',
       data: {
         mode: 'points',
+        shape: 'line',
+        animation: '0',
         color: 'black'
       },
       methods: {
@@ -413,6 +430,12 @@
             mode = gl.POINTS;
           }
         },
+        setShape (val) {
+          shape = val;
+        },
+        setAnimation (val) {
+          animation = val;
+        },
         setColor (val) {
           let color;
           switch (val) {
@@ -428,11 +451,19 @@
       },
       mounted () {
         this.setMode(this.mode);
+        this.setShape(this.shape);
+        this.setAnimation(this.animation);
         this.setColor(this.color);
       },
       watch: {
         mode (val) {
           this.setMode(val);
+        },
+        shape (val) {
+          this.setShape(val);
+        },
+        animation (val) {
+          this.setAnimation(val);
         },
         color (val) {
           this.setColor(val);
@@ -482,7 +513,7 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[targetBufferIndex].framebuffer);
       setAttribute(planeVBO, velocityPrg.attLocation, velocityPrg.attStride, planeIBO);
       gl[velocityPrg.uniType[0]](velocityPrg.uniLocation[0], VELOCITY_BUFFER_INDEX + prevBufferIndex);
-      gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], POSITION_BUFFER_INDEX + prevBufferIndex);
+      gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], PICTURE_BUFFER_INDEX + prevBufferIndex);
       gl[velocityPrg.uniType[2]](velocityPrg.uniLocation[2], [POINT_RESOLUTION, POINT_RESOLUTION]);
       gl[velocityPrg.uniType[3]](velocityPrg.uniLocation[3], nowTime);
       gl[velocityPrg.uniType[4]](velocityPrg.uniLocation[4], mouse);
@@ -495,13 +526,14 @@
       gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], VELOCITY_BUFFER_INDEX + targetBufferIndex);
       gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], PICTURE_BUFFER_INDEX + targetBufferIndex);
       gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION]);
+      gl[positionPrg.uniType[4]](positionPrg.uniLocation[4], animation);
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
 
       // render to canvas -------------------------------------------
       gl.enable(gl.BLEND);
       gl.useProgram(scenePrg.program);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      setAttribute(pointVBO, scenePrg.attLocation, scenePrg.attStride);
+      setAttribute(shape === 'mesh' ? meshPointVBO : pointVBO, scenePrg.attLocation, scenePrg.attStride);
       gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.clearDepth(1.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -516,7 +548,7 @@
       gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex);
       gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex);
       // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
-      gl.drawArrays(mode, 0, (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1));
+      gl.drawArrays(mode, 0, shape === 'mesh' ? ((4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)) : POINT_RESOLUTION * POINT_RESOLUTION);
 
       gl.flush();
 
