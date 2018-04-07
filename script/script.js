@@ -397,79 +397,75 @@
     gl.enable(gl.BLEND);
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
 
+    // control
+    const data = {
+      mode: 'points',
+      shape: 'line',
+      animation: 'fast',
+      color: 'black'
+    };
+
+    let mode = gl.POINTS;
+    let vbo = pointVBO;
+    let arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
+    let animation = 0;
+    canvas.style.backgroundColor = data.color;
+
+    const gui = new dat.GUI();
+    gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(val => {
+      switch (val) {
+      case 'line_strip':
+        mode = gl.LINE_STRIP;
+        break;
+      case 'triangles':
+        mode = gl.TRIANGLES;
+        break;
+      case 'points':
+      default:
+        mode = gl.POINTS;
+      }
+    });
+    gui.add(data, 'shape', ['line', 'mesh']).onChange(val => {
+      switch (val) {
+      case 'mesh':
+        vbo = meshPointVBO;
+        arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1);
+        break;
+      case 'line':
+      default:
+        vbo = pointVBO;
+        arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
+      }
+    });
+    gui.add(data, 'animation', ['fast', 'slow']).onChange(val => {
+      switch (val) {
+      case 'slow':
+        animation = 1;
+        break;
+      case 'fast':
+      default:
+        animation = 0;
+      }
+    });
+    gui.add(data, 'color', ['black', 'white']).onChange(val => {
+      let color;
+      switch (val) {
+      case 'white':
+        color = 'white';
+        break;
+      case 'black':
+      default:
+        color = 'black';
+      }
+      canvas.style.backgroundColor = color;
+    });
+
     // setting
     let startTime = Date.now();
     let nowTime = 0;
     let loopCount = 0;
-    let mode;
-    let shape;
-    let animation;
     run = true;
     render();
-
-    // control
-    new Vue({
-      el: '#setting',
-      data: {
-        mode: 'points',
-        shape: 'line',
-        animation: '0',
-        color: 'black'
-      },
-      methods: {
-        setMode (val) {
-          switch (val) {
-          case 'line_strip':
-            mode = gl.LINE_STRIP;
-            break;
-          case 'triangles':
-            mode = gl.TRIANGLES;
-            break;
-          case 'points':
-          default:
-            mode = gl.POINTS;
-          }
-        },
-        setShape (val) {
-          shape = val;
-        },
-        setAnimation (val) {
-          animation = val;
-        },
-        setColor (val) {
-          let color;
-          switch (val) {
-          case 'white':
-            color = 'white';
-            break;
-          case 'black':
-          default:
-            color = 'black';
-          }
-          canvas.style.backgroundColor = color;
-        }
-      },
-      mounted () {
-        this.setMode(this.mode);
-        this.setShape(this.shape);
-        this.setAnimation(this.animation);
-        this.setColor(this.color);
-      },
-      watch: {
-        mode (val) {
-          this.setMode(val);
-        },
-        shape (val) {
-          this.setShape(val);
-        },
-        animation (val) {
-          this.setAnimation(val);
-        },
-        color (val) {
-          this.setColor(val);
-        }
-      }
-    });
 
     function render(){
       nowTime = (Date.now() - startTime) / 1000;
@@ -533,7 +529,7 @@
       gl.enable(gl.BLEND);
       gl.useProgram(scenePrg.program);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      setAttribute(shape === 'mesh' ? meshPointVBO : pointVBO, scenePrg.attLocation, scenePrg.attStride);
+      setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride);
       gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.clearDepth(1.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -548,7 +544,7 @@
       gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex);
       gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex);
       // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
-      gl.drawArrays(mode, 0, shape === 'mesh' ? ((4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)) : POINT_RESOLUTION * POINT_RESOLUTION);
+      gl.drawArrays(mode, 0, arrayLength);
 
       gl.flush();
 
