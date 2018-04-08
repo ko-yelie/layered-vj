@@ -175,13 +175,15 @@
     // scenePrg.attStride[0]   = 3;
     scenePrg.attStride[0]   = 2;
     scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix');
-    scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'resolution');
+    scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'size');
     scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture');
     scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture');
+    scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor');
     scenePrg.uniType[0]   = 'uniformMatrix4fv';
-    scenePrg.uniType[1]   = 'uniform2fv';
+    scenePrg.uniType[1]   = 'uniform1f';
     scenePrg.uniType[2]   = 'uniform1i';
     scenePrg.uniType[3]   = 'uniform1i';
+    scenePrg.uniType[4]   = 'uniform1f';
 
     videoPrg.attLocation[0] = gl.getAttribLocation(videoPrg.program, 'position');
     videoPrg.attStride[0]   = 3;
@@ -227,7 +229,7 @@
     positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'velocityTexture');
     positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'pictureTexture');
     positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'resolution');
-    positionPrg.uniLocation[4] = gl.getUniformLocation(positionPrg.program, 'animation');
+    positionPrg.uniLocation[4] = gl.getUniformLocation(positionPrg.program, 'isAnimation1');
     positionPrg.uniType[0]   = 'uniform1i';
     positionPrg.uniType[1]   = 'uniform1i';
     positionPrg.uniType[2]   = 'uniform1i';
@@ -401,15 +403,18 @@
     const data = {
       mode: 'points',
       shape: 'line',
-      animation: 'fast',
-      color: 'black'
+      speed: 'fast',
+      bgColor: 'black'
     };
 
     let mode = gl.POINTS;
     let vbo = pointVBO;
     let arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
-    let animation = 0;
-    canvas.style.backgroundColor = data.color;
+    let isAnimation1 = 1;
+    let bgColor = 0;
+
+    let rgbInt = bgColor * 255;
+    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`;
 
     const gui = new dat.GUI();
     gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(val => {
@@ -437,27 +442,27 @@
         arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
       }
     });
-    gui.add(data, 'animation', ['fast', 'slow']).onChange(val => {
+    gui.add(data, 'speed', ['fast', 'slow']).onChange(val => {
       switch (val) {
       case 'slow':
-        animation = 1;
+        isAnimation1 = 0;
         break;
       case 'fast':
       default:
-        animation = 0;
+        isAnimation1 = 1;
       }
     });
-    gui.add(data, 'color', ['black', 'white']).onChange(val => {
-      let color;
+    gui.add(data, 'bgColor', ['black', 'white']).onChange(val => {
       switch (val) {
       case 'white':
-        color = 'white';
+        bgColor = 1;
         break;
       case 'black':
       default:
-        color = 'black';
+        bgColor = 0;
       }
-      canvas.style.backgroundColor = color;
+      let rgbInt = bgColor * 255;
+      canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`;
     });
 
     // setting
@@ -522,7 +527,7 @@
       gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], VELOCITY_BUFFER_INDEX + targetBufferIndex);
       gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], PICTURE_BUFFER_INDEX + targetBufferIndex);
       gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION]);
-      gl[positionPrg.uniType[4]](positionPrg.uniLocation[4], animation);
+      gl[positionPrg.uniType[4]](positionPrg.uniLocation[4], isAnimation1);
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
 
       // render to canvas -------------------------------------------
@@ -540,9 +545,10 @@
       // mat.rotate(mMatrix, nowTime * 0.05, [0.0, 1.0, 0.0], mMatrix);
       mat.multiply(vpMatrix, mMatrix, mvpMatrix);
       gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
-      gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], [POINT_RESOLUTION, POINT_RESOLUTION]);
+      gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight);
       gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex);
       gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex);
+      gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], bgColor);
       // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
       gl.drawArrays(mode, 0, arrayLength);
 
