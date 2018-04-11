@@ -1,3 +1,4 @@
+import matIV from './minMatrix.js';
 
 (() => {
   let canvas;
@@ -56,89 +57,50 @@
     }, false);
 
     // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
-    loadShaderSource(
-      './shader/scene.vert',
-      './shader/scene.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        scenePrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    loadShaderSource(
-      './shader/video.vert',
-      './shader/video.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        videoPrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    loadShaderSource(
-      './shader/picture.vert',
-      './shader/picture.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        picturePrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    loadShaderSource(
-      './shader/reset.vert',
-      './shader/reset.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        resetPrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    loadShaderSource(
-      './shader/position.vert',
-      './shader/position.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        positionPrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    loadShaderSource(
-      './shader/velocity.vert',
-      './shader/velocity.frag',
-      (shader) => {
-        let vs = createShader(shader.vs, gl.VERTEX_SHADER);
-        let fs = createShader(shader.fs, gl.FRAGMENT_SHADER);
-        let prg = createProgram(vs, fs);
-        if(prg == null){return;}
-        velocityPrg = new ProgramParameter(prg);
-        loadCheck();
-      }
-    );
-    // シェーダのロードが完了したかチェックし init を呼び出す
-    function loadCheck(){
-      if(
-        scenePrg != null &&
-        videoPrg != null &&
-        picturePrg != null &&
-        resetPrg != null &&
-        positionPrg != null &&
-        velocityPrg != null
-      ){initWebcam();}
+    {
+      let vs = createShader(require('../shader/scene.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/scene.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      scenePrg = new ProgramParameter(prg);
     }
+    {
+      let vs = createShader(require('../shader/video.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/video.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      videoPrg = new ProgramParameter(prg);
+    }
+    {
+      let vs = createShader(require('../shader/picture.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/picture.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      picturePrg = new ProgramParameter(prg);
+    }
+    {
+      let vs = createShader(require('../shader/reset.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/reset.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      resetPrg = new ProgramParameter(prg);
+    }
+    {
+      let vs = createShader(require('../shader/position.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/position.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      positionPrg = new ProgramParameter(prg);
+    }
+    {
+      let vs = createShader(require('../shader/velocity.vert'), gl.VERTEX_SHADER);
+      let fs = createShader(require('../shader/velocity.frag'), gl.FRAGMENT_SHADER);
+      let prg = createProgram(vs, fs);
+      if(prg == null){return;}
+      velocityPrg = new ProgramParameter(prg);
+    }
+    // シェーダのロードが完了したかチェックし init を呼び出す
+    initWebcam();
   }, false);
 
   function initWebcam(){
@@ -147,23 +109,23 @@
     video.height = POINT_RESOLUTION;
     video.loop = true;
     //Webcam video
-    window.URL = window.URL || window.webkitURL;
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
     //get webcam
     navigator.getUserMedia({
       video: true
     }, function(stream) {
       //on webcam enabled
-      video.src = window.URL.createObjectURL(stream);
+      video.srcObject = stream;
 
-      video.addEventListener('canplay', function(){
+      function playVideo(){
         // 複数回呼ばれないようにイベントを削除
-        video.removeEventListener('canplay', arguments.callee, true);
+        video.removeEventListener('canplay', playVideo);
         // video 再生開始をコール
         video.play();
 
         init(video);
-      }, true);
+      };
+      video.addEventListener('canplay', playVideo);
     }, function(error) {
       prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.';
     });

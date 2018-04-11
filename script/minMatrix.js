@@ -3,7 +3,7 @@
 // version 0.0.3
 // ------------------------------------------------------------------------------------------------
 
-function matIV(){
+export default function matIV(){
     this.create = function(){
         return new Float32Array(16);
     };
