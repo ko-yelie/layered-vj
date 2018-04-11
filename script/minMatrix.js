@@ -233,7 +233,7 @@ export default function matIV(){
     };
 }
 
-function qtnIV(){
+export function qtnIV(){
     this.create = function(){
         return new Float32Array(4);
     };
@@ -355,7 +355,7 @@ function qtnIV(){
     };
 }
 
-function torus(row, column, irad, orad, color){
+export function torus(row, column, irad, orad, color){
     var i, j, tc;
     var pos = new Array(), nor = new Array(),
         col = new Array(), st  = new Array(), idx = new Array();
@@ -395,7 +395,7 @@ function torus(row, column, irad, orad, color){
     return {p : pos, n : nor, c : col, t : st, i : idx};
 }
 
-function sphere(row, column, rad, color){
+export function sphere(row, column, rad, color){
     var i, j, tc;
     var pos = new Array(), nor = new Array(),
         col = new Array(), st  = new Array(), idx = new Array();
@@ -432,7 +432,7 @@ function sphere(row, column, rad, color){
     return {p : pos, n : nor, c : col, t : st, i : idx};
 }
 
-function cube(side, color){
+export function cube(side, color){
     var tc, hs = side * 0.5;
     var pos = [
         -hs, -hs,  hs,  hs, -hs,  hs,  hs,  hs,  hs, -hs,  hs,  hs,

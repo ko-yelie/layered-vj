@@ -5,6 +5,7 @@
   },
   "devDependencies": {
     "glslify-bundle": "^5.0.0",
-    "glslify-deps": "^1.3.0"
+    "glslify-deps": "^1.3.0",
+    "stylus": "^0.54.5"
   }
 }
