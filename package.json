@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "parcel --open",
-    "build": "parcel build index.html --no-source-maps -d docs --public-url /webcam-particle/ --out-file index"
+    "build": "parcel build index.pug --no-source-maps -d docs --public-url /webcam-particle/ --out-file index"
   },
   "devDependencies": {
     "glslify-bundle": "^5.0.0",
