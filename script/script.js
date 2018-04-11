@@ -203,12 +203,10 @@ function init(video){
   positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'velocityTexture');
   positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'pictureTexture');
   positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'resolution');
-  positionPrg.uniLocation[4] = gl.getUniformLocation(positionPrg.program, 'isAnimation1');
   positionPrg.uniType[0]   = 'uniform1i';
   positionPrg.uniType[1]   = 'uniform1i';
   positionPrg.uniType[2]   = 'uniform1i';
   positionPrg.uniType[3]   = 'uniform2fv';
-  positionPrg.uniType[4]   = 'uniform1f';
 
   const sWidth = 256;
   const tHeight = 256;
@@ -377,14 +375,12 @@ function init(video){
   const data = {
     mode: 'points',
     shape: 'line',
-    speed: 'fast',
     bgColor: 'black'
   };
 
   let mode = gl.POINTS;
   let vbo = pointVBO;
   let arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
-  let isAnimation1 = 1;
   let bgColor = 0;
 
   let rgbInt = bgColor * 255;
@@ -414,16 +410,6 @@ function init(video){
     default:
       vbo = pointVBO;
       arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
-    }
-  });
-  gui.add(data, 'speed', ['fast', 'slow']).onChange(val => {
-    switch (val) {
-    case 'slow':
-      isAnimation1 = 0;
-      break;
-    case 'fast':
-    default:
-      isAnimation1 = 1;
     }
   });
   gui.add(data, 'bgColor', ['black', 'white']).onChange(val => {
@@ -501,7 +487,6 @@ function init(video){
     gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], VELOCITY_BUFFER_INDEX + targetBufferIndex);
     gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], PICTURE_BUFFER_INDEX + targetBufferIndex);
     gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION]);
-    gl[positionPrg.uniType[4]](positionPrg.uniLocation[4], isAnimation1);
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
 
     // render to canvas -------------------------------------------
