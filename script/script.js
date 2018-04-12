@@ -21,6 +21,7 @@ let isRun;
 let mat;
 let textures = [];
 let mouse = [0.0, 0.0];
+let rotation = [0.0, 0.0];
 let render
 
 let scenePrg;
@@ -497,8 +498,11 @@ function init(video){
     gl.viewport(0, 0, canvasWidth, canvasHeight);
 
     // push and render
+    rotation[0] += (mouse[0] - rotation[0]) * 0.05
+    rotation[1] += (mouse[1] - rotation[1]) * 0.05
     mat.identity(mMatrix);
-    // mat.rotate(mMatrix, nowTime * 0.05, [0.0, 1.0, 0.0], mMatrix);
+    mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix);
+    mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix);
     mat.multiply(vpMatrix, mMatrix, mvpMatrix);
     gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix);
     gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight);
