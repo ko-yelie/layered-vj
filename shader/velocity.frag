@@ -5,7 +5,6 @@ precision mediump float;
 uniform sampler2D prevVelocityTexture;
 uniform sampler2D pictureTexture;
 uniform vec2      resolution;
-uniform float     time;
 uniform vec2      mouse;
 const float speed = 0.0004;
 void main(){

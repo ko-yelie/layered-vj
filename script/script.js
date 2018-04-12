@@ -17,10 +17,11 @@ let canvasWidth;
 let canvasHeight;
 let gl;
 let ext;
-let run;
+let isRun;
 let mat;
 let textures = [];
 let mouse = [0.0, 0.0];
+let render
 
 let scenePrg;
 let videoPrg;
@@ -59,14 +60,17 @@ export default function run () {
 
   // Esc キーで実行を止められるようにイベントを設定
   window.addEventListener('keydown', (eve) => {
-    run = eve.keyCode !== 27;
-  }, false);
+    if (eve.keyCode === 27) {
+      isRun = !isRun
+      isRun && render()
+    }
+  });
 
   window.addEventListener('mousemove', (eve) => {
     let x = (eve.clientX / canvasWidth) * 2.0 - 1.0;
     let y = (eve.clientY / canvasHeight) * 2.0 - 1.0;
     mouse = [x, -y];
-  }, false);
+  });
 
   // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
   {
@@ -189,13 +193,11 @@ function init(video){
   velocityPrg.uniLocation[0] = gl.getUniformLocation(velocityPrg.program, 'prevVelocityTexture');
   velocityPrg.uniLocation[1] = gl.getUniformLocation(velocityPrg.program, 'pictureTexture');
   velocityPrg.uniLocation[2] = gl.getUniformLocation(velocityPrg.program, 'resolution');
-  velocityPrg.uniLocation[3] = gl.getUniformLocation(velocityPrg.program, 'time');
-  velocityPrg.uniLocation[4] = gl.getUniformLocation(velocityPrg.program, 'mouse');
+  velocityPrg.uniLocation[3] = gl.getUniformLocation(velocityPrg.program, 'mouse');
   velocityPrg.uniType[0]   = 'uniform1i';
   velocityPrg.uniType[1]   = 'uniform1i';
   velocityPrg.uniType[2]   = 'uniform2fv';
-  velocityPrg.uniType[3]   = 'uniform1f';
-  velocityPrg.uniType[4]   = 'uniform2fv';
+  velocityPrg.uniType[3]   = 'uniform2fv';
 
   positionPrg.attLocation[0] = gl.getAttribLocation(positionPrg.program, 'position');
   positionPrg.attStride[0]   = 3;
@@ -426,14 +428,10 @@ function init(video){
   });
 
   // setting
-  let startTime = Date.now();
-  let nowTime = 0;
   let loopCount = 0;
-  run = true;
-  render();
+  isRun = true;
 
-  function render(){
-    nowTime = (Date.now() - startTime) / 1000;
+  render = () => {
     let targetBufferIndex = loopCount % 2;
     let prevBufferIndex = 1 - targetBufferIndex;
 
@@ -476,8 +474,7 @@ function init(video){
     gl[velocityPrg.uniType[0]](velocityPrg.uniLocation[0], VELOCITY_BUFFER_INDEX + prevBufferIndex);
     gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], PICTURE_BUFFER_INDEX + prevBufferIndex);
     gl[velocityPrg.uniType[2]](velocityPrg.uniLocation[2], [POINT_RESOLUTION, POINT_RESOLUTION]);
-    gl[velocityPrg.uniType[3]](velocityPrg.uniLocation[3], nowTime);
-    gl[velocityPrg.uniType[4]](velocityPrg.uniLocation[4], mouse);
+    gl[velocityPrg.uniType[3]](velocityPrg.uniLocation[3], mouse);
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
     // position update
     gl.useProgram(positionPrg.program);
@@ -516,6 +513,8 @@ function init(video){
     ++loopCount;
 
     // animation loop
-    if(run){requestAnimationFrame(render);}
+    if(isRun){requestAnimationFrame(render);}
   }
+
+  render()
 }
