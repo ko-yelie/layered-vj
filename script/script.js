@@ -379,54 +379,60 @@ function init(video){
     mode: 'points',
     shape: 'line',
     bgColor: 'black'
-  };
+  }
 
-  let mode = gl.POINTS;
-  let vbo = pointVBO;
-  let arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
-  let bgColor = 0;
+  let mode
+  let vbo
+  let arrayLength
+  let bgColor
 
-  let rgbInt = bgColor * 255;
-  canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`;
+  const gui = new dat.GUI()
 
-  const gui = new dat.GUI();
-  gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(val => {
+  function changeMode (val) {
     switch (val) {
     case 'line_strip':
-      mode = gl.LINE_STRIP;
-      break;
+      mode = gl.LINE_STRIP
+      break
     case 'triangles':
-      mode = gl.TRIANGLES;
-      break;
+      mode = gl.TRIANGLES
+      break
     case 'points':
     default:
-      mode = gl.POINTS;
+      mode = gl.POINTS
     }
-  });
-  gui.add(data, 'shape', ['line', 'mesh']).onChange(val => {
+  }
+  gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(changeMode)
+  changeMode(data.mode)
+
+  function changeShape (val) {
     switch (val) {
     case 'mesh':
-      vbo = meshPointVBO;
-      arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1);
-      break;
+      vbo = meshPointVBO
+      arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
+      break
     case 'line':
     default:
-      vbo = pointVBO;
-      arrayLength = POINT_RESOLUTION * POINT_RESOLUTION;
+      vbo = pointVBO
+      arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
     }
-  });
-  gui.add(data, 'bgColor', ['black', 'white']).onChange(val => {
+  }
+  gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
+  changeShape(data.shape)
+
+  function changeBgColor (val) {
     switch (val) {
     case 'white':
-      bgColor = 1;
-      break;
+      bgColor = 1
+      break
     case 'black':
     default:
-      bgColor = 0;
+      bgColor = 0
     }
-    let rgbInt = bgColor * 255;
-    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`;
-  });
+    let rgbInt = bgColor * 255
+    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
+  }
+  gui.add(data, 'bgColor', ['black', 'white']).onChange(changeBgColor)
+  changeBgColor(data.bgColor)
 
   // setting
   let loopCount = 0;
