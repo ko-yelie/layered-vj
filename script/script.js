@@ -11,6 +11,7 @@ import {
   createFramebufferFloat,
   getWebGLExtensions
 } from './utils.js';
+import initWebcam from './media.js';
 
 let canvas;
 let canvasWidth;
@@ -117,35 +118,7 @@ export default function run () {
     velocityPrg = new ProgramParameter(prg);
   }
 
-  initWebcam();
-}
-
-function initWebcam(){
-  var video = document.createElement('video');
-  video.width = POINT_RESOLUTION;
-  video.height = POINT_RESOLUTION;
-  video.loop = true;
-  //Webcam video
-  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-  //get webcam
-  navigator.getUserMedia({
-    video: true
-  }, function(stream) {
-    //on webcam enabled
-    video.srcObject = stream;
-
-    function playVideo(){
-      // 複数回呼ばれないようにイベントを削除
-      video.removeEventListener('canplay', playVideo);
-      // video 再生開始をコール
-      video.play();
-
-      init(video);
-    };
-    video.addEventListener('canplay', playVideo);
-  }, function(error) {
-    prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.';
-  });
+  initWebcam(POINT_RESOLUTION).then(init)
 }
 
 function init(video){
