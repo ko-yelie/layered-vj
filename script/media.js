@@ -1,31 +1,48 @@
-export default function initWebcam(width, height = width){
-  var video = document.createElement('video')
-  video.width = width
-  video.height = height
-  video.loop = true
+export default class Media {
+  constructor (width, height = width) {
+    const video = document.createElement('video')
+    video.width = width
+    video.height = height
+    video.loop = true
 
-  return new Promise(resolve => {
-    //Webcam video
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
-    //get webcam
-    navigator.getUserMedia({
-      audio: true,
-      video: true
-    }, function(stream) {
-      //on webcam enabled
-      video.srcObject = stream
+    this.promise = new Promise(resolve => {
+      //get webcam
+      navigator.getUserMedia({
+        audio: true,
+        video: true
+      }, stream => {
+        //on webcam enabled
+        video.srcObject = stream
 
-      function playVideo(){
-        // 複数回呼ばれないようにイベントを削除
-        video.removeEventListener('canplay', playVideo)
-        // video 再生開始をコール
-        video.play()
+        const audioCtx = new AudioContext()
+        const source = audioCtx.createMediaStreamSource(stream)
+        this.analyser = audioCtx.createAnalyser()
+        this.analyser.fftSize = height
+        source.connect(this.analyser)
+        this.array = new Uint8Array(this.analyser.fftSize)
 
-        resolve(video)
-      }
-      video.addEventListener('canplay', playVideo)
-    }, function(error) {
-      prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.'
+        const playVideo = () => {
+          // 複数回呼ばれないようにイベントを削除
+          video.removeEventListener('canplay', playVideo)
+          // video 再生開始をコール
+          video.play()
+          video.muted = 'true' // ビデオはミュートする
+
+          resolve(video)
+        }
+        video.addEventListener('canplay', playVideo)
+      }, error => {
+        prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.'
+      })
     })
-  })
+  }
+
+  update () {
+    let max = 0
+    this.analyser.getByteTimeDomainData(this.array)
+    for (let i = 0; i < this.analyser.fftSize; ++i) {
+      max = Math.max(this.array[i], max)
+    }
+    return max
+  }
 }

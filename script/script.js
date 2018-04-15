@@ -11,7 +11,7 @@ import {
   createFramebufferFloat,
   getWebGLExtensions
 } from './utils.js';
-import initWebcam from './media.js';
+import Media from './media.js';
 
 let canvas;
 let canvasWidth;
@@ -24,6 +24,7 @@ let textures = [];
 let mouse = [0.0, 0.0];
 let rotation = [0.0, 0.0];
 let render
+let media;
 
 let scenePrg;
 let videoPrg;
@@ -118,7 +119,8 @@ export default function run () {
     velocityPrg = new ProgramParameter(prg);
   }
 
-  initWebcam(POINT_RESOLUTION).then(init)
+  media = new Media(POINT_RESOLUTION)
+  media.promise.then(init)
 }
 
 function init(video){
@@ -131,11 +133,13 @@ function init(video){
   scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture');
   scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture');
   scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor');
+  scenePrg.uniLocation[5] = gl.getUniformLocation(scenePrg.program, 'volume');
   scenePrg.uniType[0]   = 'uniformMatrix4fv';
   scenePrg.uniType[1]   = 'uniform1f';
   scenePrg.uniType[2]   = 'uniform1i';
   scenePrg.uniType[3]   = 'uniform1i';
   scenePrg.uniType[4]   = 'uniform1f';
+  scenePrg.uniType[5]   = 'uniform1f';
 
   videoPrg.attLocation[0] = gl.getAttribLocation(videoPrg.program, 'position');
   videoPrg.attStride[0]   = 3;
@@ -415,6 +419,8 @@ function init(video){
     let targetBufferIndex = loopCount % 2;
     let prevBufferIndex = 1 - targetBufferIndex;
 
+    const volume = media.update()
+
     // video texture
     var videoTexture = gl.createTexture(gl.TEXTURE_2D);
     gl.activeTexture(gl.TEXTURE0);
@@ -488,6 +494,7 @@ function init(video){
     gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex);
     gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex);
     gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], bgColor);
+    gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume);
     // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
     gl.drawArrays(mode, 0, arrayLength);
 
