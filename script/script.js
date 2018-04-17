@@ -69,10 +69,17 @@ export default function run () {
     }
   });
 
+  let timer
   window.addEventListener('mousemove', (eve) => {
     let x = (eve.clientX / canvasWidth) * 2.0 - 1.0;
     let y = (eve.clientY / canvasHeight) * 2.0 - 1.0;
     mouse = [x, -y];
+
+    clearTimeout(timer)
+    canvas.classList.add('s-move')
+    timer = setTimeout(() => {
+      canvas.classList.remove('s-move')
+    }, 500)
   });
 
   // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
