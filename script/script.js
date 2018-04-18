@@ -1,4 +1,5 @@
 import matIV from './minMatrix.js';
+
 import {
   setGl,
   ProgramParameter,
@@ -10,7 +11,12 @@ import {
   setAttribute,
   createFramebufferFloat,
   getWebGLExtensions
+} from './gl-utils.js';
+
+import {
+  getFirstValue
 } from './utils.js';
+
 import Media from './media.js';
 
 let canvas;
@@ -42,11 +48,10 @@ let positionFramebuffers
 
 let render
 let media
+let data = {}
 let video
-let mode
 let vbo
 let arrayLength
-let bgColor
 
 let scenePrg;
 let videoPrg;
@@ -303,29 +308,15 @@ function initGlsl(){
 }
 
 function initControl(){
-  const data = {
-    mode: 'points',
-    shape: 'line',
-    bgColor: 'black'
-  }
-
   const gui = new dat.GUI()
 
-  function changeMode (val) {
-    switch (val) {
-    case 'line_strip':
-      mode = gl.LINE_STRIP
-      break
-    case 'triangles':
-      mode = gl.TRIANGLES
-      break
-    case 'points':
-    default:
-      mode = gl.POINTS
-    }
+  const modeMap = {
+    points: gl.POINTS,
+    line_strip: gl.LINE_STRIP,
+    triangles: gl.TRIANGLES
   }
-  gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(changeMode)
-  changeMode(data.mode)
+  data.mode = getFirstValue(modeMap)
+  gui.add(data, 'mode', modeMap)
 
   function changeShape (val) {
     switch (val) {
@@ -339,22 +330,20 @@ function initControl(){
       arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
     }
   }
+  data.shape = 'line'
   gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
   changeShape(data.shape)
 
-  function changeBgColor (val) {
-    switch (val) {
-    case 'white':
-      bgColor = 1
-      break
-    case 'black':
-    default:
-      bgColor = 0
-    }
-    let rgbInt = bgColor * 255
+  const bgColorMap = {
+    black: 0,
+    white: 1
+  }
+  const changeBgColor = val => {
+    let rgbInt = val * 255
     canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
   }
-  gui.add(data, 'bgColor', ['black', 'white']).onChange(changeBgColor)
+  data.bgColor = getFirstValue(bgColorMap)
+  gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
   changeBgColor(data.bgColor)
 
   media = new Media(POINT_RESOLUTION)
@@ -539,10 +528,10 @@ function init(){
     gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight);
     gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex);
     gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex);
-    gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], bgColor);
+    gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor);
     gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume);
     // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0);
-    gl.drawArrays(mode, 0, arrayLength);
+    gl.drawArrays(data.mode, 0, arrayLength);
 
     gl.flush();
 
