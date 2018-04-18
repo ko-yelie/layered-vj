@@ -1,36 +1,60 @@
 export default class Media {
   constructor (width, height = width) {
-    const video = document.createElement('video')
-    video.width = width
-    video.height = height
-    video.loop = true
+    this.video = document.createElement('video')
+    this.video.width = width
+    this.video.height = height
+    this.video.loop = true
+    this.video.muted = 'true' // 音が出ないようにする
 
-    this.promise = new Promise(resolve => {
+    this.promise = Promise.all([
+      this.enumerateDevices()
+    ])
+  }
+
+  enumerateDevices () {
+    return new Promise(resolve => {
+      navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
+        this.videoDevices = {}
+        mediaDeviceInfos.forEach(mediaDeviceInfo => {
+          switch (mediaDeviceInfo.kind) {
+            case 'videoinput':
+              this.videoDevices[mediaDeviceInfo.label] = mediaDeviceInfo.deviceId
+              break;
+          }
+        })
+        resolve()
+      })
+    })
+  }
+
+  getUserMedia (videoSource) {
+    return new Promise(resolve => {
       //get webcam
       navigator.getUserMedia({
         audio: true,
-        video: true
+        video: {
+          deviceId: { exact: videoSource }
+        }
       }, stream => {
         //on webcam enabled
-        video.srcObject = stream
+        this.video.srcObject = stream
 
         const audioCtx = new AudioContext()
         const source = audioCtx.createMediaStreamSource(stream)
         this.analyser = audioCtx.createAnalyser()
-        this.analyser.fftSize = height
+        this.analyser.fftSize = this.video.height
         source.connect(this.analyser)
         this.array = new Uint8Array(this.analyser.fftSize)
 
         const playVideo = () => {
           // 複数回呼ばれないようにイベントを削除
-          video.removeEventListener('canplay', playVideo)
+          this.video.removeEventListener('canplay', playVideo)
           // video 再生開始をコール
-          video.play()
-          video.muted = 'true' // ビデオはミュートする
+          this.video.play()
 
-          resolve(video)
+          resolve()
         }
-        video.addEventListener('canplay', playVideo)
+        this.video.addEventListener('canplay', playVideo)
       }, error => {
         prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.'
       })

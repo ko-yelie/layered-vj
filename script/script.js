@@ -23,8 +23,30 @@ let mat;
 let textures = [];
 let mouse = [0.0, 0.0];
 let rotation = [0.0, 0.0];
+
+let pointVBO
+let meshPointVBO
+let planeIndex
+let planeVBO
+let planeIBO
+let planeTexCoordVBO
+let mMatrix
+let vMatrix
+let pMatrix
+let vpMatrix
+let mvpMatrix
+let videoFramebuffers
+let pictureFramebuffers
+let velocityFramebuffers
+let positionFramebuffers
+
 let render
-let media;
+let media
+let video
+let mode
+let vbo
+let arrayLength
+let bgColor
 
 let scenePrg;
 let videoPrg;
@@ -126,11 +148,10 @@ export default function run () {
     velocityPrg = new ProgramParameter(prg);
   }
 
-  media = new Media(POINT_RESOLUTION)
-  media.promise.then(init)
+  initGlsl()
 }
 
-function init(video){
+function initGlsl(){
   // scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'position');
   scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord');
   // scenePrg.attStride[0]   = 3;
@@ -208,7 +229,7 @@ function init(video){
       pointTexCoord.push(cS, t);
     }
   }
-  const pointVBO = [createVbo(pointTexCoord)];
+  pointVBO = [createVbo(pointTexCoord)];
 
   pointTexCoord = [];
   for(let t = 0; t < 1 - tInterval; t += tInterval){
@@ -224,7 +245,7 @@ function init(video){
       }
     }
   }
-  const meshPointVBO = [createVbo(pointTexCoord)];
+  meshPointVBO = [createVbo(pointTexCoord)];
 
   // vertices
   let planePosition = [
@@ -239,45 +260,123 @@ function init(video){
     1.0, 1.0,
     0.0, 1.0
   ];
-  let planeIndex = [
+  planeIndex = [
     0, 1, 2, 2, 1, 3
   ];
-  let planeVBO = [createVbo(planePosition)];
-  let planeIBO = createIbo(planeIndex);
-  let planeTexCoordVBO = [
+  planeVBO = [createVbo(planePosition)];
+  planeIBO = createIbo(planeIndex);
+  planeTexCoordVBO = [
     createVbo(planePosition),
     createVbo(planeTexCoord)
   ];
 
   // matrix
-  let mMatrix    = mat.identity(mat.create());
-  let vMatrix    = mat.identity(mat.create());
-  let pMatrix    = mat.identity(mat.create());
-  let vpMatrix   = mat.identity(mat.create());
-  let mvpMatrix  = mat.identity(mat.create());
+  mMatrix    = mat.identity(mat.create());
+  vMatrix    = mat.identity(mat.create());
+  pMatrix    = mat.identity(mat.create());
+  vpMatrix   = mat.identity(mat.create());
+  mvpMatrix  = mat.identity(mat.create());
   mat.lookAt([0.0, 0.0, 5.0 / (sWidth / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix);
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix);
   mat.multiply(pMatrix, vMatrix, vpMatrix);
 
   // framebuffer
-  let videoFramebuffers = [
+  videoFramebuffers = [
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ];
-  let pictureFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
-  ];
-
-  let velocityFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
-  ];
-  let positionFramebuffers = [
+  pictureFramebuffers = [
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ];
 
+  velocityFramebuffers = [
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
+  ];
+  positionFramebuffers = [
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
+  ];
+
+  initControl()
+}
+
+function initControl(){
+  const data = {
+    mode: 'points',
+    shape: 'line',
+    bgColor: 'black'
+  }
+
+  const gui = new dat.GUI()
+
+  function changeMode (val) {
+    switch (val) {
+    case 'line_strip':
+      mode = gl.LINE_STRIP
+      break
+    case 'triangles':
+      mode = gl.TRIANGLES
+      break
+    case 'points':
+    default:
+      mode = gl.POINTS
+    }
+  }
+  gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(changeMode)
+  changeMode(data.mode)
+
+  function changeShape (val) {
+    switch (val) {
+    case 'mesh':
+      vbo = meshPointVBO
+      arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
+      break
+    case 'line':
+    default:
+      vbo = pointVBO
+      arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
+    }
+  }
+  gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
+  changeShape(data.shape)
+
+  function changeBgColor (val) {
+    switch (val) {
+    case 'white':
+      bgColor = 1
+      break
+    case 'black':
+    default:
+      bgColor = 0
+    }
+    let rgbInt = bgColor * 255
+    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
+  }
+  gui.add(data, 'bgColor', ['black', 'white']).onChange(changeBgColor)
+  changeBgColor(data.bgColor)
+
+  media = new Media(POINT_RESOLUTION)
+  media.promise.then(() => {
+    const changeVideo = val => {
+      return new Promise(resolve => {
+        media.getUserMedia(val).then(() => {
+          video = media.video
+          resolve()
+        })
+      })
+    }
+    const videoDevicesKeys = Object.keys(media.videoDevices)
+    const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
+    const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
+    data.video = media.videoDevices[currentVideoKey]
+    gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
+    changeVideo(data.video).then(init)
+  })
+}
+
+function init(){
   // textures
   gl.activeTexture(gl.TEXTURE0 + VIDEO_BUFFER_INDEX);
   gl.bindTexture(gl.TEXTURE_2D, videoFramebuffers[0].texture);
@@ -357,66 +456,6 @@ function init(video){
   gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE);
-
-  // control
-  const data = {
-    mode: 'points',
-    shape: 'line',
-    bgColor: 'black'
-  }
-
-  let mode
-  let vbo
-  let arrayLength
-  let bgColor
-
-  const gui = new dat.GUI()
-
-  function changeMode (val) {
-    switch (val) {
-    case 'line_strip':
-      mode = gl.LINE_STRIP
-      break
-    case 'triangles':
-      mode = gl.TRIANGLES
-      break
-    case 'points':
-    default:
-      mode = gl.POINTS
-    }
-  }
-  gui.add(data, 'mode', ['points', 'line_strip', 'triangles']).onChange(changeMode)
-  changeMode(data.mode)
-
-  function changeShape (val) {
-    switch (val) {
-    case 'mesh':
-      vbo = meshPointVBO
-      arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
-      break
-    case 'line':
-    default:
-      vbo = pointVBO
-      arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
-    }
-  }
-  gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
-  changeShape(data.shape)
-
-  function changeBgColor (val) {
-    switch (val) {
-    case 'white':
-      bgColor = 1
-      break
-    case 'black':
-    default:
-      bgColor = 0
-    }
-    let rgbInt = bgColor * 255
-    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
-  }
-  gui.add(data, 'bgColor', ['black', 'white']).onChange(changeBgColor)
-  changeBgColor(data.bgColor)
 
   // setting
   let loopCount = 0;
