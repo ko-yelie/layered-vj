@@ -30,12 +30,12 @@ export default class Media {
   getUserMedia (videoSource) {
     return new Promise(resolve => {
       //get webcam
-      navigator.getUserMedia({
+      navigator.mediaDevices.getUserMedia({
         audio: true,
         video: {
           deviceId: { exact: videoSource }
         }
-      }, stream => {
+      }).then(stream => {
         //on webcam enabled
         this.video.srcObject = stream
 

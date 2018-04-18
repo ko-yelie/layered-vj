@@ -310,15 +310,17 @@ function initGlsl(){
 function initControl(){
   const gui = new dat.GUI()
 
+  // mode
   const modeMap = {
-    points: gl.POINTS,
-    line_strip: gl.LINE_STRIP,
-    triangles: gl.TRIANGLES
+    'gl.POINTS': gl.POINTS,
+    'gl.LINE_STRIP': gl.LINE_STRIP,
+    'gl.TRIANGLES': gl.TRIANGLES
   }
   data.mode = getFirstValue(modeMap)
   gui.add(data, 'mode', modeMap)
 
-  function changeShape (val) {
+  // shape
+  const changeShape = val => {
     switch (val) {
     case 'mesh':
       vbo = meshPointVBO
@@ -334,6 +336,7 @@ function initControl(){
   gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
   changeShape(data.shape)
 
+  // bgColor
   const bgColorMap = {
     black: 0,
     white: 1
@@ -346,6 +349,7 @@ function initControl(){
   gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
   changeBgColor(data.bgColor)
 
+  // video
   media = new Media(POINT_RESOLUTION)
   media.promise.then(() => {
     const changeVideo = val => {
