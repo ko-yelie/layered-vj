@@ -351,15 +351,10 @@ function initControl(){
 
   // video
   media = new Media(POINT_RESOLUTION)
-  media.promise.then(() => {
-    const changeVideo = val => {
-      return new Promise(resolve => {
-        media.getUserMedia(val).then(() => {
-          video = media.video
-          resolve()
-        })
-      })
-    }
+  media.enumerateDevices().then(() => {
+    const changeVideo = val => media.getUserMedia(val).then(() => {
+      video = media.video
+    })
     const videoDevicesKeys = Object.keys(media.videoDevices)
     const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
     const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]

@@ -5,24 +5,17 @@ export default class Media {
     this.video.height = height
     this.video.loop = true
     this.video.muted = 'true' // 音が出ないようにする
-
-    this.promise = Promise.all([
-      this.enumerateDevices()
-    ])
   }
 
   enumerateDevices () {
-    return new Promise(resolve => {
-      navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
-        this.videoDevices = {}
-        mediaDeviceInfos.forEach(mediaDeviceInfo => {
-          switch (mediaDeviceInfo.kind) {
-            case 'videoinput':
-              this.videoDevices[mediaDeviceInfo.label] = mediaDeviceInfo.deviceId
-              break;
-          }
-        })
-        resolve()
+    return navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
+      this.videoDevices = {}
+      mediaDeviceInfos.forEach(mediaDeviceInfo => {
+        switch (mediaDeviceInfo.kind) {
+          case 'videoinput':
+            this.videoDevices[mediaDeviceInfo.label] = mediaDeviceInfo.deviceId
+            break;
+        }
       })
     })
   }
