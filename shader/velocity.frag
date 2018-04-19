@@ -1,6 +1,3 @@
-/* ----------------------------------------------------------------------------
- * velocity update shader
- * ---------------------------------------------------------------------------- */
 precision mediump float;
 uniform sampler2D prevVelocityTexture;
 uniform sampler2D pictureTexture;

@@ -1,4 +1,4 @@
-let gl;
+let gl
 
 export function setGl(newGl){
   gl = newGl
@@ -10,11 +10,11 @@ export function setGl(newGl){
  */
 export class ProgramParameter {
   constructor(program){
-    this.program   = program;
-    this.attLocation = [];
-    this.attStride   = [];
-    this.uniLocation = [];
-    this.uniType   = [];
+    this.program   = program
+    this.attLocation = []
+    this.attStride   = []
+    this.uniLocation = []
+    this.uniType   = []
   }
 }
 
@@ -25,26 +25,26 @@ export class ProgramParameter {
  * @param {function} callback - コールバック関数
  */
 export function loadShaderSource(vsPath, fsPath, callback){
-  let vs, fs;
-  xhr(vsPath, true);
-  xhr(fsPath, false);
+  let vs, fs
+  xhr(vsPath, true)
+  xhr(fsPath, false)
   function xhr(source, isVertex){
-    let xml = new XMLHttpRequest();
-    xml.open('GET', source, true);
-    xml.setRequestHeader('Pragma', 'no-cache');
-    xml.setRequestHeader('Cache-Control', 'no-cache');
+    let xml = new XMLHttpRequest()
+    xml.open('GET', source, true)
+    xml.setRequestHeader('Pragma', 'no-cache')
+    xml.setRequestHeader('Cache-Control', 'no-cache')
     xml.onload = () => {
       if(isVertex){
-        vs = xml.responseText;
+        vs = xml.responseText
       }else{
-        fs = xml.responseText;
+        fs = xml.responseText
       }
       if(vs != null && fs != null){
-        console.log('loaded', vsPath, fsPath);
-        callback({vs: vs, fs: fs});
+        console.log('loaded', vsPath, fsPath)
+        callback({vs: vs, fs: fs})
       }
-    };
-    xml.send();
+    }
+    xml.send()
   }
 }
 
@@ -56,14 +56,14 @@ export function loadShaderSource(vsPath, fsPath, callback){
  * @return {WebGLShader} シェーダオブジェクト
  */
 export function createShader(source, type){
-  let shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
+  let shader = gl.createShader(type)
+  gl.shaderSource(shader, source)
+  gl.compileShader(shader)
   if(gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
-    return shader;
+    return shader
   }else{
-    alert(gl.getShaderInfoLog(shader));
-    return null;
+    alert(gl.getShaderInfoLog(shader))
+    return null
   }
 }
 
@@ -76,16 +76,16 @@ export function createShader(source, type){
  */
 export function createProgram(vs, fs){
   if(vs == null || fs == null){return;}
-  let program = gl.createProgram();
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
+  let program = gl.createProgram()
+  gl.attachShader(program, vs)
+  gl.attachShader(program, fs)
+  gl.linkProgram(program)
   if(gl.getProgramParameter(program, gl.LINK_STATUS)){
-    gl.useProgram(program);
-    return program;
+    gl.useProgram(program)
+    return program
   }else{
-    alert(gl.getProgramInfoLog(program));
-    return null;
+    alert(gl.getProgramInfoLog(program))
+    return null
   }
 }
 
@@ -95,11 +95,11 @@ export function createProgram(vs, fs){
  * @return {WebGLBuffer} VBO
  */
 export function createVbo(data){
-  let vbo = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  return vbo;
+  let vbo = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
+  gl.bindBuffer(gl.ARRAY_BUFFER, null)
+  return vbo
 }
 
 /**
@@ -108,11 +108,11 @@ export function createVbo(data){
  * @return {WebGLBuffer} IBO
  */
 export function createIbo(data){
-  let ibo = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-  return ibo;
+  let ibo = gl.createBuffer()
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+  return ibo
 }
 
 /**
@@ -121,11 +121,11 @@ export function createIbo(data){
  * @return {WebGLBuffer} IBO
  */
 export function createIboInt(data){
-  let ibo = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(data), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-  return ibo;
+  let ibo = gl.createBuffer()
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(data), gl.STATIC_DRAW)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+  return ibo
 }
 
 /**
@@ -137,12 +137,12 @@ export function createIboInt(data){
  */
 export function setAttribute(vbo, attL, attS, ibo){
   for(let i in vbo){
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
-    gl.enableVertexAttribArray(attL[i]);
-    gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i])
+    gl.enableVertexAttribArray(attL[i])
+    gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0)
   }
   if(ibo != null){
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
   }
 }
 
@@ -152,20 +152,20 @@ export function setAttribute(vbo, attL, attS, ibo){
  * @param {function} callback - コールバック関数（第一引数にテクスチャオブジェクトが入った状態で呼ばれる）
  */
 export function createTexture(source, callback){
-  let img = new Image();
+  let img = new Image()
   img.addEventListener('load', () => {
-    let tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    callback(tex);
-  }, false);
-  img.src = source;
+    let tex = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, tex)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+    gl.generateMipmap(gl.TEXTURE_2D)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+    gl.bindTexture(gl.TEXTURE_2D, null)
+    callback(tex)
+  }, false)
+  img.src = source
 }
 
 /**
@@ -178,24 +178,24 @@ export function createTexture(source, callback){
  * @property {WebGLTexture} texture - カラーバッファとして設定したテクスチャ
  */
 export function createFramebuffer(width, height){
-  let frameBuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-  let depthRenderBuffer = gl.createRenderbuffer();
-  gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderBuffer);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderBuffer);
-  let fTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, fTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fTexture, 0);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  return {framebuffer: frameBuffer, renderbuffer: depthRenderBuffer, texture: fTexture};
+  let frameBuffer = gl.createFramebuffer()
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer)
+  let depthRenderBuffer = gl.createRenderbuffer()
+  gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderBuffer)
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height)
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderBuffer)
+  let fTexture = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, fTexture)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fTexture, 0)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  gl.bindRenderbuffer(gl.RENDERBUFFER, null)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  return {framebuffer: frameBuffer, renderbuffer: depthRenderBuffer, texture: fTexture}
 }
 
 /**
@@ -209,23 +209,23 @@ export function createFramebuffer(width, height){
  */
 export function createFramebufferFloat(ext, width, height){
   if(ext == null || (ext.textureFloat == null && ext.textureHalfFloat == null)){
-    console.log('float texture not support');
-    return;
+    console.log('float texture not support')
+    return
   }
-  let flg = (ext.textureFloat != null) ? gl.FLOAT : ext.textureHalfFloat.HALF_FLOAT_OES;
-  let frameBuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-  let fTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, fTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, flg, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fTexture, 0);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  return {framebuffer: frameBuffer, texture: fTexture};
+  let flg = (ext.textureFloat != null) ? gl.FLOAT : ext.textureHalfFloat.HALF_FLOAT_OES
+  let frameBuffer = gl.createFramebuffer()
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer)
+  let fTexture = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, fTexture)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, flg, null)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fTexture, 0)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  return {framebuffer: frameBuffer, texture: fTexture}
 }
 
 /**
@@ -240,5 +240,5 @@ export function getWebGLExtensions(){
     elementIndexUint: gl.getExtension('OES_element_index_uint'),
     textureFloat:   gl.getExtension('OES_texture_float'),
     textureHalfFloat: gl.getExtension('OES_texture_half_float')
-  };
+  }
 }

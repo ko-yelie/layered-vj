@@ -1,6 +1,3 @@
-/* ----------------------------------------------------------------------------
- * position update shader
- * ---------------------------------------------------------------------------- */
 precision mediump float;
 uniform sampler2D prevPositionTexture;
 uniform sampler2D velocityTexture;

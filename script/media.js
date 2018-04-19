@@ -14,7 +14,7 @@ export default class Media {
         switch (mediaDeviceInfo.kind) {
           case 'videoinput':
             this.videoDevices[mediaDeviceInfo.label] = mediaDeviceInfo.deviceId
-            break;
+            break
         }
       })
     })

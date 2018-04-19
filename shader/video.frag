@@ -1,6 +1,3 @@
-/* ----------------------------------------------------------------------------
- * position update shader
- * ---------------------------------------------------------------------------- */
 precision mediump float;
 uniform vec2      resolution;
 uniform sampler2D videoTexture;
