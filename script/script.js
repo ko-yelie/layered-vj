@@ -178,8 +178,10 @@ function initGlsl(){
   videoPrg.attStride[0]   = 3
   videoPrg.uniLocation[0] = gl.getUniformLocation(videoPrg.program, 'resolution')
   videoPrg.uniLocation[1] = gl.getUniformLocation(videoPrg.program, 'videoTexture')
+  videoPrg.uniLocation[2] = gl.getUniformLocation(videoPrg.program, 'zoom')
   videoPrg.uniType[0]   = 'uniform2fv'
   videoPrg.uniType[1]   = 'uniform1i'
+  videoPrg.uniType[2]   = 'uniform1f'
 
   picturePrg.attLocation[0] = gl.getAttribLocation(picturePrg.program, 'position')
   picturePrg.attStride[0]   = 3
@@ -349,6 +351,17 @@ function initControl(){
   gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
   changeBgColor(data.bgColor)
 
+  // zoom
+  const zoomMap = [1, 3]
+  data.zoom = zoomMap[0]
+  gui.add(data, 'zoom', ...zoomMap)
+
+  // showThumb
+  data.showThumb = false
+  gui.add(data, 'showThumb').onChange(() => {
+    media.toggleThumb(data.showThumb)
+  })
+
   // video
   media = new Media(POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
@@ -475,6 +488,7 @@ function init(){
     setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
     gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
     gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
+    gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     // picture update

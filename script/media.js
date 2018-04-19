@@ -5,6 +5,9 @@ export default class Media {
     this.video.height = height
     this.video.loop = true
     this.video.muted = 'true' // 音が出ないようにする
+    this.toggleThumb(false)
+
+    document.body.appendChild(this.video)
   }
 
   enumerateDevices () {
@@ -61,5 +64,9 @@ export default class Media {
       max = Math.max(this.array[i], max)
     }
     return max
+  }
+
+  toggleThumb (showThumb) {
+    this.video.style.display = showThumb ? 'block' : 'none'
   }
 }
