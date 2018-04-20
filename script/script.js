@@ -98,6 +98,8 @@ export default function run () {
 
   let timer
   window.addEventListener('mousemove', (eve) => {
+    if (!data.enableMouse) return
+
     let x = (eve.clientX / canvasWidth) * 2.0 - 1.0
     let y = (eve.clientY / canvasHeight) * 2.0 - 1.0
     mouse = [x, -y]
@@ -355,6 +357,14 @@ function initControl(){
   const zoomMap = [1, 3]
   data.zoom = zoomMap[0]
   gui.add(data, 'zoom', ...zoomMap)
+
+  // enableMouse
+  data.enableMouse = false
+  gui.add(data, 'enableMouse').onChange(() => {
+    if (!data.enableMouse) {
+      mouse = [0.0, 0.0]
+    }
+  })
 
   // showThumb
   data.showThumb = false
