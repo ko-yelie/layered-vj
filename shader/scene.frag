@@ -1,6 +1,3 @@
-/* ----------------------------------------------------------------------------
- * scene shader
- * ---------------------------------------------------------------------------- */
 precision mediump float;
 uniform sampler2D videoTexture;
 uniform float     bgColor;
