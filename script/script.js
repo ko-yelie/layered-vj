@@ -1,9 +1,8 @@
-import matIV from './minMatrix.js'
+import MatIV from './minMatrix.js'
 
 import {
   setGl,
   ProgramParameter,
-  loadShaderSource,
   createShader,
   createProgram,
   createVbo,
@@ -13,9 +12,7 @@ import {
   getWebGLExtensions
 } from './gl-utils.js'
 
-import {
-  getFirstValue
-} from './utils.js'
+import { getFirstValue } from './utils.js'
 
 import Media from './media.js'
 
@@ -26,7 +23,6 @@ let gl
 let ext
 let isRun
 let mat
-let textures = []
 let mouse = [0.0, 0.0]
 let rotation = [0.0, 0.0]
 
@@ -35,7 +31,6 @@ let meshPointVBO
 let planeIndex
 let planeVBO
 let planeIBO
-let planeTexCoordVBO
 let mMatrix
 let vMatrix
 let pMatrix
@@ -66,7 +61,7 @@ const PICTURE_BUFFER_INDEX = 3
 const POSITION_BUFFER_INDEX = 5
 const VELOCITY_BUFFER_INDEX = 7
 
-export default function run () {
+export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
   canvas = document.getElementById('canvas')
   canvasWidth = window.innerWidth
@@ -75,21 +70,20 @@ export default function run () {
   canvas.height = canvasHeight
 
   // POINT_RESOLUTION = canvasWidth
-
   // webgl コンテキストを初期化
   gl = canvas.getContext('webgl')
-  if(gl == null){
+  if (gl == null) {
     console.log('webgl unsupported')
     return
   }
   setGl(gl)
-  mat = new matIV()
+  mat = new MatIV()
 
   // 拡張機能を有効化
   ext = getWebGLExtensions()
 
   // Esc キーで実行を止められるようにイベントを設定
-  window.addEventListener('keydown', (eve) => {
+  window.addEventListener('keydown', eve => {
     if (eve.keyCode === 27) {
       isRun = !isRun
       isRun && render()
@@ -97,11 +91,11 @@ export default function run () {
   })
 
   let timer
-  window.addEventListener('mousemove', (eve) => {
+  window.addEventListener('mousemove', eve => {
     if (!data.enableMouse) return
 
-    let x = (eve.clientX / canvasWidth) * 2.0 - 1.0
-    let y = (eve.clientY / canvasHeight) * 2.0 - 1.0
+    let x = eve.clientX / canvasWidth * 2.0 - 1.0
+    let y = eve.clientY / canvasHeight * 2.0 - 1.0
     mouse = [x, -y]
 
     clearTimeout(timer)
@@ -116,124 +110,124 @@ export default function run () {
     let vs = createShader(require('../shader/scene.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/scene.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     scenePrg = new ProgramParameter(prg)
   }
   {
     let vs = createShader(require('../shader/video.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/video.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     videoPrg = new ProgramParameter(prg)
   }
   {
     let vs = createShader(require('../shader/picture.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/picture.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     picturePrg = new ProgramParameter(prg)
   }
   {
     let vs = createShader(require('../shader/reset.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/reset.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     resetPrg = new ProgramParameter(prg)
   }
   {
     let vs = createShader(require('../shader/position.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/position.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     positionPrg = new ProgramParameter(prg)
   }
   {
     let vs = createShader(require('../shader/velocity.vert'), gl.VERTEX_SHADER)
     let fs = createShader(require('../shader/velocity.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(vs, fs)
-    if(prg == null){return;}
+    if (prg == null) return
     velocityPrg = new ProgramParameter(prg)
   }
 
   initGlsl()
 }
 
-function initGlsl(){
+function initGlsl() {
   // scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'position')
   scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
   // scenePrg.attStride[0]   = 3
-  scenePrg.attStride[0]   = 2
+  scenePrg.attStride[0] = 2
   scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
   scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'size')
   scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture')
   scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture')
   scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor')
   scenePrg.uniLocation[5] = gl.getUniformLocation(scenePrg.program, 'volume')
-  scenePrg.uniType[0]   = 'uniformMatrix4fv'
-  scenePrg.uniType[1]   = 'uniform1f'
-  scenePrg.uniType[2]   = 'uniform1i'
-  scenePrg.uniType[3]   = 'uniform1i'
-  scenePrg.uniType[4]   = 'uniform1f'
-  scenePrg.uniType[5]   = 'uniform1f'
+  scenePrg.uniType[0] = 'uniformMatrix4fv'
+  scenePrg.uniType[1] = 'uniform1f'
+  scenePrg.uniType[2] = 'uniform1i'
+  scenePrg.uniType[3] = 'uniform1i'
+  scenePrg.uniType[4] = 'uniform1f'
+  scenePrg.uniType[5] = 'uniform1f'
 
   videoPrg.attLocation[0] = gl.getAttribLocation(videoPrg.program, 'position')
-  videoPrg.attStride[0]   = 3
+  videoPrg.attStride[0] = 3
   videoPrg.uniLocation[0] = gl.getUniformLocation(videoPrg.program, 'resolution')
   videoPrg.uniLocation[1] = gl.getUniformLocation(videoPrg.program, 'videoTexture')
   videoPrg.uniLocation[2] = gl.getUniformLocation(videoPrg.program, 'zoom')
-  videoPrg.uniType[0]   = 'uniform2fv'
-  videoPrg.uniType[1]   = 'uniform1i'
-  videoPrg.uniType[2]   = 'uniform1f'
+  videoPrg.uniType[0] = 'uniform2fv'
+  videoPrg.uniType[1] = 'uniform1i'
+  videoPrg.uniType[2] = 'uniform1f'
 
   picturePrg.attLocation[0] = gl.getAttribLocation(picturePrg.program, 'position')
-  picturePrg.attStride[0]   = 3
+  picturePrg.attStride[0] = 3
   picturePrg.uniLocation[0] = gl.getUniformLocation(picturePrg.program, 'resolution')
   picturePrg.uniLocation[1] = gl.getUniformLocation(picturePrg.program, 'videoTexture')
   picturePrg.uniLocation[2] = gl.getUniformLocation(picturePrg.program, 'prevVideoTexture')
   picturePrg.uniLocation[3] = gl.getUniformLocation(picturePrg.program, 'prevPictureTexture')
-  picturePrg.uniType[0]   = 'uniform2fv'
-  picturePrg.uniType[1]   = 'uniform1i'
-  picturePrg.uniType[2]   = 'uniform1i'
-  picturePrg.uniType[3]   = 'uniform1i'
+  picturePrg.uniType[0] = 'uniform2fv'
+  picturePrg.uniType[1] = 'uniform1i'
+  picturePrg.uniType[2] = 'uniform1i'
+  picturePrg.uniType[3] = 'uniform1i'
 
   resetPrg.attLocation[0] = gl.getAttribLocation(resetPrg.program, 'position')
-  resetPrg.attStride[0]   = 3
+  resetPrg.attStride[0] = 3
   resetPrg.uniLocation[0] = gl.getUniformLocation(resetPrg.program, 'resolution')
   resetPrg.uniLocation[1] = gl.getUniformLocation(resetPrg.program, 'videoTexture')
-  resetPrg.uniType[0]   = 'uniform2fv'
-  resetPrg.uniType[1]   = 'uniform1i'
+  resetPrg.uniType[0] = 'uniform2fv'
+  resetPrg.uniType[1] = 'uniform1i'
 
   velocityPrg.attLocation[0] = gl.getAttribLocation(velocityPrg.program, 'position')
-  velocityPrg.attStride[0]   = 3
+  velocityPrg.attStride[0] = 3
   velocityPrg.uniLocation[0] = gl.getUniformLocation(velocityPrg.program, 'prevVelocityTexture')
   velocityPrg.uniLocation[1] = gl.getUniformLocation(velocityPrg.program, 'pictureTexture')
   velocityPrg.uniLocation[2] = gl.getUniformLocation(velocityPrg.program, 'resolution')
   velocityPrg.uniLocation[3] = gl.getUniformLocation(velocityPrg.program, 'mouse')
-  velocityPrg.uniType[0]   = 'uniform1i'
-  velocityPrg.uniType[1]   = 'uniform1i'
-  velocityPrg.uniType[2]   = 'uniform2fv'
-  velocityPrg.uniType[3]   = 'uniform2fv'
+  velocityPrg.uniType[0] = 'uniform1i'
+  velocityPrg.uniType[1] = 'uniform1i'
+  velocityPrg.uniType[2] = 'uniform2fv'
+  velocityPrg.uniType[3] = 'uniform2fv'
 
   positionPrg.attLocation[0] = gl.getAttribLocation(positionPrg.program, 'position')
-  positionPrg.attStride[0]   = 3
+  positionPrg.attStride[0] = 3
   positionPrg.uniLocation[0] = gl.getUniformLocation(positionPrg.program, 'prevPositionTexture')
   positionPrg.uniLocation[1] = gl.getUniformLocation(positionPrg.program, 'velocityTexture')
   positionPrg.uniLocation[2] = gl.getUniformLocation(positionPrg.program, 'pictureTexture')
   positionPrg.uniLocation[3] = gl.getUniformLocation(positionPrg.program, 'resolution')
-  positionPrg.uniType[0]   = 'uniform1i'
-  positionPrg.uniType[1]   = 'uniform1i'
-  positionPrg.uniType[2]   = 'uniform1i'
-  positionPrg.uniType[3]   = 'uniform2fv'
+  positionPrg.uniType[0] = 'uniform1i'
+  positionPrg.uniType[1] = 'uniform1i'
+  positionPrg.uniType[2] = 'uniform1i'
+  positionPrg.uniType[3] = 'uniform2fv'
 
   const sWidth = 256
   const tHeight = 256
-  const sInterval = (sWidth / POINT_RESOLUTION) / sWidth
-  const tInterval = (tHeight / POINT_RESOLUTION) / tHeight
+  const sInterval = sWidth / POINT_RESOLUTION / sWidth
+  const tInterval = tHeight / POINT_RESOLUTION / tHeight
 
   let pointTexCoord = []
-  for(let t = 0; t < 1; t += tInterval){
+  for (let t = 0; t < 1; t += tInterval) {
     const back = t % (tInterval * 2) === tInterval
-    for(let s = 0; s < 1; s += sInterval){
+    for (let s = 0; s < 1; s += sInterval) {
       const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
       pointTexCoord.push(cS, t)
     }
@@ -241,8 +235,8 @@ function initGlsl(){
   pointVBO = [createVbo(pointTexCoord)]
 
   pointTexCoord = []
-  for(let t = 0; t < 1 - tInterval; t += tInterval){
-    for(let s = 0; s < 1; s += sInterval){
+  for (let t = 0; t < 1 - tInterval; t += tInterval) {
+    for (let s = 0; s < 1; s += sInterval) {
       if (s === sWidth - sInterval) {
         pointTexCoord.push(s, t)
         pointTexCoord.push(s, t + tInterval)
@@ -257,34 +251,17 @@ function initGlsl(){
   meshPointVBO = [createVbo(pointTexCoord)]
 
   // vertices
-  let planePosition = [
-     1.0,  1.0,  0.0,
-    -1.0,  1.0,  0.0,
-     1.0, -1.0,  0.0,
-    -1.0, -1.0,  0.0
-  ]
-  let planeTexCoord = [
-    1.0, 0.0,
-    0.0, 0.0,
-    1.0, 1.0,
-    0.0, 1.0
-  ]
-  planeIndex = [
-    0, 1, 2, 2, 1, 3
-  ]
+  let planePosition = [1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]
+  planeIndex = [0, 1, 2, 2, 1, 3]
   planeVBO = [createVbo(planePosition)]
   planeIBO = createIbo(planeIndex)
-  planeTexCoordVBO = [
-    createVbo(planePosition),
-    createVbo(planeTexCoord)
-  ]
 
   // matrix
-  mMatrix    = mat.identity(mat.create())
-  vMatrix    = mat.identity(mat.create())
-  pMatrix    = mat.identity(mat.create())
-  vpMatrix   = mat.identity(mat.create())
-  mvpMatrix  = mat.identity(mat.create())
+  mMatrix = mat.identity(mat.create())
+  vMatrix = mat.identity(mat.create())
+  pMatrix = mat.identity(mat.create())
+  vpMatrix = mat.identity(mat.create())
+  mvpMatrix = mat.identity(mat.create())
   mat.lookAt([0.0, 0.0, 5.0 / (sWidth / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)
@@ -311,7 +288,7 @@ function initGlsl(){
   initControl()
 }
 
-function initControl(){
+function initControl() {
   const gui = new dat.GUI()
 
   // mode
@@ -326,14 +303,14 @@ function initControl(){
   // shape
   const changeShape = val => {
     switch (val) {
-    case 'mesh':
-      vbo = meshPointVBO
-      arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
-      break
-    case 'line':
-    default:
-      vbo = pointVBO
-      arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
+      case 'mesh':
+        vbo = meshPointVBO
+        arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
+        break
+      case 'line':
+      default:
+        vbo = pointVBO
+        arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
     }
   }
   data.shape = 'line'
@@ -341,10 +318,7 @@ function initControl(){
   changeShape(data.shape)
 
   // bgColor
-  const bgColorMap = {
-    black: 0,
-    white: 1
-  }
+  const bgColorMap = { black: 0, white: 1 }
   const changeBgColor = val => {
     let rgbInt = val * 255
     canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
@@ -375,9 +349,10 @@ function initControl(){
   // video
   media = new Media(POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
-    const changeVideo = val => media.getUserMedia(val).then(() => {
-      video = media.video
-    })
+    const changeVideo = val =>
+      media.getUserMedia(val).then(() => {
+        video = media.video
+      })
     const videoDevicesKeys = Object.keys(media.videoDevices)
     const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
     const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
@@ -387,7 +362,7 @@ function initControl(){
   })
 }
 
-function init(){
+function init() {
   // textures
   gl.activeTexture(gl.TEXTURE0 + VIDEO_BUFFER_INDEX)
   gl.bindTexture(gl.TEXTURE_2D, videoFramebuffers[0].texture)
@@ -412,7 +387,7 @@ function init(){
   gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
   setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
+  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
     // video buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -436,7 +411,7 @@ function init(){
   gl[picturePrg.uniType[1]](picturePrg.uniLocation[1], 0)
   setAttribute(planeVBO, picturePrg.attLocation, picturePrg.attStride)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
+  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
     // picture buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, pictureFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -450,7 +425,7 @@ function init(){
   gl[resetPrg.uniType[1]](resetPrg.uniLocation[1], 0)
   setAttribute(planeVBO, resetPrg.attLocation, resetPrg.attStride, planeIBO)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for(let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex){
+  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
     // velocity buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -561,7 +536,9 @@ function init(){
     ++loopCount
 
     // animation loop
-    if(isRun){requestAnimationFrame(render);}
+    if (isRun) {
+      requestAnimationFrame(render)
+    }
   }
 
   render()

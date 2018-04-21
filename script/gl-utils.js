@@ -1,3 +1,4 @@
+/* eslint-disable */
 let gl
 
 export function setGl(newGl){

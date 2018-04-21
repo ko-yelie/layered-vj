@@ -1,9 +1,10 @@
+/* eslint-disable */
 // ------------------------------------------------------------------------------------------------
 // minMatrix.js
 // version 0.0.3
 // ------------------------------------------------------------------------------------------------
 
-export default function matIV(){
+export default function MatIV(){
     this.create = function(){
         return new Float32Array(16);
     };
