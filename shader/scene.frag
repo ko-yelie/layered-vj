@@ -11,5 +11,5 @@ void main(){
   vec4 video = mix(texture2D(videoTexture, vTexCoord), texture2D(capturedVideoTexture, vTexCoord), isStop);
   float rate = vPosition.z / vPosition.w;
   vec3 color = video.rgb * (maxColor - minColor) + minColor;
-  gl_FragColor = vec4(color + maxColor * (1. - rate) * (-1. * (1. - bgColor) + 1. * bgColor), rate);
+  gl_FragColor = vec4(color + maxColor * (1. - rate) * mix(-1., 1., bgColor), rate);
 }

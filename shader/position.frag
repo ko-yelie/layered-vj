@@ -12,6 +12,6 @@ void main(){
   vec4 picture = texture2D(pictureTexture, coord);
   float color = picture.x + picture.y + picture.z;
   float startZ = color / 3. * (maxZ - minZ) + minZ;
-  float z = startZ * picture.w + (prevPosition.z - velocity.z) * (1. - picture.w);
-  gl_FragColor = vec4(prevPosition.xy, z, startZ * picture.w + prevPosition.w * (1. - picture.w));
+  float z = mix(prevPosition.z - velocity.z, startZ, picture.w);
+  gl_FragColor = vec4(prevPosition.xy, z, mix(prevPosition.w, startZ, picture.w));
 }
