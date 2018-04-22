@@ -10,7 +10,7 @@ varying vec4 vPosition;
 const float pointSize = 10.;
 void main(){
   vTexCoord = texCoord;
-  vec4 position = texture2D(positionTexture, texCoord) * step(isStop, 0.) + texture2D(capturedPositionTexture, vTexCoord) * step(1., isStop);
+  vec4 position = mix(texture2D(positionTexture, texCoord), texture2D(capturedPositionTexture, vTexCoord), step(1., isStop));
   position.z = position.z * volume / 255. * 2.;
   vPosition = position;
   gl_Position = mvpMatrix * vec4(position.xyz, 1.0);
