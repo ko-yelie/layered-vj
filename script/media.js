@@ -16,7 +16,7 @@ export default class Media {
       mediaDeviceInfos.forEach(mediaDeviceInfo => {
         switch (mediaDeviceInfo.kind) {
           case 'videoinput':
-            this.videoDevices[mediaDeviceInfo.label] = mediaDeviceInfo.deviceId
+            this.videoDevices[mediaDeviceInfo.label.replace(/ \(.+?\)/, '')] = mediaDeviceInfo.deviceId
             break
         }
       })
