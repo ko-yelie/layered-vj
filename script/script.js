@@ -40,13 +40,10 @@ let videoFramebuffers
 let pictureFramebuffers
 let velocityFramebuffers
 let positionFramebuffers
-
-let render
-let media
-let data = {}
-let video
-let vbo
-let arrayLength
+let videoBufferIndex
+let pictureBufferIndex
+let velocityBufferIndex
+let positionBufferIndex
 
 let scenePrg
 let videoPrg
@@ -55,11 +52,16 @@ let resetPrg
 let positionPrg
 let velocityPrg
 
+let render
+let media
+let data = {}
+let video
+let vbo
+let arrayLength
+let isStop = false
+let isCapture = false
+
 const POINT_RESOLUTION = 128
-const VIDEO_BUFFER_INDEX = 1
-const PICTURE_BUFFER_INDEX = 3
-const POSITION_BUFFER_INDEX = 5
-const VELOCITY_BUFFER_INDEX = 7
 
 export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
@@ -69,7 +71,6 @@ export default function run() {
   canvas.width = canvasWidth
   canvas.height = canvasHeight
 
-  // POINT_RESOLUTION = canvasWidth
   // webgl コンテキストを初期化
   gl = canvas.getContext('webgl')
   if (gl == null) {
@@ -83,19 +84,19 @@ export default function run() {
   ext = getWebGLExtensions()
 
   // Esc キーで実行を止められるようにイベントを設定
-  window.addEventListener('keydown', eve => {
-    if (eve.keyCode === 27) {
+  window.addEventListener('keydown', e => {
+    if (e.keyCode === 27) {
       isRun = !isRun
       isRun && render()
     }
   })
 
   let timer
-  window.addEventListener('mousemove', eve => {
+  canvas.addEventListener('mousemove', e => {
     if (!data.enableMouse) return
 
-    let x = eve.clientX / canvasWidth * 2.0 - 1.0
-    let y = eve.clientY / canvasHeight * 2.0 - 1.0
+    let x = e.clientX / canvasWidth * 2.0 - 1.0
+    let y = e.clientY / canvasHeight * 2.0 - 1.0
     mouse = [x, -y]
 
     clearTimeout(timer)
@@ -103,6 +104,12 @@ export default function run() {
     timer = setTimeout(() => {
       canvas.classList.remove('s-move')
     }, 500)
+  })
+
+  canvas.addEventListener('click', e => {
+    if (!data.capture) return
+
+    isCapture = true
   })
 
   // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
@@ -267,23 +274,37 @@ function initGlsl() {
   mat.multiply(pMatrix, vMatrix, vpMatrix)
 
   // framebuffer
+  let framebufferCount = 1
+
   videoFramebuffers = [
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ]
+  videoBufferIndex = framebufferCount
+  framebufferCount += videoFramebuffers.length
+
   pictureFramebuffers = [
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ]
+  pictureBufferIndex = framebufferCount
+  framebufferCount += pictureFramebuffers.length
 
   velocityFramebuffers = [
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ]
+  velocityBufferIndex = framebufferCount
+  framebufferCount += velocityFramebuffers.length
+
   positionFramebuffers = [
+    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
     createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
   ]
+  positionBufferIndex = framebufferCount
+  framebufferCount += positionFramebuffers.length
 
   initControl()
 }
@@ -346,6 +367,27 @@ function initControl() {
     media.toggleThumb(data.showThumb)
   })
 
+  // capture
+  data.capture = false
+  gui.add(data, 'capture').onChange(() => {
+    isStop = data.capture
+    isCapture = data.capture
+  })
+
+  // stopMotion
+  data.stopMotion = false
+  let timer
+  gui.add(data, 'stopMotion').onChange(() => {
+    isStop = data.stopMotion
+    if (data.stopMotion) {
+      timer = setInterval(() => {
+        isCapture = true
+      }, 1000 / 3)
+    } else {
+      clearTimeout(timer)
+    }
+  })
+
   // video
   media = new Media(POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
@@ -374,22 +416,29 @@ function init() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
   // textures
-  gl.activeTexture(gl.TEXTURE0 + VIDEO_BUFFER_INDEX)
+  gl.activeTexture(gl.TEXTURE0 + videoBufferIndex)
   gl.bindTexture(gl.TEXTURE_2D, videoFramebuffers[0].texture)
-  gl.activeTexture(gl.TEXTURE0 + VIDEO_BUFFER_INDEX + 1)
+  gl.activeTexture(gl.TEXTURE0 + videoBufferIndex + 1)
   gl.bindTexture(gl.TEXTURE_2D, videoFramebuffers[1].texture)
-  gl.activeTexture(gl.TEXTURE0 + PICTURE_BUFFER_INDEX)
+  gl.activeTexture(gl.TEXTURE0 + videoBufferIndex + 2)
+  gl.bindTexture(gl.TEXTURE_2D, videoFramebuffers[2].texture)
+
+  gl.activeTexture(gl.TEXTURE0 + pictureBufferIndex)
   gl.bindTexture(gl.TEXTURE_2D, pictureFramebuffers[0].texture)
-  gl.activeTexture(gl.TEXTURE0 + PICTURE_BUFFER_INDEX + 1)
+  gl.activeTexture(gl.TEXTURE0 + pictureBufferIndex + 1)
   gl.bindTexture(gl.TEXTURE_2D, pictureFramebuffers[1].texture)
-  gl.activeTexture(gl.TEXTURE0 + POSITION_BUFFER_INDEX)
-  gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[0].texture)
-  gl.activeTexture(gl.TEXTURE0 + POSITION_BUFFER_INDEX + 1)
-  gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[1].texture)
-  gl.activeTexture(gl.TEXTURE0 + VELOCITY_BUFFER_INDEX)
+
+  gl.activeTexture(gl.TEXTURE0 + velocityBufferIndex)
   gl.bindTexture(gl.TEXTURE_2D, velocityFramebuffers[0].texture)
-  gl.activeTexture(gl.TEXTURE0 + VELOCITY_BUFFER_INDEX + 1)
+  gl.activeTexture(gl.TEXTURE0 + velocityBufferIndex + 1)
   gl.bindTexture(gl.TEXTURE_2D, velocityFramebuffers[1].texture)
+
+  gl.activeTexture(gl.TEXTURE0 + positionBufferIndex)
+  gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[0].texture)
+  gl.activeTexture(gl.TEXTURE0 + positionBufferIndex + 1)
+  gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[1].texture)
+  gl.activeTexture(gl.TEXTURE0 + positionBufferIndex + 2)
+  gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[2].texture)
 
   // reset video
   gl.useProgram(videoPrg.program)
@@ -397,7 +446,7 @@ function init() {
   gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
   setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < videoFramebuffers.length; ++targetBufferIndex) {
     // video buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -411,7 +460,7 @@ function init() {
   gl[picturePrg.uniType[1]](picturePrg.uniLocation[1], 0)
   setAttribute(planeVBO, picturePrg.attLocation, picturePrg.attStride)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < pictureFramebuffers.length; ++targetBufferIndex) {
     // picture buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, pictureFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -425,12 +474,14 @@ function init() {
   gl[resetPrg.uniType[1]](resetPrg.uniLocation[1], 0)
   setAttribute(planeVBO, resetPrg.attLocation, resetPrg.attStride, planeIBO)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex <= 1; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < velocityFramebuffers.length; ++targetBufferIndex) {
     // velocity buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+  }
+  for (let targetBufferIndex = 0; targetBufferIndex < positionFramebuffers.length; ++targetBufferIndex) {
     // position buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[targetBufferIndex].framebuffer)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
@@ -446,6 +497,8 @@ function init() {
   // setting
   let loopCount = 0
   isRun = true
+  let currentVideoBufferIndex
+  let currentPositionBufferIndex
 
   render = () => {
     let targetBufferIndex = loopCount % 2
@@ -481,29 +534,59 @@ function init() {
     gl.bindFramebuffer(gl.FRAMEBUFFER, pictureFramebuffers[targetBufferIndex].framebuffer)
     setAttribute(planeVBO, picturePrg.attLocation, picturePrg.attStride)
     gl[picturePrg.uniType[0]](picturePrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
-    gl[picturePrg.uniType[1]](picturePrg.uniLocation[1], VIDEO_BUFFER_INDEX + targetBufferIndex)
-    gl[picturePrg.uniType[2]](picturePrg.uniLocation[2], VIDEO_BUFFER_INDEX + prevBufferIndex)
-    gl[picturePrg.uniType[3]](picturePrg.uniLocation[3], PICTURE_BUFFER_INDEX + prevBufferIndex)
+    gl[picturePrg.uniType[1]](picturePrg.uniLocation[1], videoBufferIndex + targetBufferIndex)
+    gl[picturePrg.uniType[2]](picturePrg.uniLocation[2], videoBufferIndex + prevBufferIndex)
+    gl[picturePrg.uniType[3]](picturePrg.uniLocation[3], pictureBufferIndex + prevBufferIndex)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     // velocity update
     gl.useProgram(velocityPrg.program)
     gl.bindFramebuffer(gl.FRAMEBUFFER, velocityFramebuffers[targetBufferIndex].framebuffer)
     setAttribute(planeVBO, velocityPrg.attLocation, velocityPrg.attStride, planeIBO)
-    gl[velocityPrg.uniType[0]](velocityPrg.uniLocation[0], VELOCITY_BUFFER_INDEX + prevBufferIndex)
-    gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], PICTURE_BUFFER_INDEX + prevBufferIndex)
+    gl[velocityPrg.uniType[0]](velocityPrg.uniLocation[0], velocityBufferIndex + prevBufferIndex)
+    gl[velocityPrg.uniType[1]](velocityPrg.uniLocation[1], pictureBufferIndex + targetBufferIndex)
     gl[velocityPrg.uniType[2]](velocityPrg.uniLocation[2], [POINT_RESOLUTION, POINT_RESOLUTION])
     gl[velocityPrg.uniType[3]](velocityPrg.uniLocation[3], mouse)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
     // position update
     gl.useProgram(positionPrg.program)
     gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[targetBufferIndex].framebuffer)
     setAttribute(planeVBO, positionPrg.attLocation, positionPrg.attStride, planeIBO)
-    gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], POSITION_BUFFER_INDEX + prevBufferIndex)
-    gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], VELOCITY_BUFFER_INDEX + targetBufferIndex)
-    gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], PICTURE_BUFFER_INDEX + targetBufferIndex)
+    gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], positionBufferIndex + prevBufferIndex)
+    gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], velocityBufferIndex + targetBufferIndex)
+    gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], pictureBufferIndex + targetBufferIndex)
     gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION])
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+    if (isStop) {
+      if (isCapture) {
+        gl.useProgram(videoPrg.program)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[2].framebuffer)
+        setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
+        gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
+        gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
+        gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
+        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+        gl.useProgram(positionPrg.program)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[2].framebuffer)
+        setAttribute(planeVBO, positionPrg.attLocation, positionPrg.attStride, planeIBO)
+        gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], positionBufferIndex + prevBufferIndex)
+        gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], velocityBufferIndex + targetBufferIndex)
+        gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], pictureBufferIndex + targetBufferIndex)
+        gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION])
+        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+        isCapture = false
+      }
+
+      currentVideoBufferIndex = videoBufferIndex + 2
+      currentPositionBufferIndex = positionBufferIndex + 2
+    } else {
+      currentVideoBufferIndex = videoBufferIndex + targetBufferIndex
+      currentPositionBufferIndex = positionBufferIndex + targetBufferIndex
+    }
 
     // render to canvas -------------------------------------------
     gl.enable(gl.BLEND)
@@ -524,8 +607,8 @@ function init() {
     mat.multiply(vpMatrix, mMatrix, mvpMatrix)
     gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
     gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight)
-    gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], VIDEO_BUFFER_INDEX + targetBufferIndex)
-    gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], POSITION_BUFFER_INDEX + targetBufferIndex)
+    gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], currentVideoBufferIndex)
+    gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], currentPositionBufferIndex)
     gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
     gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
     // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
