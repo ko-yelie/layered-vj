@@ -16,6 +16,8 @@ import { getFirstValue } from './utils.js'
 
 import Media from './media.js'
 
+const POINT_RESOLUTION = 128
+
 let canvas
 let canvasWidth
 let canvasHeight
@@ -58,10 +60,8 @@ let data = {}
 let video
 let vbo
 let arrayLength
-let isStop = false
+let isStop = 0
 let isCapture = false
-
-const POINT_RESOLUTION = 128
 
 export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
@@ -93,7 +93,7 @@ export default function run() {
 
   let timer
   canvas.addEventListener('mousemove', e => {
-    if (!data.enableMouse) return
+    if (!data.mouse) return
 
     let x = e.clientX / canvasWidth * 2.0 - 1.0
     let y = e.clientY / canvasHeight * 2.0 - 1.0
@@ -160,23 +160,6 @@ export default function run() {
 }
 
 function initGlsl() {
-  // scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'position')
-  scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
-  // scenePrg.attStride[0]   = 3
-  scenePrg.attStride[0] = 2
-  scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
-  scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'size')
-  scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture')
-  scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture')
-  scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor')
-  scenePrg.uniLocation[5] = gl.getUniformLocation(scenePrg.program, 'volume')
-  scenePrg.uniType[0] = 'uniformMatrix4fv'
-  scenePrg.uniType[1] = 'uniform1f'
-  scenePrg.uniType[2] = 'uniform1i'
-  scenePrg.uniType[3] = 'uniform1i'
-  scenePrg.uniType[4] = 'uniform1f'
-  scenePrg.uniType[5] = 'uniform1f'
-
   videoPrg.attLocation[0] = gl.getAttribLocation(videoPrg.program, 'position')
   videoPrg.attStride[0] = 3
   videoPrg.uniLocation[0] = gl.getUniformLocation(videoPrg.program, 'resolution')
@@ -225,6 +208,27 @@ function initGlsl() {
   positionPrg.uniType[1] = 'uniform1i'
   positionPrg.uniType[2] = 'uniform1i'
   positionPrg.uniType[3] = 'uniform2fv'
+
+  scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
+  scenePrg.attStride[0] = 2
+  scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
+  scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'size')
+  scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture')
+  scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture')
+  scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor')
+  scenePrg.uniLocation[5] = gl.getUniformLocation(scenePrg.program, 'volume')
+  scenePrg.uniLocation[6] = gl.getUniformLocation(scenePrg.program, 'capturedVideoTexture')
+  scenePrg.uniLocation[7] = gl.getUniformLocation(scenePrg.program, 'capturedPositionTexture')
+  scenePrg.uniLocation[8] = gl.getUniformLocation(scenePrg.program, 'isStop')
+  scenePrg.uniType[0] = 'uniformMatrix4fv'
+  scenePrg.uniType[1] = 'uniform1f'
+  scenePrg.uniType[2] = 'uniform1i'
+  scenePrg.uniType[3] = 'uniform1i'
+  scenePrg.uniType[4] = 'uniform1f'
+  scenePrg.uniType[5] = 'uniform1f'
+  scenePrg.uniType[6] = 'uniform1i'
+  scenePrg.uniType[7] = 'uniform1i'
+  scenePrg.uniType[8] = 'uniform1f'
 
   const sWidth = 256
   const tHeight = 256
@@ -321,8 +325,9 @@ function initControl() {
   data.mode = getFirstValue(modeMap)
   gui.add(data, 'mode', modeMap)
 
-  // shape
-  const changeShape = val => {
+  // lineShape
+  const lineShapeMap = ['line', 'mesh']
+  const changeLineShape = val => {
     switch (val) {
       case 'mesh':
         vbo = meshPointVBO
@@ -334,9 +339,9 @@ function initControl() {
         arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
     }
   }
-  data.shape = 'line'
-  gui.add(data, 'shape', ['line', 'mesh']).onChange(changeShape)
-  changeShape(data.shape)
+  data.lineShape = lineShapeMap[0]
+  gui.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
+  changeLineShape(data.lineShape)
 
   // bgColor
   const bgColorMap = { black: 0, white: 1 }
@@ -353,24 +358,18 @@ function initControl() {
   data.zoom = zoomMap[0]
   gui.add(data, 'zoom', ...zoomMap)
 
-  // enableMouse
-  data.enableMouse = false
-  gui.add(data, 'enableMouse').onChange(() => {
-    if (!data.enableMouse) {
+  // mouse
+  data.mouse = false
+  gui.add(data, 'mouse').onChange(() => {
+    if (!data.mouse) {
       mouse = [0.0, 0.0]
     }
-  })
-
-  // showThumb
-  data.showThumb = false
-  gui.add(data, 'showThumb').onChange(() => {
-    media.toggleThumb(data.showThumb)
   })
 
   // capture
   data.capture = false
   gui.add(data, 'capture').onChange(() => {
-    isStop = data.capture
+    isStop = data.capture ? 1 : 0
     isCapture = data.capture
   })
 
@@ -378,7 +377,7 @@ function initControl() {
   data.stopMotion = false
   let timer
   gui.add(data, 'stopMotion').onChange(() => {
-    isStop = data.stopMotion
+    isStop = data.stopMotion ? 1 : 0
     if (data.stopMotion) {
       timer = setInterval(() => {
         isCapture = true
@@ -386,6 +385,12 @@ function initControl() {
     } else {
       clearTimeout(timer)
     }
+  })
+
+  // thumb
+  data.thumb = false
+  gui.add(data, 'thumb').onChange(() => {
+    media.toggleThumb(data.thumb)
   })
 
   // video
@@ -497,8 +502,6 @@ function init() {
   // setting
   let loopCount = 0
   isRun = true
-  let currentVideoBufferIndex
-  let currentPositionBufferIndex
 
   render = () => {
     let targetBufferIndex = loopCount % 2
@@ -559,33 +562,25 @@ function init() {
     gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION])
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-    if (isStop) {
-      if (isCapture) {
-        gl.useProgram(videoPrg.program)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[2].framebuffer)
-        setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
-        gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
-        gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
-        gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
-        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+    if (isCapture) {
+      gl.useProgram(videoPrg.program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[2].framebuffer)
+      setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
+      gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
+      gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
+      gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-        gl.useProgram(positionPrg.program)
-        gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[2].framebuffer)
-        setAttribute(planeVBO, positionPrg.attLocation, positionPrg.attStride, planeIBO)
-        gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], positionBufferIndex + prevBufferIndex)
-        gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], velocityBufferIndex + targetBufferIndex)
-        gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], pictureBufferIndex + targetBufferIndex)
-        gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION])
-        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+      gl.useProgram(positionPrg.program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[2].framebuffer)
+      setAttribute(planeVBO, positionPrg.attLocation, positionPrg.attStride, planeIBO)
+      gl[positionPrg.uniType[0]](positionPrg.uniLocation[0], positionBufferIndex + prevBufferIndex)
+      gl[positionPrg.uniType[1]](positionPrg.uniLocation[1], velocityBufferIndex + targetBufferIndex)
+      gl[positionPrg.uniType[2]](positionPrg.uniLocation[2], pictureBufferIndex + targetBufferIndex)
+      gl[positionPrg.uniType[3]](positionPrg.uniLocation[3], [POINT_RESOLUTION, POINT_RESOLUTION])
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-        isCapture = false
-      }
-
-      currentVideoBufferIndex = videoBufferIndex + 2
-      currentPositionBufferIndex = positionBufferIndex + 2
-    } else {
-      currentVideoBufferIndex = videoBufferIndex + targetBufferIndex
-      currentPositionBufferIndex = positionBufferIndex + targetBufferIndex
+      isCapture = false
     }
 
     // render to canvas -------------------------------------------
@@ -607,11 +602,13 @@ function init() {
     mat.multiply(vpMatrix, mMatrix, mvpMatrix)
     gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
     gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight)
-    gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], currentVideoBufferIndex)
-    gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], currentPositionBufferIndex)
+    gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
+    gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
     gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
     gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
-    // gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+    gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
+    gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
+    gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
     gl.drawArrays(data.mode, 0, arrayLength)
 
     gl.flush()
