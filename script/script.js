@@ -62,6 +62,7 @@ let vbo
 let arrayLength
 let isStop = 0
 let isCapture = false
+let isAudio = 0
 
 export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
@@ -220,6 +221,7 @@ function initGlsl() {
   scenePrg.uniLocation[6] = gl.getUniformLocation(scenePrg.program, 'capturedVideoTexture')
   scenePrg.uniLocation[7] = gl.getUniformLocation(scenePrg.program, 'capturedPositionTexture')
   scenePrg.uniLocation[8] = gl.getUniformLocation(scenePrg.program, 'isStop')
+  scenePrg.uniLocation[9] = gl.getUniformLocation(scenePrg.program, 'isAudio')
   scenePrg.uniType[0] = 'uniformMatrix4fv'
   scenePrg.uniType[1] = 'uniform1f'
   scenePrg.uniType[2] = 'uniform1i'
@@ -229,6 +231,7 @@ function initGlsl() {
   scenePrg.uniType[6] = 'uniform1i'
   scenePrg.uniType[7] = 'uniform1i'
   scenePrg.uniType[8] = 'uniform1f'
+  scenePrg.uniType[9] = 'uniform1f'
 
   const sWidth = 256
   const tHeight = 256
@@ -357,6 +360,12 @@ function initControl() {
   const zoomMap = [1, 3]
   data.zoom = zoomMap[0]
   gui.add(data, 'zoom', ...zoomMap)
+
+  // audio
+  data.audio = false
+  gui.add(data, 'audio').onChange(() => {
+    isAudio = data.audio ? 1 : 0
+  })
 
   // mouse
   data.mouse = false
@@ -609,6 +618,7 @@ function init() {
     gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
     gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
     gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
+    gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
     gl.drawArrays(data.mode, 0, arrayLength)
 
     gl.flush()
