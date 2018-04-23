@@ -8,7 +8,7 @@ uniform   float isStop;
 uniform   float isAudio;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
-const float pointSize = 10.;
+const float pointSize = 8.;
 void main(){
   vTexCoord = texCoord;
   vec4 position = mix(texture2D(positionTexture, texCoord), texture2D(capturedPositionTexture, vTexCoord), isStop);
