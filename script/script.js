@@ -19,6 +19,7 @@ import Media from './media.js'
 const POINT_RESOLUTION = 128
 const S_WIDTH = 256
 const T_HEIGHT = 256
+const SIZE = 10
 
 let canvas
 let canvasWidth
@@ -215,7 +216,7 @@ function initGlsl() {
   scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
   scenePrg.attStride[0] = 2
   scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
-  scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'size')
+  scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'pointSize')
   scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture')
   scenePrg.uniLocation[3] = gl.getUniformLocation(scenePrg.program, 'positionTexture')
   scenePrg.uniLocation[4] = gl.getUniformLocation(scenePrg.program, 'bgColor')
@@ -224,6 +225,8 @@ function initGlsl() {
   scenePrg.uniLocation[7] = gl.getUniformLocation(scenePrg.program, 'capturedPositionTexture')
   scenePrg.uniLocation[8] = gl.getUniformLocation(scenePrg.program, 'isStop')
   scenePrg.uniLocation[9] = gl.getUniformLocation(scenePrg.program, 'isAudio')
+  scenePrg.uniLocation[10] = gl.getUniformLocation(scenePrg.program, 'mode')
+  scenePrg.uniLocation[11] = gl.getUniformLocation(scenePrg.program, 'pointShape')
   scenePrg.uniType[0] = 'uniformMatrix4fv'
   scenePrg.uniType[1] = 'uniform1f'
   scenePrg.uniType[2] = 'uniform1i'
@@ -234,6 +237,8 @@ function initGlsl() {
   scenePrg.uniType[7] = 'uniform1i'
   scenePrg.uniType[8] = 'uniform1f'
   scenePrg.uniType[9] = 'uniform1f'
+  scenePrg.uniType[10] = 'uniform1f'
+  scenePrg.uniType[11] = 'uniform1f'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -309,6 +314,16 @@ function initGlsl() {
 function initControl() {
   const gui = new dat.GUI()
 
+  // bgColor
+  const bgColorMap = { black: 0, white: 1 }
+  const changeBgColor = val => {
+    let rgbInt = val * 255
+    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
+  }
+  data.bgColor = getFirstValue(bgColorMap)
+  gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
+  changeBgColor(data.bgColor)
+
   // mode
   const modeMap = {
     'gl.POINTS': gl.POINTS,
@@ -317,6 +332,24 @@ function initControl() {
   }
   data.mode = getFirstValue(modeMap)
   gui.add(data, 'mode', modeMap)
+
+  // point
+  const pointFolder = gui.addFolder('gl.POINTS')
+  pointFolder.open()
+
+  // pointShape
+  const pointShapeMap = { square: 0, circle: 1, star: 2 }
+  data.pointShape = pointShapeMap.circle
+  pointFolder.add(data, 'pointShape', pointShapeMap)
+
+  // pointSize
+  const pointSizeMap = [2, 30]
+  data.pointSize = SIZE
+  pointFolder.add(data, 'pointSize', ...pointSizeMap)
+
+  // line
+  const lineFolder = gui.addFolder('gl.LINE_STRIP')
+  lineFolder.open()
 
   // lineShape
   const lineShapeMap = ['line', 'mesh']
@@ -333,40 +366,28 @@ function initControl() {
     }
   }
   data.lineShape = lineShapeMap[0]
-  gui.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
+  lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
   changeLineShape(data.lineShape)
 
-  // bgColor
-  const bgColorMap = { black: 0, white: 1 }
-  const changeBgColor = val => {
-    let rgbInt = val * 255
-    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
-  }
-  data.bgColor = getFirstValue(bgColorMap)
-  gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
-  changeBgColor(data.bgColor)
+  // action
+  const actionFolder = gui.addFolder('action')
+  actionFolder.open()
 
   // videoZoom
   const videoZoomMap = [1, 3]
   data.videoZoom = videoZoomMap[0]
-  gui.add(data, 'videoZoom', ...videoZoomMap)
+  actionFolder.add(data, 'videoZoom', ...videoZoomMap)
 
   // canvasZoom
   const canvasZoomMap = [2, 8]
   data.canvasZoom = 5
-  gui.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
+  actionFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
     updateCamera()
-  })
-
-  // audio
-  data.audio = false
-  gui.add(data, 'audio').onChange(() => {
-    isAudio = data.audio ? 1 : 0
   })
 
   // mouse
   data.mouse = false
-  gui.add(data, 'mouse').onChange(() => {
+  actionFolder.add(data, 'mouse').onChange(() => {
     if (!data.mouse) {
       mouse = [0.0, 0.0]
     }
@@ -374,7 +395,7 @@ function initControl() {
 
   // capture
   data.capture = false
-  gui.add(data, 'capture').onChange(() => {
+  actionFolder.add(data, 'capture').onChange(() => {
     isStop = data.capture ? 1 : 0
     isCapture = data.capture
   })
@@ -382,7 +403,7 @@ function initControl() {
   // stopMotion
   data.stopMotion = false
   let timer
-  gui.add(data, 'stopMotion').onChange(() => {
+  actionFolder.add(data, 'stopMotion').onChange(() => {
     isStop = data.stopMotion ? 1 : 0
     if (data.stopMotion) {
       timer = setInterval(() => {
@@ -393,13 +414,16 @@ function initControl() {
     }
   })
 
-  // thumb
-  data.thumb = false
-  gui.add(data, 'thumb').onChange(() => {
-    media.toggleThumb(data.thumb)
-  })
-
   // media
+
+  // video
+  const videoFolder = gui.addFolder('video')
+  videoFolder.open()
+
+  // audio
+  const audioFolder = gui.addFolder('audio')
+  audioFolder.open()
+
   media = new Media(POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
     // video
@@ -411,14 +435,26 @@ function initControl() {
     const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
     const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
     data.video = media.videoDevices[currentVideoKey]
-    gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
+    videoFolder.add(data, 'video', media.videoDevices).onChange(changeVideo)
+
+    // thumb
+    data.thumb = false
+    videoFolder.add(data, 'thumb').onChange(() => {
+      media.toggleThumb(data.thumb)
+    })
+
+    // inputAudio
+    data.inputAudio = false
+    audioFolder.add(data, 'inputAudio').onChange(() => {
+      isAudio = data.inputAudio ? 1 : 0
+    })
 
     // audio
     const changeAudio = val => media.getUserMedia({ audio: val })
     const audioDevicesKeys = Object.keys(media.audioDevices)
     const currentAudioKey = audioDevicesKeys[0]
     data.audio = media.audioDevices[currentAudioKey]
-    gui.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+    audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
 
     changeVideo(data.video).then(init)
   })
@@ -630,7 +666,7 @@ function init() {
     mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
     mat.multiply(vpMatrix, mMatrix, mvpMatrix)
     gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
-    gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], canvasHeight)
+    gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
     gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
     gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
     gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
@@ -639,6 +675,8 @@ function init() {
     gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
     gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
     gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
+    gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
+    gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
     gl.drawArrays(data.mode, 0, arrayLength)
 
     gl.flush()
