@@ -13,23 +13,31 @@ export default class Media {
   enumerateDevices() {
     return navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
       this.videoDevices = {}
+      this.audioDevices = {}
+
       mediaDeviceInfos.forEach(mediaDeviceInfo => {
         switch (mediaDeviceInfo.kind) {
           case 'videoinput':
             this.videoDevices[mediaDeviceInfo.label.replace(/ \(.+?\)/, '')] = mediaDeviceInfo.deviceId
+            break
+          case 'audioinput':
+            this.audioDevices[mediaDeviceInfo.label.replace(/ \(.+?\)/, '')] = mediaDeviceInfo.deviceId
             break
         }
       })
     })
   }
 
-  getUserMedia(videoSource) {
+  getUserMedia(sources) {
+    this.videoSource = sources.video || this.videoSource
+    this.audioSource = sources.audio || this.audioSource
+
     return new Promise(resolve => {
       // get webcam
       navigator.mediaDevices
         .getUserMedia({
-          audio: true,
-          video: { deviceId: { exact: videoSource } }
+          audio: { deviceId: { exact: this.audioSource } },
+          video: { deviceId: { exact: this.videoSource } }
         })
         .then(stream => {
           // on webcam enabled

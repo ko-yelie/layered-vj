@@ -352,7 +352,7 @@ function initControl() {
   gui.add(data, 'videoZoom', ...videoZoomMap)
 
   // canvasZoom
-  const canvasZoomMap = [3, 8]
+  const canvasZoomMap = [2, 8]
   data.canvasZoom = 5
   gui.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
     updateCamera()
@@ -399,11 +399,12 @@ function initControl() {
     media.toggleThumb(data.thumb)
   })
 
-  // video
+  // media
   media = new Media(POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
+    // video
     const changeVideo = val =>
-      media.getUserMedia(val).then(() => {
+      media.getUserMedia({ video: val }).then(() => {
         video = media.video
       })
     const videoDevicesKeys = Object.keys(media.videoDevices)
@@ -411,6 +412,14 @@ function initControl() {
     const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
     data.video = media.videoDevices[currentVideoKey]
     gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
+
+    // audio
+    const changeAudio = val => media.getUserMedia({ audio: val })
+    const audioDevicesKeys = Object.keys(media.audioDevices)
+    const currentAudioKey = audioDevicesKeys[0]
+    data.audio = media.audioDevices[currentAudioKey]
+    gui.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+
     changeVideo(data.video).then(init)
   })
 }
