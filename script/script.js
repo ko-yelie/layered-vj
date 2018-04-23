@@ -17,6 +17,8 @@ import { getFirstValue } from './utils.js'
 import Media from './media.js'
 
 const POINT_RESOLUTION = 128
+const S_WIDTH = 256
+const T_HEIGHT = 256
 
 let canvas
 let canvasWidth
@@ -233,10 +235,8 @@ function initGlsl() {
   scenePrg.uniType[8] = 'uniform1f'
   scenePrg.uniType[9] = 'uniform1f'
 
-  const sWidth = 256
-  const tHeight = 256
-  const sInterval = sWidth / POINT_RESOLUTION / sWidth
-  const tInterval = tHeight / POINT_RESOLUTION / tHeight
+  const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
+  const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
 
   let pointTexCoord = []
   for (let t = 0; t < 1; t += tInterval) {
@@ -251,7 +251,7 @@ function initGlsl() {
   pointTexCoord = []
   for (let t = 0; t < 1 - tInterval; t += tInterval) {
     for (let s = 0; s < 1; s += sInterval) {
-      if (s === sWidth - sInterval) {
+      if (s === S_WIDTH - sInterval) {
         pointTexCoord.push(s, t)
         pointTexCoord.push(s, t + tInterval)
       } else {
@@ -269,16 +269,6 @@ function initGlsl() {
   planeIndex = [0, 1, 2, 2, 1, 3]
   planeVBO = [createVbo(planePosition)]
   planeIBO = createIbo(planeIndex)
-
-  // matrix
-  mMatrix = mat.identity(mat.create())
-  vMatrix = mat.identity(mat.create())
-  pMatrix = mat.identity(mat.create())
-  vpMatrix = mat.identity(mat.create())
-  mvpMatrix = mat.identity(mat.create())
-  mat.lookAt([0.0, 0.0, 5.0 / (sWidth / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
-  mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
-  mat.multiply(pMatrix, vMatrix, vpMatrix)
 
   // framebuffer
   let framebufferCount = 1
@@ -356,10 +346,17 @@ function initControl() {
   gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
   changeBgColor(data.bgColor)
 
-  // zoom
-  const zoomMap = [1, 3]
-  data.zoom = zoomMap[0]
-  gui.add(data, 'zoom', ...zoomMap)
+  // videoZoom
+  const videoZoomMap = [1, 3]
+  data.videoZoom = videoZoomMap[0]
+  gui.add(data, 'videoZoom', ...videoZoomMap)
+
+  // canvasZoom
+  const canvasZoomMap = [3, 8]
+  data.canvasZoom = 5
+  gui.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
+    updateCamera()
+  })
 
   // audio
   data.audio = false
@@ -418,7 +415,21 @@ function initControl() {
   })
 }
 
+function updateCamera() {
+  // matrix
+  mMatrix = mat.identity(mat.create())
+  vMatrix = mat.identity(mat.create())
+  pMatrix = mat.identity(mat.create())
+  vpMatrix = mat.identity(mat.create())
+  mvpMatrix = mat.identity(mat.create())
+  mat.lookAt([0.0, 0.0, data.canvasZoom / (S_WIDTH / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
+  mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
+  mat.multiply(pMatrix, vMatrix, vpMatrix)
+}
+
 function init() {
+  updateCamera()
+
   // video texture
   var videoTexture = gl.createTexture(gl.TEXTURE_2D)
   gl.activeTexture(gl.TEXTURE0)
@@ -538,7 +549,7 @@ function init() {
     setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
     gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
     gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
-    gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
+    gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     // picture update
@@ -577,7 +588,7 @@ function init() {
       setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
       gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
       gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
-      gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.zoom)
+      gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       gl.useProgram(positionPrg.program)
