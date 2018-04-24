@@ -14,3 +14,4 @@ rules:
       printWidth: 120
 globals:
   dat: true
+  TimelineMax: true

@@ -7,12 +7,14 @@ uniform   float volume;
 uniform   float isStop;
 uniform   float isAudio;
 uniform   float pointShape;
+uniform   float spreadDistance;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
 void main(){
   vTexCoord = texCoord;
   vec4 position = mix(texture2D(positionTexture, texCoord), texture2D(capturedPositionTexture, vTexCoord), isStop);
-  position.z = position.z * mix(1., volume / 255. * 2., isAudio);
+  position.xy *= pow(spreadDistance, 1.5);
+  position.z *= mix(1., volume / 255. * 2., isAudio) * spreadDistance;
   vPosition = position;
   gl_Position = mvpMatrix * vec4(position.xyz, 1.0);
   gl_PointSize = position.z * pointSize * mix(mix(1., 1.3, pointShape), 4., step(2., pointShape));

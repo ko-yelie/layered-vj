@@ -227,6 +227,7 @@ function initGlsl() {
   scenePrg.uniLocation[9] = gl.getUniformLocation(scenePrg.program, 'isAudio')
   scenePrg.uniLocation[10] = gl.getUniformLocation(scenePrg.program, 'mode')
   scenePrg.uniLocation[11] = gl.getUniformLocation(scenePrg.program, 'pointShape')
+  scenePrg.uniLocation[12] = gl.getUniformLocation(scenePrg.program, 'spreadDistance')
   scenePrg.uniType[0] = 'uniformMatrix4fv'
   scenePrg.uniType[1] = 'uniform1f'
   scenePrg.uniType[2] = 'uniform1i'
@@ -239,6 +240,7 @@ function initGlsl() {
   scenePrg.uniType[9] = 'uniform1f'
   scenePrg.uniType[10] = 'uniform1f'
   scenePrg.uniType[11] = 'uniform1f'
+  scenePrg.uniType[12] = 'uniform1f'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -412,6 +414,26 @@ function initControl() {
     } else {
       clearTimeout(timer)
     }
+  })
+
+  // spread
+  data.spreadDistance = 1
+  const tl = new TimelineMax({
+    paused: true
+  }).fromTo(
+    data,
+    0.7,
+    {
+      spreadDistance: 1
+    },
+    {
+      spreadDistance: 5,
+      ease: 'Power1.easeOut'
+    }
+  )
+  data.spread = false
+  actionFolder.add(data, 'spread').onChange(() => {
+    data.spread ? tl.play() : tl.reverse()
   })
 
   // media
@@ -677,6 +699,7 @@ function init() {
     gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
     gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
     gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
+    gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.spreadDistance)
     gl.drawArrays(data.mode, 0, arrayLength)
 
     gl.flush()
