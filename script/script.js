@@ -338,7 +338,7 @@ function initControl() {
   pointFolder.open()
 
   // pointShape
-  const pointShapeMap = { square: 0, circle: 1, star: 2 }
+  const pointShapeMap = { square: 0, circle: 1, star: 2, video: 3 }
   data.pointShape = pointShapeMap.circle
   pointFolder.add(data, 'pointShape', pointShapeMap)
 

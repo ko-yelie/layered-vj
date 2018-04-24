@@ -24,7 +24,9 @@ void main(){
   float circle = pow(length(pointCoord), 3.);
   float star = lengthN(pointCoord, 0.5);
   float shape = mix(1., 1. - mix(circle, star, step(2., pointShape)), pointShape);
-  vec4 particleColor = vec4(vec3(1.), mix(1., shape, step(mode, 0.)));
+  vec4 shapeColor = vec4(vec3(1.), mix(1., shape, step(mode, 0.)));
+  vec4 thumbColor = texture2D(videoTexture, vec2(gl_PointCoord.s, 1. - gl_PointCoord.t));
+  vec4 particleColor = mix(shapeColor, thumbColor, step(3., pointShape));
 
   gl_FragColor = vec4((color + maxColor * (1. - rate) * mix(-1., 1., bgColor)), sqrt(rate)) * particleColor;
 }
