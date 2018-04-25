@@ -318,15 +318,9 @@ function initGlsl() {
 function initControl() {
   const gui = new dat.GUI()
 
-  // bgColor
-  const bgColorMap = { black: 0, white: 1 }
-  const changeBgColor = val => {
-    let rgbInt = val * 255
-    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
-  }
-  data.bgColor = getFirstValue(bgColorMap)
-  gui.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
-  changeBgColor(data.bgColor)
+  // particle
+  const particleFolder = gui.addFolder('particle')
+  particleFolder.open()
 
   // mode
   const modeMap = {
@@ -335,10 +329,10 @@ function initControl() {
     'gl.TRIANGLES': gl.TRIANGLES
   }
   data.mode = getFirstValue(modeMap)
-  gui.add(data, 'mode', modeMap)
+  particleFolder.add(data, 'mode', modeMap)
 
   // point
-  const pointFolder = gui.addFolder('gl.POINTS')
+  const pointFolder = particleFolder.addFolder('gl.POINTS')
   pointFolder.open()
 
   // pointShape
@@ -352,7 +346,7 @@ function initControl() {
   pointFolder.add(data, 'pointSize', ...pointSizeMap)
 
   // line
-  const lineFolder = gui.addFolder('gl.LINE_STRIP')
+  const lineFolder = particleFolder.addFolder('gl.LINE_STRIP')
   lineFolder.open()
 
   // lineShape
@@ -373,51 +367,6 @@ function initControl() {
   lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
   changeLineShape(data.lineShape)
 
-  // action
-  const actionFolder = gui.addFolder('action')
-  actionFolder.open()
-
-  // videoZoom
-  const videoZoomMap = [1, 3]
-  data.videoZoom = videoZoomMap[0]
-  actionFolder.add(data, 'videoZoom', ...videoZoomMap)
-
-  // canvasZoom
-  const canvasZoomMap = [2, 8]
-  data.canvasZoom = 5
-  actionFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
-    updateCamera()
-  })
-
-  // mouse
-  data.mouse = false
-  actionFolder.add(data, 'mouse').onChange(() => {
-    if (!data.mouse) {
-      mouse = [0.0, 0.0]
-    }
-  })
-
-  // capture
-  data.capture = false
-  actionFolder.add(data, 'capture').onChange(() => {
-    isStop = data.capture ? 1 : 0
-    isCapture = data.capture
-  })
-
-  // stopMotion
-  data.stopMotion = false
-  let timer
-  actionFolder.add(data, 'stopMotion').onChange(() => {
-    isStop = data.stopMotion ? 1 : 0
-    if (data.stopMotion) {
-      timer = setInterval(() => {
-        isCapture = true
-      }, 1000 / 3)
-    } else {
-      clearTimeout(timer)
-    }
-  })
-
   // deformation
   data.deformationProgress = 0
   const tl = new TimelineMax({
@@ -434,18 +383,49 @@ function initControl() {
     }
   )
   data.deformation = false
-  actionFolder.add(data, 'deformation').onChange(() => {
+  particleFolder.add(data, 'deformation').onChange(() => {
     data.deformation ? tl.play() : tl.reverse()
   })
 
+  // canvas
+  const canvasFolder = gui.addFolder('canvas')
+  canvasFolder.open()
+
+  // bgColor
+  const bgColorMap = { black: 0, white: 1 }
+  const changeBgColor = val => {
+    let rgbInt = val * 255
+    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
+  }
+  data.bgColor = getFirstValue(bgColorMap)
+  canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
+  changeBgColor(data.bgColor)
+
+  // canvasZoom
+  const canvasZoomMap = [2, 8]
+  data.canvasZoom = 5
+  canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
+    updateCamera()
+  })
+
+  // mouse
+  data.mouse = false
+  canvasFolder.add(data, 'mouse').onChange(() => {
+    if (!data.mouse) {
+      mouse = [0.0, 0.0]
+    }
+  })
+
   // media
+  const mediaFolder = gui.addFolder('media')
+  mediaFolder.open()
 
   // video
-  const videoFolder = gui.addFolder('video')
+  const videoFolder = mediaFolder.addFolder('video')
   videoFolder.open()
 
   // audio
-  const audioFolder = gui.addFolder('audio')
+  const audioFolder = mediaFolder.addFolder('audio')
   audioFolder.open()
 
   media = new Media(POINT_RESOLUTION)
@@ -460,6 +440,32 @@ function initControl() {
     const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
     data.video = media.videoDevices[currentVideoKey]
     videoFolder.add(data, 'video', media.videoDevices).onChange(changeVideo)
+
+    // videoZoom
+    const videoZoomMap = [1, 3]
+    data.videoZoom = videoZoomMap[0]
+    videoFolder.add(data, 'videoZoom', ...videoZoomMap)
+
+    // capture
+    data.capture = false
+    videoFolder.add(data, 'capture').onChange(() => {
+      isStop = data.capture ? 1 : 0
+      isCapture = data.capture
+    })
+
+    // stopMotion
+    data.stopMotion = false
+    let timer
+    videoFolder.add(data, 'stopMotion').onChange(() => {
+      isStop = data.stopMotion ? 1 : 0
+      if (data.stopMotion) {
+        timer = setInterval(() => {
+          isCapture = true
+        }, 1000 / 3)
+      } else {
+        clearTimeout(timer)
+      }
+    })
 
     // thumb
     data.thumb = false
