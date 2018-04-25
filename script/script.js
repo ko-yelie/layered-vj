@@ -213,7 +213,7 @@ function initGlsl() {
   positionPrg.uniType[2] = 'uniform1i'
   positionPrg.uniType[3] = 'uniform2fv'
 
-  scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
+  scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'data')
   scenePrg.attStride[0] = 3
   scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
   scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'pointSize')
