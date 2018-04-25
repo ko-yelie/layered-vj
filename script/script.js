@@ -214,7 +214,7 @@ function initGlsl() {
   positionPrg.uniType[3] = 'uniform2fv'
 
   scenePrg.attLocation[0] = gl.getAttribLocation(scenePrg.program, 'texCoord')
-  scenePrg.attStride[0] = 2
+  scenePrg.attStride[0] = 3
   scenePrg.uniLocation[0] = gl.getUniformLocation(scenePrg.program, 'mvpMatrix')
   scenePrg.uniLocation[1] = gl.getUniformLocation(scenePrg.program, 'pointSize')
   scenePrg.uniLocation[2] = gl.getUniformLocation(scenePrg.program, 'videoTexture')
@@ -227,7 +227,8 @@ function initGlsl() {
   scenePrg.uniLocation[9] = gl.getUniformLocation(scenePrg.program, 'isAudio')
   scenePrg.uniLocation[10] = gl.getUniformLocation(scenePrg.program, 'mode')
   scenePrg.uniLocation[11] = gl.getUniformLocation(scenePrg.program, 'pointShape')
-  scenePrg.uniLocation[12] = gl.getUniformLocation(scenePrg.program, 'spreadDistance')
+  scenePrg.uniLocation[12] = gl.getUniformLocation(scenePrg.program, 'deformationProgress')
+  scenePrg.uniLocation[13] = gl.getUniformLocation(scenePrg.program, 'loopCount')
   scenePrg.uniType[0] = 'uniformMatrix4fv'
   scenePrg.uniType[1] = 'uniform1f'
   scenePrg.uniType[2] = 'uniform1i'
@@ -241,6 +242,7 @@ function initGlsl() {
   scenePrg.uniType[10] = 'uniform1f'
   scenePrg.uniType[11] = 'uniform1f'
   scenePrg.uniType[12] = 'uniform1f'
+  scenePrg.uniType[13] = 'uniform1f'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -250,7 +252,7 @@ function initGlsl() {
     const back = t % (tInterval * 2) === tInterval
     for (let s = 0; s < 1; s += sInterval) {
       const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
-      pointTexCoord.push(cS, t)
+      pointTexCoord.push(cS, t, Math.random())
     }
   }
   pointVBO = [createVbo(pointTexCoord)]
@@ -259,13 +261,13 @@ function initGlsl() {
   for (let t = 0; t < 1 - tInterval; t += tInterval) {
     for (let s = 0; s < 1; s += sInterval) {
       if (s === S_WIDTH - sInterval) {
-        pointTexCoord.push(s, t)
-        pointTexCoord.push(s, t + tInterval)
+        pointTexCoord.push(s, t, Math.random())
+        pointTexCoord.push(s, t + tInterval, Math.random())
       } else {
-        pointTexCoord.push(s, t)
-        pointTexCoord.push(s, t + tInterval)
-        pointTexCoord.push(s + sInterval, t + tInterval)
-        pointTexCoord.push(s, t)
+        pointTexCoord.push(s, t, Math.random())
+        pointTexCoord.push(s, t + tInterval, Math.random())
+        pointTexCoord.push(s + sInterval, t + tInterval, Math.random())
+        pointTexCoord.push(s, t, Math.random())
       }
     }
   }
@@ -416,24 +418,24 @@ function initControl() {
     }
   })
 
-  // spread
-  data.spreadDistance = 1
+  // deformation
+  data.deformationProgress = 0
   const tl = new TimelineMax({
     paused: true
   }).fromTo(
     data,
     0.7,
     {
-      spreadDistance: 1
+      deformationProgress: 0
     },
     {
-      spreadDistance: 5,
+      deformationProgress: 1,
       ease: 'Power1.easeOut'
     }
   )
-  data.spread = false
-  actionFolder.add(data, 'spread').onChange(() => {
-    data.spread ? tl.play() : tl.reverse()
+  data.deformation = false
+  actionFolder.add(data, 'deformation').onChange(() => {
+    data.deformation ? tl.play() : tl.reverse()
   })
 
   // media
@@ -699,7 +701,8 @@ function init() {
     gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
     gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
     gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
-    gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.spreadDistance)
+    gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.deformationProgress)
+    gl[scenePrg.uniType[13]](scenePrg.uniLocation[13], loopCount)
     gl.drawArrays(data.mode, 0, arrayLength)
 
     gl.flush()
