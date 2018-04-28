@@ -379,7 +379,7 @@ function initControl() {
     },
     {
       deformationProgress: 1,
-      ease: 'Power1.easeOut'
+      ease: 'Power2.easeOut'
     }
   )
   data.deformation = false
