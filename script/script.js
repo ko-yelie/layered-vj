@@ -1,4 +1,5 @@
 import MatIV from './minMatrix.js'
+import * as tf from '@tensorflow/tfjs'
 
 import {
   setGl,

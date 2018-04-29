@@ -20,6 +20,7 @@
     "stylus": "^0.54.5"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^0.10.3",
     "glsl-random": "0.0.5"
   }
 }
