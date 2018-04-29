@@ -18,5 +18,8 @@
     "prettier": "^1.12.1",
     "pug": "^2.0.3",
     "stylus": "^0.54.5"
+  },
+  "dependencies": {
+    "glsl-random": "0.0.5"
   }
 }

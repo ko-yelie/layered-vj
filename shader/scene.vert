@@ -1,3 +1,5 @@
+#pragma glslify: random = require(glsl-random)
+
 attribute vec3 data;
 uniform mat4 mvpMatrix;
 uniform float pointSize;
@@ -19,10 +21,6 @@ const float standardRadius = 1.1;
 const float maxDeformationDistance = 5.;
 const float deformationSize = 1. / maxDeformationDistance;
 
-float getRandom(vec2 n){
-  return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
-}
-
 void main(){
   vec2 texCoord = data.st;
 
@@ -32,9 +30,9 @@ void main(){
   position.z *= mix(1., volume / 255. * 2., isAudio) * deformationDistance;
   vec3 videoPosition = vec3(position.xyz);
 
-  float random = (data.p + getRandom(texCoord + mod(loopCount, 10.))) / 2.;
-  float radian = loopCount * speed * random;
-  float radius = standardRadius + random * amplitude - halfAmplitude;
+  float randomValue = (data.p + random(texCoord + mod(loopCount, 10.))) / 2.;
+  float radian = loopCount * speed * randomValue;
+  float radius = standardRadius + randomValue * amplitude - halfAmplitude;
   vec3 circlePosition = vec3(cos(radian) * radius, sin(radian) * radius, 0.);
 
   vTexCoord = texCoord;
