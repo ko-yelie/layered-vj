@@ -1,5 +1,4 @@
 import MatIV from './minMatrix.js'
-import * as tf from '@tensorflow/tfjs'
 
 import {
   setGl,
@@ -17,10 +16,11 @@ import { getFirstValue } from './utils.js'
 
 import Media from './media.js'
 
-const POINT_RESOLUTION = 128
+const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
+const VIDEO_RESOLUTION = 416
 const S_WIDTH = 256
 const T_HEIGHT = 256
-const SIZE = 10
+const SIZE = 10 * 128 / POINT_RESOLUTION
 
 let canvas
 let canvasWidth
@@ -342,7 +342,7 @@ function initControl() {
   pointFolder.add(data, 'pointShape', pointShapeMap)
 
   // pointSize
-  const pointSizeMap = [2, 30]
+  const pointSizeMap = [0.1, 30]
   data.pointSize = SIZE
   pointFolder.add(data, 'pointSize', ...pointSizeMap)
 
@@ -429,12 +429,12 @@ function initControl() {
   const audioFolder = mediaFolder.addFolder('audio')
   audioFolder.open()
 
-  media = new Media(POINT_RESOLUTION)
+  media = new Media(VIDEO_RESOLUTION, POINT_RESOLUTION)
   media.enumerateDevices().then(() => {
     // video
     const changeVideo = val =>
       media.getUserMedia({ video: val }).then(() => {
-        video = media.video
+        video = media.currentVideo
       })
     const videoDevicesKeys = Object.keys(media.videoDevices)
     const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
@@ -602,6 +602,10 @@ function init() {
   render = () => {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
+
+    if (media.isReadyDetect && loopCount % 100 === 0) {
+      media.detectObjects()
+    }
 
     const volume = media.update()
 

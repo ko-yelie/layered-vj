@@ -4,6 +4,7 @@
     "build": "parcel build index.pug --no-source-maps -d docs --public-url /webcam-particle/"
   },
   "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.23.0",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-config-standard": "^11.0.0",
@@ -20,7 +21,9 @@
     "stylus": "^0.54.5"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.10.3",
-    "glsl-random": "0.0.5"
+    "@tensorflow/tfjs": "0.9.0",
+    "get-elements-array": "^1.0.1",
+    "glsl-random": "0.0.5",
+    "tfjs-yolo-tiny": "0.0.4"
   }
 }

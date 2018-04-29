@@ -12,7 +12,39 @@ canvas
   &.s-move
     cursor auto
 
-video
+.thumb {
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  margin: 0 auto;
+  width: 416px;
+  height: 416px;
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  // justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
+}
+
+.video
+  display none
   position absolute
-  bottom 0
-  left 0
+
+.rect {
+  position: absolute;
+  border: 1px solid red;
+  font-size: 24px;
+
+  .label {
+    background: white;
+    color: black;
+    display: inline;
+    opacity: 0.8;
+    font-size: 12px;
+    padding: 3px;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+}
