@@ -67,6 +67,7 @@ let arrayLength
 let isStop = 0
 let isCapture = false
 let isAudio = 0
+let detectorCount = 0
 
 export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
@@ -474,6 +475,12 @@ function initControl() {
       media.toggleThumb(data.thumb)
     })
 
+    // detector
+    data.detector = false
+    videoFolder.add(data, 'detector').onChange(() => {
+      detectorCount = 0
+    })
+
     // inputAudio
     data.inputAudio = false
     audioFolder.add(data, 'inputAudio').onChange(() => {
@@ -603,11 +610,11 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
-    if (media.isReadyDetect && loopCount % 100 === 0) {
-      media.detectObjects()
+    if (data.detector && detectorCount % 100 === 0) {
+      media.detector.detect()
     }
 
-    const volume = media.update()
+    const volume = media.getVolume()
 
     // video texture
     var videoTexture = gl.createTexture(gl.TEXTURE_2D)
@@ -719,6 +726,7 @@ function init() {
     gl.flush()
 
     ++loopCount
+    ++detectorCount
 
     // animation loop
     if (isRun) {
