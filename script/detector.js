@@ -16,6 +16,8 @@ export default class Detector {
 
     this.model = await downloadModel()
 
+    this.posList = []
+
     this.isReadyDetect = true
   }
 
@@ -27,14 +29,20 @@ export default class Detector {
     const inputImage = this.webcam.capture()
 
     const boxes = await yolo(inputImage, this.model)
-    console.log(boxes)
+
+    this.posList = []
 
     boxes.forEach(box => {
       const { top, left, bottom, right, classProb, className } = box
-      // if (className !== 'person') return
+      if (className !== 'person') return
 
+      this.posList.push([
+        top / this.video.height,
+        left / this.video.width,
+        bottom / this.video.height,
+        right / this.video.width
+      ])
       this.drawRect(left, top, right - left, bottom - top, `${className} Confidence: ${Math.round(classProb * 100)}%`)
-      console.log(left, top, right - left, bottom - top, `${className} ${classProb}`)
     })
   }
 

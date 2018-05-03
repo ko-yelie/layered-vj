@@ -51,12 +51,13 @@ let pictureBufferIndex
 let velocityBufferIndex
 let positionBufferIndex
 
-let scenePrg
 let videoPrg
 let picturePrg
 let resetPrg
 let positionPrg
 let velocityPrg
+let scenePrg
+let videoScenePrg
 
 let render
 let media
@@ -161,6 +162,13 @@ export default function run() {
     if (prg == null) return
     velocityPrg = new ProgramParameter(prg)
   }
+  {
+    let vs = createShader(require('../shader/video_scene.vert'), gl.VERTEX_SHADER)
+    let fs = createShader(require('../shader/video_scene.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(vs, fs)
+    if (prg == null) return
+    videoScenePrg = new ProgramParameter(prg)
+  }
 
   initGlsl()
 }
@@ -245,6 +253,19 @@ function initGlsl() {
   scenePrg.uniType[11] = 'uniform1f'
   scenePrg.uniType[12] = 'uniform1f'
   scenePrg.uniType[13] = 'uniform1f'
+
+  videoScenePrg.attLocation[0] = gl.getAttribLocation(videoScenePrg.program, 'position')
+  videoScenePrg.attStride[0] = 3
+  videoScenePrg.uniLocation[0] = gl.getUniformLocation(videoScenePrg.program, 'resolution')
+  videoScenePrg.uniLocation[1] = gl.getUniformLocation(videoScenePrg.program, 'videoTexture')
+  videoScenePrg.uniLocation[2] = gl.getUniformLocation(videoScenePrg.program, 'zoom')
+  videoScenePrg.uniLocation[3] = gl.getUniformLocation(videoScenePrg.program, 'focusCount')
+  videoScenePrg.uniLocation[4] = gl.getUniformLocation(videoScenePrg.program, 'focusPos1')
+  videoScenePrg.uniType[0] = 'uniform2fv'
+  videoScenePrg.uniType[1] = 'uniform1i'
+  videoScenePrg.uniType[2] = 'uniform1f'
+  videoScenePrg.uniType[3] = 'uniform1f'
+  videoScenePrg.uniType[4] = 'uniform4fv'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -550,7 +571,7 @@ function init() {
 
   // reset video
   gl.useProgram(videoPrg.program)
-  gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
+  gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
   gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
   setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
@@ -610,8 +631,12 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
+    let posList = media.detector.posList || []
     if (data.detector && detectorCount % 100 === 0) {
       media.detector.detect()
+    }
+    if (posList.length === 0) {
+      posList = [[0, 0, 1, 1]]
     }
 
     const volume = media.getVolume()
@@ -634,7 +659,7 @@ function init() {
     gl.useProgram(videoPrg.program)
     gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer)
     setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
-    gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
+    gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
     gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
     gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -673,7 +698,7 @@ function init() {
       gl.useProgram(videoPrg.program)
       gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[2].framebuffer)
       setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
-      gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [POINT_RESOLUTION, POINT_RESOLUTION])
+      gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
       gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
       gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -691,37 +716,55 @@ function init() {
     }
 
     // render to canvas -------------------------------------------
+    // gl.enable(gl.BLEND)
+    // gl.useProgram(scenePrg.program)
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    // setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
+    // gl.clearColor(0.0, 0.0, 0.0, 0.0)
+    // gl.clearDepth(1.0)
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    // gl.viewport(0, 0, canvasWidth, canvasHeight)
+    //
+    // // push and render
+    // rotation[0] += (mouse[0] - rotation[0]) * 0.05
+    // rotation[1] += (mouse[1] - rotation[1]) * 0.05
+    // mat.identity(mMatrix)
+    // mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
+    // mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
+    // mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+    // gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
+    // gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
+    // gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
+    // gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
+    // gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
+    // gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
+    // gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
+    // gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
+    // gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
+    // gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
+    // gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
+    // gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
+    // gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.deformationProgress)
+    // gl[scenePrg.uniType[13]](scenePrg.uniLocation[13], loopCount)
+    // gl.drawArrays(data.mode, 0, arrayLength)
+
+    // video scene render
     gl.enable(gl.BLEND)
-    gl.useProgram(scenePrg.program)
+    gl.useProgram(videoScenePrg.program)
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
+    setAttribute(vbo, videoScenePrg.attLocation, videoScenePrg.attStride)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clearDepth(1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-    // push and render
-    rotation[0] += (mouse[0] - rotation[0]) * 0.05
-    rotation[1] += (mouse[1] - rotation[1]) * 0.05
-    mat.identity(mMatrix)
-    mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
-    mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
-    mat.multiply(vpMatrix, mMatrix, mvpMatrix)
-    gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
-    gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
-    gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
-    gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
-    gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
-    gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
-    gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
-    gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
-    gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
-    gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
-    gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
-    gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
-    gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.deformationProgress)
-    gl[scenePrg.uniType[13]](scenePrg.uniLocation[13], loopCount)
-    gl.drawArrays(data.mode, 0, arrayLength)
+    setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
+    gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
+    gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], 0)
+    gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], data.videoZoom)
+    gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], posList.length)
+    gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList[0])
+    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     gl.flush()
 
@@ -729,9 +772,7 @@ function init() {
     ++detectorCount
 
     // animation loop
-    if (isRun) {
-      requestAnimationFrame(render)
-    }
+    isRun && requestAnimationFrame(render)
   }
 
   render()
