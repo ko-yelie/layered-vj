@@ -42,14 +42,22 @@ export default class Detector {
         bottom / this.video.height,
         right / this.video.width
       ])
-      this.drawRect(left, top, right - left, bottom - top, `${className} Confidence: ${Math.round(classProb * 100)}%`)
+      this.drawRect(
+        left,
+        top,
+        right - left,
+        bottom - top,
+        `${Math.round(classProb * 100)}%`,
+        this.posList.length > 4 ? 'blue' : 'red'
+      )
     })
   }
 
   drawRect(x, y, w, h, text = '', color = 'red') {
     const rect = document.createElement('div')
     rect.classList.add('rect')
-    rect.style.cssText = `top: ${y}px; left: ${x}px; width: ${w}px; height: ${h}px; border-color: ${color}`
+    color === 'blue' && rect.classList.add('o-blue')
+    rect.style.cssText = `top: ${y}px; left: ${x}px; width: ${w}px; height: ${h}px;`
 
     const label = document.createElement('div')
     label.classList.add('label')

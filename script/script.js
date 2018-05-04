@@ -69,6 +69,7 @@ let isStop = 0
 let isCapture = false
 let isAudio = 0
 let detectorCount = 0
+let defaultFocus = [0, 0, 1, 1]
 
 export default function run() {
   // canvas element を取得しサイズをウィンドウサイズに設定
@@ -264,12 +265,18 @@ function initGlsl() {
   videoScenePrg.uniLocation[3] = gl.getUniformLocation(videoScenePrg.program, 'zoom')
   videoScenePrg.uniLocation[4] = gl.getUniformLocation(videoScenePrg.program, 'focusCount')
   videoScenePrg.uniLocation[5] = gl.getUniformLocation(videoScenePrg.program, 'focusPos1')
+  videoScenePrg.uniLocation[6] = gl.getUniformLocation(videoScenePrg.program, 'focusPos2')
+  videoScenePrg.uniLocation[7] = gl.getUniformLocation(videoScenePrg.program, 'focusPos3')
+  videoScenePrg.uniLocation[8] = gl.getUniformLocation(videoScenePrg.program, 'focusPos4')
   videoScenePrg.uniType[0] = 'uniform2fv'
   videoScenePrg.uniType[1] = 'uniform2fv'
   videoScenePrg.uniType[2] = 'uniform1i'
   videoScenePrg.uniType[3] = 'uniform1f'
   videoScenePrg.uniType[4] = 'uniform1f'
   videoScenePrg.uniType[5] = 'uniform4fv'
+  videoScenePrg.uniType[6] = 'uniform4fv'
+  videoScenePrg.uniType[7] = 'uniform4fv'
+  videoScenePrg.uniType[8] = 'uniform4fv'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -642,13 +649,11 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
-    let posList = media.detector.posList || []
     if (data.detector && detectorCount % 100 === 0) {
       media.detector.detect()
     }
-    if (posList.length === 0) {
-      posList = [[0, 0, 1, 1]]
-    }
+    let posList = media.detector.posList || []
+    let focusCount = Math.min(posList.length || 1, 4)
 
     const volume = media.getVolume()
 
@@ -787,8 +792,16 @@ function init() {
       ])
       gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], 0)
       gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], data.videoZoom)
-      gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList.length)
-      gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], posList[0])
+      gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], focusCount)
+      gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], posList[0] || defaultFocus)
+      gl[videoScenePrg.uniType[6]](videoScenePrg.uniLocation[6], posList[1] || defaultFocus)
+      gl[videoScenePrg.uniType[7]](videoScenePrg.uniLocation[7], posList[2] || defaultFocus)
+      gl[videoScenePrg.uniType[8]](videoScenePrg.uniLocation[8], posList[3] || defaultFocus)
+      // gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], 4)
+      // gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], [0.4, 0.1, 0.6, 0.3])
+      // gl[videoScenePrg.uniType[6]](videoScenePrg.uniLocation[6], [0.4, 0.3, 0.6, 0.5])
+      // gl[videoScenePrg.uniType[7]](videoScenePrg.uniLocation[7], [0.4, 0.5, 0.6, 0.7])
+      // gl[videoScenePrg.uniType[8]](videoScenePrg.uniLocation[8], [0.4, 0.7, 0.6, 0.9])
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
     }
 

@@ -12,39 +12,44 @@ canvas
   &.s-move
     cursor auto
 
-.thumb {
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  margin: 0 auto;
-  width: 416px;
-  height: 416px;
-  position: absolute;
-  bottom: 0;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  // justify-content: flex-end;
-  align-items: center;
-  overflow: hidden;
-}
+.thumb
+  border-radius 5px
+  box-shadow 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)
+  margin 0 auto
+  width 416px
+  height 416px
+  position absolute
+  bottom 0
+  z-index 1
+  display flex
+  justify-content center
+  align-items center
+  overflow hidden
+  transform scale(0.8)
+  transform-origin bottom left
 
 .video
   display none
   position absolute
 
-.rect {
-  position: absolute;
-  border: 1px solid red;
-  font-size: 24px;
+.rect
+  position absolute
+  z-index 1
+  border 1px solid red
+  font-size 24px
 
-  .label {
-    background: white;
-    color: black;
-    display: inline;
-    opacity: 0.8;
-    font-size: 12px;
-    padding: 3px;
-    text-transform: capitalize;
-    white-space: nowrap;
-  }
-}
+  .label
+    position absolute
+    right 0
+    bottom 0
+    background rgba(white, 0.4)
+    color #333
+    font-size 10px
+    padding 0 2px
+    text-transform capitalize
+    white-space nowrap
+
+  &.o-blue
+    opacity 0.5
+    z-index auto
+    border-color blue
