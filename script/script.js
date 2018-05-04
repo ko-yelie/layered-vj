@@ -177,11 +177,13 @@ function initGlsl() {
   videoPrg.attLocation[0] = gl.getAttribLocation(videoPrg.program, 'position')
   videoPrg.attStride[0] = 3
   videoPrg.uniLocation[0] = gl.getUniformLocation(videoPrg.program, 'resolution')
-  videoPrg.uniLocation[1] = gl.getUniformLocation(videoPrg.program, 'videoTexture')
-  videoPrg.uniLocation[2] = gl.getUniformLocation(videoPrg.program, 'zoom')
+  videoPrg.uniLocation[1] = gl.getUniformLocation(videoPrg.program, 'videoResolution')
+  videoPrg.uniLocation[2] = gl.getUniformLocation(videoPrg.program, 'videoTexture')
+  videoPrg.uniLocation[3] = gl.getUniformLocation(videoPrg.program, 'zoom')
   videoPrg.uniType[0] = 'uniform2fv'
-  videoPrg.uniType[1] = 'uniform1i'
-  videoPrg.uniType[2] = 'uniform1f'
+  videoPrg.uniType[1] = 'uniform2fv'
+  videoPrg.uniType[2] = 'uniform1i'
+  videoPrg.uniType[3] = 'uniform1f'
 
   picturePrg.attLocation[0] = gl.getAttribLocation(picturePrg.program, 'position')
   picturePrg.attStride[0] = 3
@@ -257,15 +259,17 @@ function initGlsl() {
   videoScenePrg.attLocation[0] = gl.getAttribLocation(videoScenePrg.program, 'position')
   videoScenePrg.attStride[0] = 3
   videoScenePrg.uniLocation[0] = gl.getUniformLocation(videoScenePrg.program, 'resolution')
-  videoScenePrg.uniLocation[1] = gl.getUniformLocation(videoScenePrg.program, 'videoTexture')
-  videoScenePrg.uniLocation[2] = gl.getUniformLocation(videoScenePrg.program, 'zoom')
-  videoScenePrg.uniLocation[3] = gl.getUniformLocation(videoScenePrg.program, 'focusCount')
-  videoScenePrg.uniLocation[4] = gl.getUniformLocation(videoScenePrg.program, 'focusPos1')
+  videoScenePrg.uniLocation[1] = gl.getUniformLocation(videoScenePrg.program, 'videoResolution')
+  videoScenePrg.uniLocation[2] = gl.getUniformLocation(videoScenePrg.program, 'videoTexture')
+  videoScenePrg.uniLocation[3] = gl.getUniformLocation(videoScenePrg.program, 'zoom')
+  videoScenePrg.uniLocation[4] = gl.getUniformLocation(videoScenePrg.program, 'focusCount')
+  videoScenePrg.uniLocation[5] = gl.getUniformLocation(videoScenePrg.program, 'focusPos1')
   videoScenePrg.uniType[0] = 'uniform2fv'
-  videoScenePrg.uniType[1] = 'uniform1i'
-  videoScenePrg.uniType[2] = 'uniform1f'
+  videoScenePrg.uniType[1] = 'uniform2fv'
+  videoScenePrg.uniType[2] = 'uniform1i'
   videoScenePrg.uniType[3] = 'uniform1f'
-  videoScenePrg.uniType[4] = 'uniform4fv'
+  videoScenePrg.uniType[4] = 'uniform1f'
+  videoScenePrg.uniType[5] = 'uniform4fv'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -306,9 +310,9 @@ function initGlsl() {
   let framebufferCount = 1
 
   videoFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
+    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION),
+    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION),
+    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
   ]
   videoBufferIndex = framebufferCount
   framebufferCount += videoFramebuffers.length
@@ -572,9 +576,11 @@ function init() {
   // reset video
   gl.useProgram(videoPrg.program)
   gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
-  gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
+  gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], [media.currentVideo.videoWidth, media.currentVideo.videoHeight])
+  gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], 0)
+  gl[videoPrg.uniType[3]](videoPrg.uniLocation[3], data.videoZoom)
   setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
-  gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
+  gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
   for (let targetBufferIndex = 0; targetBufferIndex < videoFramebuffers.length; ++targetBufferIndex) {
     // video buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer)
@@ -653,16 +659,19 @@ function init() {
 
     // update gpgpu buffers -------------------------------------------
     gl.disable(gl.BLEND)
-    gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
 
     // video update
+    gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
     gl.useProgram(videoPrg.program)
     gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[targetBufferIndex].framebuffer)
     setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
     gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
-    gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
-    gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
+    gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], [media.currentVideo.videoWidth, media.currentVideo.videoHeight])
+    gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], 0)
+    gl[videoPrg.uniType[3]](videoPrg.uniLocation[3], data.videoZoom)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+    gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
 
     // picture update
     gl.useProgram(picturePrg.program)
@@ -695,13 +704,17 @@ function init() {
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     if (isCapture) {
+      gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
       gl.useProgram(videoPrg.program)
       gl.bindFramebuffer(gl.FRAMEBUFFER, videoFramebuffers[2].framebuffer)
       setAttribute(planeVBO, videoPrg.attLocation, videoPrg.attStride, planeIBO)
       gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
-      gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], 0)
-      gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], data.videoZoom)
+      gl[videoPrg.uniType[1]](videoPrg.uniLocation[1], [media.currentVideo.videoWidth, media.currentVideo.videoHeight])
+      gl[videoPrg.uniType[2]](videoPrg.uniLocation[2], 0)
+      gl[videoPrg.uniType[3]](videoPrg.uniLocation[3], data.videoZoom)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+      gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
 
       gl.useProgram(positionPrg.program)
       gl.bindFramebuffer(gl.FRAMEBUFFER, positionFramebuffers[2].framebuffer)
@@ -760,10 +773,14 @@ function init() {
 
     setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
     gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
-    gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], 0)
-    gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], data.videoZoom)
-    gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], posList.length)
-    gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList[0])
+    gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [
+      media.currentVideo.videoWidth,
+      media.currentVideo.videoHeight
+    ])
+    gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], 0)
+    gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], data.videoZoom)
+    gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList.length)
+    gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], posList[0])
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
     gl.flush()
