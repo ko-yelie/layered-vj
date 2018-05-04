@@ -345,6 +345,11 @@ function initGlsl() {
 function initControl() {
   const gui = new dat.GUI()
 
+  // scene
+  const sceneMap = ['Particle', 'Post Effect']
+  data.scene = sceneMap[0]
+  gui.add(data, 'scene', sceneMap)
+
   // particle
   const particleFolder = gui.addFolder('particle')
   particleFolder.open()
@@ -729,59 +734,63 @@ function init() {
     }
 
     // render to canvas -------------------------------------------
-    // gl.enable(gl.BLEND)
-    // gl.useProgram(scenePrg.program)
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    // setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
-    // gl.clearColor(0.0, 0.0, 0.0, 0.0)
-    // gl.clearDepth(1.0)
-    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    // gl.viewport(0, 0, canvasWidth, canvasHeight)
-    //
-    // // push and render
-    // rotation[0] += (mouse[0] - rotation[0]) * 0.05
-    // rotation[1] += (mouse[1] - rotation[1]) * 0.05
-    // mat.identity(mMatrix)
-    // mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
-    // mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
-    // mat.multiply(vpMatrix, mMatrix, mvpMatrix)
-    // gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
-    // gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
-    // gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
-    // gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
-    // gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
-    // gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
-    // gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
-    // gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
-    // gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
-    // gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
-    // gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
-    // gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
-    // gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.deformationProgress)
-    // gl[scenePrg.uniType[13]](scenePrg.uniLocation[13], loopCount)
-    // gl.drawArrays(data.mode, 0, arrayLength)
+    if (data.scene === 'Particle') {
+      // Particle
+      gl.enable(gl.BLEND)
+      gl.useProgram(scenePrg.program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
+      gl.clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clearDepth(1.0)
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+      gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-    // video scene render
-    gl.enable(gl.BLEND)
-    gl.useProgram(videoScenePrg.program)
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    setAttribute(vbo, videoScenePrg.attLocation, videoScenePrg.attStride)
-    gl.clearColor(0.0, 0.0, 0.0, 0.0)
-    gl.clearDepth(1.0)
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    gl.viewport(0, 0, canvasWidth, canvasHeight)
+      // push and render
+      rotation[0] += (mouse[0] - rotation[0]) * 0.05
+      rotation[1] += (mouse[1] - rotation[1]) * 0.05
+      mat.identity(mMatrix)
+      mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
+      mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
+      mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+      gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
+      gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
+      gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
+      gl[scenePrg.uniType[3]](scenePrg.uniLocation[3], positionBufferIndex + targetBufferIndex)
+      gl[scenePrg.uniType[4]](scenePrg.uniLocation[4], data.bgColor)
+      gl[scenePrg.uniType[5]](scenePrg.uniLocation[5], volume)
+      gl[scenePrg.uniType[6]](scenePrg.uniLocation[6], videoBufferIndex + 2)
+      gl[scenePrg.uniType[7]](scenePrg.uniLocation[7], positionBufferIndex + 2)
+      gl[scenePrg.uniType[8]](scenePrg.uniLocation[8], isStop)
+      gl[scenePrg.uniType[9]](scenePrg.uniLocation[9], isAudio)
+      gl[scenePrg.uniType[10]](scenePrg.uniLocation[10], data.mode)
+      gl[scenePrg.uniType[11]](scenePrg.uniLocation[11], data.pointShape)
+      gl[scenePrg.uniType[12]](scenePrg.uniLocation[12], data.deformationProgress)
+      gl[scenePrg.uniType[13]](scenePrg.uniLocation[13], loopCount)
+      gl.drawArrays(data.mode, 0, arrayLength)
+    } else if (data.scene === 'Post Effect') {
+      // Post Effect
+      gl.enable(gl.BLEND)
+      gl.useProgram(videoScenePrg.program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      setAttribute(vbo, videoScenePrg.attLocation, videoScenePrg.attStride)
+      gl.clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clearDepth(1.0)
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+      gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-    setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
-    gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
-    gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [
-      media.currentVideo.videoWidth,
-      media.currentVideo.videoHeight
-    ])
-    gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], 0)
-    gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], data.videoZoom)
-    gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList.length)
-    gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], posList[0])
-    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+      // push and render
+      setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
+      gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
+      gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [
+        media.currentVideo.videoWidth,
+        media.currentVideo.videoHeight
+      ])
+      gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], 0)
+      gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], data.videoZoom)
+      gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], posList.length)
+      gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], posList[0])
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+    }
 
     gl.flush()
 
