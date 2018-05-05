@@ -649,7 +649,7 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
-    if (data.detector && detectorCount % 100 === 0) {
+    if (data.detector && detectorCount % 300 === 0) {
       media.detector.detect()
     }
     let posList = media.detector.posList || []
@@ -786,10 +786,7 @@ function init() {
       // push and render
       setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
       gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
-      gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [
-        media.currentVideo.videoWidth,
-        media.currentVideo.videoHeight
-      ])
+      gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [media.currentVideo.width, media.currentVideo.height])
       gl[videoScenePrg.uniType[2]](videoScenePrg.uniLocation[2], 0)
       gl[videoScenePrg.uniType[3]](videoScenePrg.uniLocation[3], data.videoZoom)
       gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], focusCount)

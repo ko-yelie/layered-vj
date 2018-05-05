@@ -14,25 +14,33 @@ float convert(float coord, float rate) {
 }
 
 void main(){
-  vec2 coord = gl_FragCoord.st / resolution / zoom + (1. - 1. / zoom) / 2.;
+  vec2 coord = gl_FragCoord.st / resolution;
   coord.y = 1. - coord.y;
 
   float rateX = videoResolution.x / (resolution.x * videoResolution.y / resolution.y);
   float rateY = videoResolution.y / (resolution.y * videoResolution.x / resolution.x);
   float ratio = step(0., (resolution.x / resolution.y) - (videoResolution.x / videoResolution.y));
-  vec2 resultCoord = vec2(mix(convert(coord.x, rateX), coord.x, ratio), mix(coord.y, convert(coord.y, rateY), ratio));
+  vec2 convertedCoord = vec2(
+    mix(convert(coord.x, rateX), coord.x, ratio),
+    mix(coord.y, convert(coord.y, rateY), ratio)
+  );
 
-  vec2 resultFocusCoord;
   float width = 1. / focusCount;
-  if (focusCount >= 4. && resultCoord.x > width * 3.) {
-    resultFocusCoord = vec2(mix(focusPos4.y, focusPos4.w, resultCoord.x), mix(focusPos4.x, focusPos4.z, resultCoord.y));
-  } else if (focusCount >= 3. && resultCoord.x > width * 2.) {
-    resultFocusCoord = vec2(mix(focusPos3.y, focusPos3.w, resultCoord.x), mix(focusPos3.x, focusPos3.z, resultCoord.y));
-  } else if (focusCount >= 2. && resultCoord.x > width) {
-    resultFocusCoord = vec2(mix(focusPos2.y, focusPos2.w, resultCoord.x), mix(focusPos2.x, focusPos2.z, resultCoord.y));
-  } else {
-    resultFocusCoord = vec2(mix(focusPos1.y, focusPos1.w, resultCoord.x), mix(focusPos1.x, focusPos1.z, resultCoord.y));
-  }
+  float halfWidth = width / 2.;
+  vec4 pos = (focusCount >= 4. && coord.x > width * 3.) ? focusPos4
+    : (focusCount >= 3. && coord.x > width * 2.) ? focusPos3
+    : (focusCount >= 2. && coord.x > width * 1.) ? focusPos2
+    : focusPos1;
+  vec2 center = vec2(mix(pos.y, pos.w, 0.5), pos.x);
+  float scale = (width + (1. - width) / 5.) / zoom;
+  vec2 focusCoord = vec2(
+    mix(center.x - halfWidth * scale, center.x + halfWidth * scale, mod(convertedCoord.x, width) * focusCount),
+    mix(center.y, center.y + width * scale * focusCount, convertedCoord.y)
+  );
 
-  gl_FragColor = mix(texture2D(videoTexture, resultFocusCoord), vec4(0.), (vec4(1.) - step(resultFocusCoord.x, 1.)) + (vec4(1.) - step(0., resultFocusCoord.x)));
+  gl_FragColor = mix(
+    texture2D(videoTexture, focusCoord),
+    vec4(0.),
+    (vec4(1.) - step(focusCoord.x, 1.)) + (vec4(1.) - step(0., focusCoord.x))
+  );
 }

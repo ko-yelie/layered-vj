@@ -16,6 +16,9 @@ export default class Detector {
 
     this.model = await downloadModel()
 
+    this.size = Math.min(this.video.width, this.video.height)
+    this.diff = (this.video.width - this.size) / 2
+
     this.posList = []
 
     this.isReadyDetect = true
@@ -36,12 +39,7 @@ export default class Detector {
       const { top, left, bottom, right, classProb, className } = box
       if (className !== 'person') return
 
-      this.posList.push([
-        top / this.video.height,
-        left / this.video.width,
-        bottom / this.video.height,
-        right / this.video.width
-      ])
+      this.posList.push([top / this.size, this.convert(left), bottom / this.size, this.convert(right)])
       this.drawRect(
         left,
         top,
@@ -51,6 +49,10 @@ export default class Detector {
         this.posList.length > 4 ? 'blue' : 'red'
       )
     })
+  }
+
+  convert(val) {
+    return (val + this.diff) / this.video.width
   }
 
   drawRect(x, y, w, h, text = '', color = 'red') {
