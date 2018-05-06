@@ -68,7 +68,6 @@ let arrayLength
 let isStop = 0
 let isCapture = false
 let isAudio = 0
-let detectorCount = 0
 let defaultFocus = [0, 0, 1, 1]
 
 export default function run() {
@@ -115,9 +114,13 @@ export default function run() {
   })
 
   canvas.addEventListener('click', e => {
-    if (!data.capture) return
+    if (data.capture) {
+      isCapture = true
+    }
 
-    isCapture = true
+    if (data.detector) {
+      media.detector.detect()
+    }
   })
 
   // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
@@ -515,7 +518,7 @@ function initControl() {
     // detector
     data.detector = false
     videoFolder.add(data, 'detector').onChange(() => {
-      detectorCount = 0
+      data.detector && media.detector.detect()
     })
 
     // inputAudio
@@ -649,9 +652,6 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
-    if (data.detector && detectorCount % 300 === 0) {
-      media.detector.detect()
-    }
     let posList = media.detector.posList || []
     let focusCount = Math.min(posList.length || 1, 4)
 
@@ -805,7 +805,6 @@ function init() {
     gl.flush()
 
     ++loopCount
-    ++detectorCount
 
     // animation loop
     isRun && requestAnimationFrame(render)
