@@ -8,6 +8,7 @@ import {
   createVbo,
   createIbo,
   setAttribute,
+  createFramebuffer,
   createFramebufferFloat,
   getWebGLExtensions
 } from './gl-utils.js'
@@ -46,10 +47,12 @@ let videoFramebuffers
 let pictureFramebuffers
 let velocityFramebuffers
 let positionFramebuffers
+let sceneFramebuffer
 let videoBufferIndex
 let pictureBufferIndex
 let velocityBufferIndex
 let positionBufferIndex
+let sceneBufferIndex
 
 let videoPrg
 let picturePrg
@@ -58,6 +61,7 @@ let positionPrg
 let velocityPrg
 let scenePrg
 let videoScenePrg
+let postPrg
 
 let render
 let media
@@ -173,6 +177,13 @@ export default function run() {
     if (prg == null) return
     videoScenePrg = new ProgramParameter(prg)
   }
+  {
+    let vs = createShader(require('../shader/post.vert'), gl.VERTEX_SHADER)
+    let fs = createShader(require('../shader/post.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(vs, fs)
+    if (prg == null) return
+    postPrg = new ProgramParameter(prg)
+  }
 
   initGlsl()
 }
@@ -281,6 +292,13 @@ function initGlsl() {
   videoScenePrg.uniType[7] = 'uniform4fv'
   videoScenePrg.uniType[8] = 'uniform4fv'
 
+  postPrg.attLocation[0] = gl.getAttribLocation(postPrg.program, 'position')
+  postPrg.attStride[0] = 3
+  postPrg.uniLocation[0] = gl.getUniformLocation(postPrg.program, 'texture')
+  postPrg.uniLocation[1] = gl.getUniformLocation(postPrg.program, 'time')
+  postPrg.uniType[0] = 'uniform1i'
+  postPrg.uniType[1] = 'uniform1f'
+
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
 
@@ -348,6 +366,9 @@ function initGlsl() {
   ]
   positionBufferIndex = framebufferCount
   framebufferCount += positionFramebuffers.length
+
+  sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
+  sceneBufferIndex = framebufferCount
 
   initControl()
 }
@@ -588,6 +609,9 @@ function init() {
   gl.activeTexture(gl.TEXTURE0 + positionBufferIndex + 2)
   gl.bindTexture(gl.TEXTURE_2D, positionFramebuffers[2].texture)
 
+  gl.activeTexture(gl.TEXTURE0 + sceneBufferIndex)
+  gl.bindTexture(gl.TEXTURE_2D, sceneFramebuffer.texture)
+
   // reset video
   gl.useProgram(videoPrg.program)
   gl[videoPrg.uniType[0]](videoPrg.uniLocation[0], [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
@@ -739,24 +763,25 @@ function init() {
     }
 
     // render to canvas -------------------------------------------
+    gl.enable(gl.BLEND)
+    gl.clearColor(0.0, 0.0, 0.0, 0.0)
+    gl.clearDepth(1.0)
+
     if (data.scene === 'Particle') {
       // Particle
-      gl.enable(gl.BLEND)
       gl.useProgram(scenePrg.program)
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-      setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
-      gl.clearColor(0.0, 0.0, 0.0, 0.0)
-      gl.clearDepth(1.0)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      // push and render
       rotation[0] += (mouse[0] - rotation[0]) * 0.05
       rotation[1] += (mouse[1] - rotation[1]) * 0.05
       mat.identity(mMatrix)
       mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
       mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
       mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+
+      setAttribute(vbo, scenePrg.attLocation, scenePrg.attStride)
       gl[scenePrg.uniType[0]](scenePrg.uniLocation[0], false, mvpMatrix)
       gl[scenePrg.uniType[1]](scenePrg.uniLocation[1], data.pointSize * canvasHeight / 930)
       gl[scenePrg.uniType[2]](scenePrg.uniLocation[2], videoBufferIndex + targetBufferIndex)
@@ -774,16 +799,13 @@ function init() {
       gl.drawArrays(data.mode, 0, arrayLength)
     } else if (data.scene === 'Post Effect') {
       // Post Effect
-      gl.enable(gl.BLEND)
+
+      // render to framebuffer
       gl.useProgram(videoScenePrg.program)
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-      setAttribute(vbo, videoScenePrg.attLocation, videoScenePrg.attStride)
-      gl.clearColor(0.0, 0.0, 0.0, 0.0)
-      gl.clearDepth(1.0)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer.framebuffer)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      // push and render
       setAttribute(planeVBO, videoScenePrg.attLocation, videoScenePrg.attStride, planeIBO)
       gl[videoScenePrg.uniType[0]](videoScenePrg.uniLocation[0], [canvasWidth, canvasHeight])
       gl[videoScenePrg.uniType[1]](videoScenePrg.uniLocation[1], [media.currentVideo.width, media.currentVideo.height])
@@ -794,11 +816,17 @@ function init() {
       gl[videoScenePrg.uniType[6]](videoScenePrg.uniLocation[6], posList[1] || defaultFocus)
       gl[videoScenePrg.uniType[7]](videoScenePrg.uniLocation[7], posList[2] || defaultFocus)
       gl[videoScenePrg.uniType[8]](videoScenePrg.uniLocation[8], posList[3] || defaultFocus)
-      // gl[videoScenePrg.uniType[4]](videoScenePrg.uniLocation[4], 4)
-      // gl[videoScenePrg.uniType[5]](videoScenePrg.uniLocation[5], [0.4, 0.1, 0.6, 0.3])
-      // gl[videoScenePrg.uniType[6]](videoScenePrg.uniLocation[6], [0.4, 0.3, 0.6, 0.5])
-      // gl[videoScenePrg.uniType[7]](videoScenePrg.uniLocation[7], [0.4, 0.5, 0.6, 0.7])
-      // gl[videoScenePrg.uniType[8]](videoScenePrg.uniLocation[8], [0.4, 0.7, 0.6, 0.9])
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+      // post process
+      gl.useProgram(postPrg.program)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+      gl.viewport(0, 0, canvasWidth, canvasHeight)
+
+      setAttribute(planeVBO, postPrg.attLocation, postPrg.attStride, planeIBO)
+      gl[postPrg.uniType[0]](postPrg.uniLocation[0], sceneBufferIndex)
+      gl[postPrg.uniType[1]](postPrg.uniLocation[1], loopCount)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
     }
 
