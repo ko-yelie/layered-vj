@@ -26,16 +26,22 @@ void main(){
   );
 
   float width = 1. / focusCount;
-  float halfWidth = width / 2.;
   vec4 pos = (focusCount >= 4. && coord.x > width * 3.) ? focusPos4
     : (focusCount >= 3. && coord.x > width * 2.) ? focusPos3
     : (focusCount >= 2. && coord.x > width * 1.) ? focusPos2
     : focusPos1;
   vec2 center = vec2(mix(pos.y, pos.w, 0.5), pos.x);
   float scale = (width + (1. - width) / 5.) / zoom;
+  float focusWidth = width * scale;
+  float focusHalfWidth = focusWidth / 2.;
+  float x = center.x;
+  x = mix(focusHalfWidth, x, step(0., center.x - focusHalfWidth));
+  x = mix(1. - focusHalfWidth, x, step(x + focusHalfWidth, 1.));
+  float height = focusWidth * focusCount;
+  float y = min(center.y, 1. - height);
   vec2 focusCoord = vec2(
-    mix(center.x - halfWidth * scale, center.x + halfWidth * scale, mod(convertedCoord.x, width) * focusCount),
-    mix(center.y, center.y + width * scale * focusCount, convertedCoord.y)
+    mix(x - focusHalfWidth, x + focusHalfWidth, mod(convertedCoord.x, width) * focusCount),
+    mix(y, y + height, convertedCoord.y)
   );
 
   gl_FragColor = mix(
