@@ -1,5 +1,4 @@
 import MatIV from './minMatrix.js'
-
 import {
   setGl,
   ProgramParameter,
@@ -12,9 +11,8 @@ import {
   createFramebufferFloat,
   getWebGLExtensions
 } from './gl-utils.js'
-
 import { getFirstValue } from './utils.js'
-
+import { setVariables } from './postprocessing/utils.js'
 import Media from './media.js'
 
 const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
@@ -61,10 +59,11 @@ let positionPrg
 let velocityPrg
 let scenePrg
 let videoScenePrg
+let currentPostPrg
 let postNonePrg
 let postNoisePrg
 let postDotPrg
-let currentPostPrg
+let postDotScreenPrg
 
 let render
 let media
@@ -200,6 +199,12 @@ export default function run() {
     if (prg == null) return
     postDotPrg = new ProgramParameter(prg)
   }
+  {
+    let fs = createShader(require('../shader/post/DotScreen.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(postVs, fs)
+    if (prg == null) return
+    postDotScreenPrg = new ProgramParameter(prg)
+  }
 
   initGlsl()
 }
@@ -308,24 +313,10 @@ function initGlsl() {
   videoScenePrg.uniType[7] = 'uniform4fv'
   videoScenePrg.uniType[8] = 'uniform4fv'
 
-  postNonePrg.attLocation[0] = gl.getAttribLocation(postNonePrg.program, 'position')
-  postNonePrg.attStride[0] = 3
-  postNonePrg.uniLocation[0] = gl.getUniformLocation(postNonePrg.program, 'texture')
-  postNonePrg.uniType[0] = 'uniform1i'
-
-  postNoisePrg.attLocation[0] = gl.getAttribLocation(postNoisePrg.program, 'position')
-  postNoisePrg.attStride[0] = 3
-  postNoisePrg.uniLocation[0] = gl.getUniformLocation(postNoisePrg.program, 'texture')
-  postNoisePrg.uniLocation[1] = gl.getUniformLocation(postNoisePrg.program, 'time')
-  postNoisePrg.uniType[0] = 'uniform1i'
-  postNoisePrg.uniType[1] = 'uniform1f'
-
-  postDotPrg.attLocation[0] = gl.getAttribLocation(postDotPrg.program, 'position')
-  postDotPrg.attStride[0] = 3
-  postDotPrg.uniLocation[0] = gl.getUniformLocation(postDotPrg.program, 'texture')
-  postDotPrg.uniLocation[1] = gl.getUniformLocation(postDotPrg.program, 'resolution')
-  postDotPrg.uniType[0] = 'uniform1i'
-  postDotPrg.uniType[1] = 'uniform2fv'
+  setVariables(gl, postNonePrg)
+  setVariables(gl, postNoisePrg)
+  setVariables(gl, postDotPrg)
+  setVariables(gl, postDotScreenPrg)
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -571,7 +562,7 @@ function initControl() {
     })
 
     // effect
-    const effectMap = ['none', 'noise', 'dot']
+    const effectMap = ['none', 'noise', 'dot', 'dot screen']
     const changeEffect = val => {
       switch (val) {
         case 'noise':
@@ -579,6 +570,9 @@ function initControl() {
           break
         case 'dot':
           currentPostPrg = postDotPrg
+          break
+        case 'dot screen':
+          currentPostPrg = postDotScreenPrg
           break
         case 'none':
         default:
@@ -873,14 +867,8 @@ function init() {
 
       setAttribute(planeVBO, currentPostPrg.attLocation, currentPostPrg.attStride, planeIBO)
       gl[currentPostPrg.uniType[0]](currentPostPrg.uniLocation[0], sceneBufferIndex)
-      switch (data.effect) {
-        case 'noise':
-          gl[postNoisePrg.uniType[1]](postNoisePrg.uniLocation[1], loopCount)
-          break
-        case 'dot':
-          gl[postDotPrg.uniType[1]](postDotPrg.uniLocation[1], [canvasWidth, canvasHeight])
-          break
-      }
+      gl[currentPostPrg.uniType[1]](currentPostPrg.uniLocation[1], loopCount)
+      gl[currentPostPrg.uniType[2]](currentPostPrg.uniLocation[2], [canvasWidth, canvasHeight])
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
     }
 
