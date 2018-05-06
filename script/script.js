@@ -61,7 +61,10 @@ let positionPrg
 let velocityPrg
 let scenePrg
 let videoScenePrg
-let postPrg
+let postNonePrg
+let postNoisePrg
+let postDotPrg
+let currentPostPrg
 
 let render
 let media
@@ -177,12 +180,25 @@ export default function run() {
     if (prg == null) return
     videoScenePrg = new ProgramParameter(prg)
   }
+
+  let postVs = createShader(require('../shader/post/post.vert'), gl.VERTEX_SHADER)
   {
-    let vs = createShader(require('../shader/post.vert'), gl.VERTEX_SHADER)
-    let fs = createShader(require('../shader/post.frag'), gl.FRAGMENT_SHADER)
-    let prg = createProgram(vs, fs)
+    let fs = createShader(require('../shader/post/none.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(postVs, fs)
     if (prg == null) return
-    postPrg = new ProgramParameter(prg)
+    postNonePrg = new ProgramParameter(prg)
+  }
+  {
+    let fs = createShader(require('../shader/post/noise.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(postVs, fs)
+    if (prg == null) return
+    postNoisePrg = new ProgramParameter(prg)
+  }
+  {
+    let fs = createShader(require('../shader/post/dot.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(postVs, fs)
+    if (prg == null) return
+    postDotPrg = new ProgramParameter(prg)
   }
 
   initGlsl()
@@ -292,12 +308,24 @@ function initGlsl() {
   videoScenePrg.uniType[7] = 'uniform4fv'
   videoScenePrg.uniType[8] = 'uniform4fv'
 
-  postPrg.attLocation[0] = gl.getAttribLocation(postPrg.program, 'position')
-  postPrg.attStride[0] = 3
-  postPrg.uniLocation[0] = gl.getUniformLocation(postPrg.program, 'texture')
-  postPrg.uniLocation[1] = gl.getUniformLocation(postPrg.program, 'time')
-  postPrg.uniType[0] = 'uniform1i'
-  postPrg.uniType[1] = 'uniform1f'
+  postNonePrg.attLocation[0] = gl.getAttribLocation(postNonePrg.program, 'position')
+  postNonePrg.attStride[0] = 3
+  postNonePrg.uniLocation[0] = gl.getUniformLocation(postNonePrg.program, 'texture')
+  postNonePrg.uniType[0] = 'uniform1i'
+
+  postNoisePrg.attLocation[0] = gl.getAttribLocation(postNoisePrg.program, 'position')
+  postNoisePrg.attStride[0] = 3
+  postNoisePrg.uniLocation[0] = gl.getUniformLocation(postNoisePrg.program, 'texture')
+  postNoisePrg.uniLocation[1] = gl.getUniformLocation(postNoisePrg.program, 'time')
+  postNoisePrg.uniType[0] = 'uniform1i'
+  postNoisePrg.uniType[1] = 'uniform1f'
+
+  postDotPrg.attLocation[0] = gl.getAttribLocation(postDotPrg.program, 'position')
+  postDotPrg.attStride[0] = 3
+  postDotPrg.uniLocation[0] = gl.getUniformLocation(postDotPrg.program, 'texture')
+  postDotPrg.uniLocation[1] = gl.getUniformLocation(postDotPrg.program, 'resolution')
+  postDotPrg.uniType[0] = 'uniform1i'
+  postDotPrg.uniType[1] = 'uniform2fv'
 
   const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
   const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
@@ -541,6 +569,25 @@ function initControl() {
     videoFolder.add(data, 'detector').onChange(() => {
       data.detector && media.detector.detect()
     })
+
+    // effect
+    const effectMap = ['none', 'noise', 'dot']
+    const changeEffect = val => {
+      switch (val) {
+        case 'noise':
+          currentPostPrg = postNoisePrg
+          break
+        case 'dot':
+          currentPostPrg = postDotPrg
+          break
+        case 'none':
+        default:
+          currentPostPrg = postNonePrg
+      }
+    }
+    data.effect = effectMap[0]
+    videoFolder.add(data, 'effect', effectMap).onChange(changeEffect)
+    changeEffect(data.effect)
 
     // inputAudio
     data.inputAudio = false
@@ -819,14 +866,21 @@ function init() {
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       // post process
-      gl.useProgram(postPrg.program)
+      gl.useProgram(currentPostPrg.program)
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      setAttribute(planeVBO, postPrg.attLocation, postPrg.attStride, planeIBO)
-      gl[postPrg.uniType[0]](postPrg.uniLocation[0], sceneBufferIndex)
-      gl[postPrg.uniType[1]](postPrg.uniLocation[1], loopCount)
+      setAttribute(planeVBO, currentPostPrg.attLocation, currentPostPrg.attStride, planeIBO)
+      gl[currentPostPrg.uniType[0]](currentPostPrg.uniLocation[0], sceneBufferIndex)
+      switch (data.effect) {
+        case 'noise':
+          gl[postNoisePrg.uniType[1]](postNoisePrg.uniLocation[1], loopCount)
+          break
+        case 'dot':
+          gl[postDotPrg.uniType[1]](postDotPrg.uniLocation[1], [canvasWidth, canvasHeight])
+          break
+      }
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
     }
 
