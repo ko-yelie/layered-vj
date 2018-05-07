@@ -19,22 +19,17 @@ export default class Detector {
     this.size = Math.min(this.video.width, this.video.height)
     this.diff = (this.video.width - this.size) / 2
 
-    this.posList = []
-
     this.isReadyDetect = true
   }
 
   async detect() {
     if (!this.isReadyDetect) return
 
-    this.clearRects()
+    this.reset()
 
     const inputImage = this.webcam.capture()
 
     const boxes = await yolo(inputImage, this.model)
-
-    this.posList = []
-
     boxes.forEach(box => {
       const { top, left, bottom, right, classProb, className } = box
       if (className !== 'person') return
@@ -74,5 +69,10 @@ export default class Detector {
     while (rects[0]) {
       rects[0].parentNode.removeChild(rects[0])
     }
+  }
+
+  reset() {
+    this.clearRects()
+    this.posList = []
   }
 }

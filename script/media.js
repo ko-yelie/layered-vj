@@ -40,7 +40,7 @@ export default class Media {
         video.height = this.size
         video.loop = true
         video.muted = true
-        this.videoDevices[`Video: ${video.innerText}`] = video.src
+        this.videoDevices[`File: ${video.innerText}`] = video.src
         this.videoFiles[video.src] = video
       })
     })

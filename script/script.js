@@ -389,144 +389,154 @@ function initGlsl() {
   sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
   sceneBufferIndex = framebufferCount
 
-  initControl()
+  initMedia()
+}
+
+function initMedia() {
+  media = new Media(VIDEO_RESOLUTION, POINT_RESOLUTION)
+  media.enumerateDevices().then(initControl)
 }
 
 function initControl() {
   const gui = new dat.GUI()
+  let particleFolder
+  let postFolder
+  let thumbController
 
   // scene
   const sceneMap = ['Particle', 'Post Effect']
   data.scene = sceneMap[0]
-  gui.add(data, 'scene', sceneMap)
+  gui.add(data, 'scene', sceneMap).onChange(val => {
+    particleFolder.close()
+    postFolder.close()
 
-  // particle
-  const particleFolder = gui.addFolder('particle')
-  particleFolder.open()
-
-  // mode
-  const modeMap = {
-    'gl.POINTS': gl.POINTS,
-    'gl.LINE_STRIP': gl.LINE_STRIP,
-    'gl.TRIANGLES': gl.TRIANGLES
-  }
-  data.mode = getFirstValue(modeMap)
-  particleFolder.add(data, 'mode', modeMap)
-
-  // point
-  const pointFolder = particleFolder.addFolder('gl.POINTS')
-  pointFolder.open()
-
-  // pointShape
-  const pointShapeMap = { square: 0, circle: 1, star: 2, video: 3 }
-  data.pointShape = pointShapeMap.circle
-  pointFolder.add(data, 'pointShape', pointShapeMap)
-
-  // pointSize
-  const pointSizeMap = [0.1, 30]
-  data.pointSize = SIZE
-  pointFolder.add(data, 'pointSize', ...pointSizeMap)
-
-  // line
-  const lineFolder = particleFolder.addFolder('gl.LINE_STRIP')
-  lineFolder.open()
-
-  // lineShape
-  const lineShapeMap = ['line', 'mesh']
-  const changeLineShape = val => {
     switch (val) {
-      case 'mesh':
-        vbo = meshPointVBO
-        arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
+      case 'Post Effect':
+        postFolder.open()
         break
-      case 'line':
+      case 'Particle':
       default:
-        vbo = pointVBO
-        arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
-    }
-  }
-  data.lineShape = lineShapeMap[0]
-  lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
-  changeLineShape(data.lineShape)
-
-  // deformation
-  data.deformationProgress = 0
-  const tl = new TimelineMax({
-    paused: true
-  }).fromTo(
-    data,
-    0.7,
-    {
-      deformationProgress: 0
-    },
-    {
-      deformationProgress: 1,
-      ease: 'Power2.easeOut'
-    }
-  )
-  data.deformation = false
-  particleFolder.add(data, 'deformation').onChange(() => {
-    data.deformation ? tl.play() : tl.reverse()
-  })
-
-  // canvas
-  const canvasFolder = gui.addFolder('canvas')
-  canvasFolder.open()
-
-  // bgColor
-  const bgColorMap = { black: 0, white: 1 }
-  const changeBgColor = val => {
-    let rgbInt = val * 255
-    canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
-  }
-  data.bgColor = getFirstValue(bgColorMap)
-  canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
-  changeBgColor(data.bgColor)
-
-  // canvasZoom
-  const canvasZoomMap = [2, 8]
-  data.canvasZoom = 5
-  canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
-    updateCamera()
-  })
-
-  // mouse
-  data.mouse = false
-  canvasFolder.add(data, 'mouse').onChange(() => {
-    if (!data.mouse) {
-      mouse = [0.0, 0.0]
+        particleFolder.open()
     }
   })
 
-  // media
-  const mediaFolder = gui.addFolder('media')
-  mediaFolder.open()
+  // Particle folder
+  {
+    let pointFolder
+    let lineFolder
 
-  // video
-  const videoFolder = mediaFolder.addFolder('video')
-  videoFolder.open()
+    particleFolder = gui.addFolder('Particle')
+    particleFolder.open()
 
-  // audio
-  const audioFolder = mediaFolder.addFolder('audio')
-  audioFolder.open()
+    // mode
+    const modeMap = {
+      'gl.POINTS': gl.POINTS,
+      'gl.LINE_STRIP': gl.LINE_STRIP,
+      'gl.TRIANGLES': gl.TRIANGLES
+    }
+    data.mode = getFirstValue(modeMap)
+    particleFolder.add(data, 'mode', modeMap).onChange(val => {
+      pointFolder.close()
+      lineFolder.close()
 
-  media = new Media(VIDEO_RESOLUTION, POINT_RESOLUTION)
-  media.enumerateDevices().then(() => {
-    // video
-    const changeVideo = val =>
-      media.getUserMedia({ video: val }).then(() => {
-        video = media.currentVideo
-      })
-    const videoDevicesKeys = Object.keys(media.videoDevices)
-    const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
-    const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
-    data.video = media.videoDevices[currentVideoKey]
-    videoFolder.add(data, 'video', media.videoDevices).onChange(changeVideo)
+      switch (Number(val)) {
+        case gl.LINE_STRIP:
+        case gl.TRIANGLES:
+          lineFolder.open()
+          break
+        case gl.POINTS:
+        default:
+          pointFolder.open()
+      }
+    })
 
-    // videoZoom
-    const videoZoomMap = [1, 3]
-    data.videoZoom = videoZoomMap[0]
-    videoFolder.add(data, 'videoZoom', ...videoZoomMap)
+    // point folder
+    pointFolder = particleFolder.addFolder('gl.POINTS')
+    pointFolder.open()
+
+    // pointShape
+    const pointShapeMap = { square: 0, circle: 1, star: 2, video: 3 }
+    data.pointShape = pointShapeMap.circle
+    pointFolder.add(data, 'pointShape', pointShapeMap)
+
+    // pointSize
+    const pointSizeMap = [0.1, 30]
+    data.pointSize = SIZE
+    pointFolder.add(data, 'pointSize', ...pointSizeMap)
+
+    // line folder
+    lineFolder = particleFolder.addFolder('gl.LINE_STRIP')
+
+    // lineShape
+    const lineShapeMap = ['line', 'mesh']
+    const changeLineShape = val => {
+      switch (val) {
+        case 'mesh':
+          vbo = meshPointVBO
+          arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
+          break
+        case 'line':
+        default:
+          vbo = pointVBO
+          arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
+      }
+    }
+    data.lineShape = lineShapeMap[0]
+    lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
+    changeLineShape(data.lineShape)
+
+    // deformation
+    data.deformationProgress = 0
+    const tl = new TimelineMax({
+      paused: true
+    }).fromTo(
+      data,
+      0.7,
+      {
+        deformationProgress: 0
+      },
+      {
+        deformationProgress: 1,
+        ease: 'Power2.easeOut'
+      }
+    )
+    data.deformation = false
+    particleFolder.add(data, 'deformation').onChange(() => {
+      data.deformation ? tl.play() : tl.reverse()
+    })
+
+    // canvas folder
+    const canvasFolder = particleFolder.addFolder('canvas')
+    canvasFolder.open()
+
+    // bgColor
+    const bgColorMap = { black: 0, white: 1 }
+    const changeBgColor = val => {
+      let rgbInt = val * 255
+      canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
+    }
+    data.bgColor = getFirstValue(bgColorMap)
+    canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
+    changeBgColor(data.bgColor)
+
+    // canvasZoom
+    const canvasZoomMap = [2, 8]
+    data.canvasZoom = 5
+    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
+      updateCamera()
+    })
+
+    // mouse
+    data.mouse = false
+    canvasFolder.add(data, 'mouse').onChange(() => {
+      if (!data.mouse) {
+        mouse = [0.0, 0.0]
+      }
+    })
+
+    // video folder
+    const videoFolder = particleFolder.addFolder('video')
+    videoFolder.open()
 
     // capture
     data.capture = false
@@ -549,16 +559,38 @@ function initControl() {
       }
     })
 
-    // thumb
-    data.thumb = false
-    videoFolder.add(data, 'thumb').onChange(() => {
-      media.toggleThumb(data.thumb)
+    // audio folder
+    const audioFolder = particleFolder.addFolder('audio')
+    audioFolder.open()
+
+    // inputAudio
+    data.inputAudio = false
+    audioFolder.add(data, 'inputAudio').onChange(() => {
+      isAudio = data.inputAudio ? 1 : 0
     })
+
+    // audio
+    const changeAudio = val => media.getUserMedia({ audio: val })
+    const audioDevicesKeys = Object.keys(media.audioDevices)
+    const currentAudioKey = audioDevicesKeys[0]
+    data.audio = media.audioDevices[currentAudioKey]
+    audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+  }
+
+  // Post Effect folder
+  {
+    postFolder = gui.addFolder('Post Effect')
 
     // detector
     data.detector = false
-    videoFolder.add(data, 'detector').onChange(() => {
-      data.detector && media.detector.detect()
+    postFolder.add(data, 'detector').onChange(() => {
+      if (data.detector) {
+        media.detector.detect()
+        thumbController.setValue(true)
+      } else {
+        media.detector.reset()
+        thumbController.setValue(false)
+      }
     })
 
     // effect
@@ -580,24 +612,35 @@ function initControl() {
       }
     }
     data.effect = effectMap[0]
-    videoFolder.add(data, 'effect', effectMap).onChange(changeEffect)
+    postFolder.add(data, 'effect', effectMap).onChange(changeEffect)
     changeEffect(data.effect)
+  }
 
-    // inputAudio
-    data.inputAudio = false
-    audioFolder.add(data, 'inputAudio').onChange(() => {
-      isAudio = data.inputAudio ? 1 : 0
+  // video
+  const changeVideo = val =>
+    media.getUserMedia({ video: val }).then(() => {
+      video = media.currentVideo
+
+      media.detector.reset()
     })
+  const videoDevicesKeys = Object.keys(media.videoDevices)
+  const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
+  const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
+  data.video = media.videoDevices[currentVideoKey]
+  gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
 
-    // audio
-    const changeAudio = val => media.getUserMedia({ audio: val })
-    const audioDevicesKeys = Object.keys(media.audioDevices)
-    const currentAudioKey = audioDevicesKeys[0]
-    data.audio = media.audioDevices[currentAudioKey]
-    audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+  // videoZoom
+  const videoZoomMap = [1, 3]
+  data.videoZoom = videoZoomMap[0]
+  gui.add(data, 'videoZoom', ...videoZoomMap)
 
-    changeVideo(data.video).then(init)
+  // thumb
+  data.thumb = false
+  thumbController = gui.add(data, 'thumb').onChange(() => {
+    media.toggleThumb(data.thumb)
   })
+
+  changeVideo(data.video).then(init)
 }
 
 function updateCamera() {
