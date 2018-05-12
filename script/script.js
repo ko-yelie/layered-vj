@@ -419,7 +419,7 @@ function initMedia() {
   media.enumerateDevices().then(initControl)
 }
 
-async function initControl() {
+function initControl() {
   const gui = new dat.GUI({
     load: require('./gui/detector.json'),
     preset: location.search.substring(1)
@@ -689,26 +689,26 @@ async function initControl() {
 
   changeScene()
   changeThumb()
-  await changeVideo(data.video)
+  changeVideo(data.video).then(() => {
+    detectorVM = new Vue({
+      el: '#detector',
+      data: {
+        isShow: false,
+        isReady: false
+      },
+      components: {
+        [Detector.name]: Detector
+      },
+      mounted() {
+        this.isShow = data.detector
+        media.detector.promise.then(() => {
+          this.isReady = true
+        })
+      }
+    })
 
-  detectorVM = new Vue({
-    el: '#detector',
-    data: {
-      isShow: false,
-      isReady: false
-    },
-    components: {
-      [Detector.name]: Detector
-    },
-    mounted() {
-      this.isShow = data.detector
-      media.detector.promise.then(() => {
-        this.isReady = true
-      })
-    }
+    init()
   })
-
-  init()
 }
 
 function updateCamera() {
