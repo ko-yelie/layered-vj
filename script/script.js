@@ -96,6 +96,20 @@ export default function run() {
   // 拡張機能を有効化
   ext = getWebGLExtensions()
 
+  window.addEventListener('resize', () => {
+    canvasWidth = window.innerWidth
+    canvasHeight = window.innerHeight
+    canvas.width = canvasWidth
+    canvas.height = canvasHeight
+
+    mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
+    mat.multiply(pMatrix, vMatrix, vpMatrix)
+
+    sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
+    gl.activeTexture(gl.TEXTURE0 + sceneBufferIndex)
+    gl.bindTexture(gl.TEXTURE_2D, sceneFramebuffer.texture)
+  })
+
   // Esc キーで実行を止められるようにイベントを設定
   window.addEventListener('keydown', e => {
     if (e.keyCode === 27) {
