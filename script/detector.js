@@ -6,24 +6,21 @@ export default class Detector {
     this.video = video
     this.wrapper = wrapper
 
-    this.initYolo()
-  }
-
-  async initYolo() {
     this.webcam = new Webcam(this.video)
     // await this.webcam.setup()
     this.webcam.adjustVideoSize(this.video.videoWidth, this.video.videoHeight)
 
-    this.model = await downloadModel()
-
     this.size = Math.min(this.video.width, this.video.height)
     this.diff = (this.video.width - this.size) / 2
 
-    this.isReadyDetect = true
+    this.promise = downloadModel().then(model => {
+      this.model = model
+      this.isReady = true
+    })
   }
 
   async detect() {
-    if (!this.isReadyDetect) return
+    if (!this.isReady) return
 
     this.reset()
 

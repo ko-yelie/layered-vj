@@ -14,6 +14,7 @@ import {
 import { getFirstValue } from './utils.js'
 import { setVariables } from './postprocessing/utils.js'
 import Media from './media.js'
+import Detector from './vue/Detector.vue'
 
 const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
 const VIDEO_RESOLUTION = 416
@@ -69,6 +70,7 @@ let render
 let media
 let data = {}
 let video
+let detectorVM
 let vbo
 let arrayLength
 let isStop = 0
@@ -411,7 +413,7 @@ function initMedia() {
   media.enumerateDevices().then(initControl)
 }
 
-function initControl() {
+async function initControl() {
   const gui = new dat.GUI({
     load: require('./gui/detector.json'),
     preset: location.search.substring(1)
@@ -620,9 +622,11 @@ function initControl() {
       if (data.detector) {
         media.detector.detect()
         thumbController.setValue(true)
+        detectorVM.isShow = true
       } else {
         media.detector.reset()
         thumbController.setValue(false)
+        detectorVM.isShow = false
       }
     }
     postFolder.add(data, 'detector').onChange(changeDetector)
@@ -679,16 +683,29 @@ function initControl() {
 
   changeScene()
   changeThumb()
-  changeVideo(data.video).then(init)
+  await changeVideo(data.video)
+
+  detectorVM = new Vue({
+    el: '#detector',
+    data: {
+      isShow: false,
+      isReady: false
+    },
+    components: {
+      [Detector.name]: Detector
+    },
+    mounted() {
+      this.isShow = data.detector
+      media.detector.promise.then(() => {
+        this.isReady = true
+      })
+    }
+  })
+
+  init()
 }
 
 function updateCamera() {
-  // matrix
-  mMatrix = mat.identity(mat.create())
-  vMatrix = mat.identity(mat.create())
-  pMatrix = mat.identity(mat.create())
-  vpMatrix = mat.identity(mat.create())
-  mvpMatrix = mat.identity(mat.create())
   mat.lookAt([0.0, 0.0, data.canvasZoom / (S_WIDTH / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)

@@ -89,7 +89,9 @@ export default class Media {
             // video 再生開始をコール
             this.currentVideo.play()
 
-            this.detector = new Detector(this.currentVideo, this.wrapper)
+            if (sources.video) {
+              this.detector = new Detector(this.currentVideo, this.wrapper)
+            }
 
             resolve()
           }

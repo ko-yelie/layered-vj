@@ -1,10 +1,13 @@
 extends:
   - standard
+  - plugin:vue/essential
   - prettier
 env:
   browser: true
 plugins:
   - prettier
+parserOptions:
+  ecmaVersion: 2017
 rules:
   prettier/prettier:
     - error
@@ -15,3 +18,4 @@ rules:
 globals:
   dat: true
   TimelineMax: true
+  Vue: true
