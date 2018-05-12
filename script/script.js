@@ -412,19 +412,24 @@ function initMedia() {
 }
 
 function initControl() {
-  const gui = new dat.GUI()
+  const gui = new dat.GUI({
+    load: require('./gui/detector.json'),
+    preset: location.search.substring(1)
+  })
   let particleFolder
   let postFolder
   let thumbController
 
+  gui.remember(data)
+
   // scene
   const sceneMap = ['Particle', 'Post Effect']
   data.scene = sceneMap[0]
-  gui.add(data, 'scene', sceneMap).onChange(val => {
+  const changeScene = () => {
     particleFolder.close()
     postFolder.close()
 
-    switch (val) {
+    switch (data.scene) {
       case 'Post Effect':
         postFolder.open()
         break
@@ -432,7 +437,8 @@ function initControl() {
       default:
         particleFolder.open()
     }
-  })
+  }
+  gui.add(data, 'scene', sceneMap).onChange(changeScene)
 
   // Particle folder
   {
@@ -440,7 +446,6 @@ function initControl() {
     let lineFolder
 
     particleFolder = gui.addFolder('Particle')
-    particleFolder.open()
 
     // mode
     const modeMap = {
@@ -449,11 +454,11 @@ function initControl() {
       'gl.TRIANGLES': gl.TRIANGLES
     }
     data.mode = getFirstValue(modeMap)
-    particleFolder.add(data, 'mode', modeMap).onChange(val => {
+    const changeMode = () => {
       pointFolder.close()
       lineFolder.close()
 
-      switch (Number(val)) {
+      switch (Number(data.mode)) {
         case gl.LINE_STRIP:
         case gl.TRIANGLES:
           lineFolder.open()
@@ -462,11 +467,11 @@ function initControl() {
         default:
           pointFolder.open()
       }
-    })
+    }
+    particleFolder.add(data, 'mode', modeMap).onChange(changeMode)
 
     // point folder
     pointFolder = particleFolder.addFolder('gl.POINTS')
-    pointFolder.open()
 
     // pointShape
     const pointShapeMap = { square: 0, circle: 1, star: 2, video: 3 }
@@ -483,8 +488,8 @@ function initControl() {
 
     // lineShape
     const lineShapeMap = ['line', 'mesh']
-    const changeLineShape = val => {
-      switch (val) {
+    const changeLineShape = () => {
+      switch (data.lineShape) {
         case 'mesh':
           vbo = meshPointVBO
           arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
@@ -497,7 +502,6 @@ function initControl() {
     }
     data.lineShape = lineShapeMap[0]
     lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
-    changeLineShape(data.lineShape)
 
     // deformation
     data.deformationProgress = 0
@@ -515,54 +519,55 @@ function initControl() {
       }
     )
     data.deformation = false
-    particleFolder.add(data, 'deformation').onChange(() => {
+    const changeDeformation = () => {
       data.deformation ? tl.play() : tl.reverse()
-    })
+    }
+    particleFolder.add(data, 'deformation').onChange(changeDeformation)
 
     // canvas folder
     const canvasFolder = particleFolder.addFolder('canvas')
-    canvasFolder.open()
 
     // bgColor
     const bgColorMap = { black: 0, white: 1 }
-    const changeBgColor = val => {
-      let rgbInt = val * 255
+    const changeBgColor = () => {
+      let rgbInt = data.bgColor * 255
       canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
     }
     data.bgColor = getFirstValue(bgColorMap)
     canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
-    changeBgColor(data.bgColor)
 
     // canvasZoom
     const canvasZoomMap = [2, 8]
     data.canvasZoom = 5
-    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(() => {
+    const changeZoom = () => {
       updateCamera()
-    })
+    }
+    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(changeZoom)
 
     // mouse
     data.mouse = false
-    canvasFolder.add(data, 'mouse').onChange(() => {
+    const changeMouse = () => {
       if (!data.mouse) {
         mouse = [0.0, 0.0]
       }
-    })
+    }
+    canvasFolder.add(data, 'mouse').onChange(changeMouse)
 
     // video folder
     const videoFolder = particleFolder.addFolder('video')
-    videoFolder.open()
 
     // capture
     data.capture = false
-    videoFolder.add(data, 'capture').onChange(() => {
+    const changeCapture = () => {
       isStop = data.capture ? 1 : 0
       isCapture = data.capture
-    })
+    }
+    videoFolder.add(data, 'capture').onChange(changeCapture)
 
     // stopMotion
     data.stopMotion = false
     let timer
-    videoFolder.add(data, 'stopMotion').onChange(() => {
+    const changeStopMotion = () => {
       isStop = data.stopMotion ? 1 : 0
       if (data.stopMotion) {
         timer = setInterval(() => {
@@ -571,24 +576,36 @@ function initControl() {
       } else {
         clearTimeout(timer)
       }
-    })
+    }
+    videoFolder.add(data, 'stopMotion').onChange(changeStopMotion)
 
     // audio folder
     const audioFolder = particleFolder.addFolder('audio')
-    audioFolder.open()
 
     // inputAudio
     data.inputAudio = false
-    audioFolder.add(data, 'inputAudio').onChange(() => {
+    const changeInputAudio = () => {
       isAudio = data.inputAudio ? 1 : 0
-    })
+    }
+    audioFolder.add(data, 'inputAudio').onChange(changeInputAudio)
 
     // audio
-    const changeAudio = val => media.getUserMedia({ audio: val })
+    const changeAudio = () => media.getUserMedia({ audio: data.audio })
     const audioDevicesKeys = Object.keys(media.audioDevices)
     const currentAudioKey = audioDevicesKeys[0]
     data.audio = media.audioDevices[currentAudioKey]
     audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+
+    changeMode()
+    changeLineShape()
+    changeDeformation()
+    changeBgColor()
+    changeZoom()
+    changeMouse()
+    changeCapture()
+    changeStopMotion()
+    changeInputAudio()
+    changeAudio()
   }
 
   // Post Effect folder
@@ -597,7 +614,9 @@ function initControl() {
 
     // detector
     data.detector = false
-    postFolder.add(data, 'detector').onChange(() => {
+    const changeDetector = () => {
+      if (!media.detector) return
+
       if (data.detector) {
         media.detector.detect()
         thumbController.setValue(true)
@@ -605,12 +624,13 @@ function initControl() {
         media.detector.reset()
         thumbController.setValue(false)
       }
-    })
+    }
+    postFolder.add(data, 'detector').onChange(changeDetector)
 
     // effect
     const effectMap = ['none', 'noise', 'dot', 'dot screen']
-    const changeEffect = val => {
-      switch (val) {
+    const changeEffect = () => {
+      switch (data.effect) {
         case 'noise':
           currentPostPrg = postNoisePrg
           break
@@ -627,12 +647,14 @@ function initControl() {
     }
     data.effect = effectMap[0]
     postFolder.add(data, 'effect', effectMap).onChange(changeEffect)
-    changeEffect(data.effect)
+
+    changeDetector()
+    changeEffect()
   }
 
   // video
-  const changeVideo = val =>
-    media.getUserMedia({ video: val }).then(() => {
+  const changeVideo = () =>
+    media.getUserMedia({ video: data.video }).then(() => {
       video = media.currentVideo
 
       media.detector.reset()
@@ -650,10 +672,13 @@ function initControl() {
 
   // thumb
   data.thumb = false
-  thumbController = gui.add(data, 'thumb').onChange(() => {
+  const changeThumb = () => {
     media.toggleThumb(data.thumb)
-  })
+  }
+  thumbController = gui.add(data, 'thumb').onChange(changeThumb)
 
+  changeScene()
+  changeThumb()
   changeVideo(data.video).then(init)
 }
 

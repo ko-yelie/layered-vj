@@ -1,0 +1,88 @@
+{
+  "preset": "Default",
+  "remembered": {
+    "Default": {
+      "0": {
+        "scene": "Particle",
+        "mode": 0,
+        "pointShape": 1,
+        "pointSize": 10,
+        "lineShape": "line",
+        "deformation": false,
+        "bgColor": 0,
+        "canvasZoom": 5,
+        "mouse": false,
+        "capture": false,
+        "stopMotion": false,
+        "inputAudio": false,
+        "audio": "default",
+        "detector": false,
+        "effect": "none",
+        "video": "8c05b3cd6b6714d38ee1f0cf60edcb5f89bae617a58665bbed6eeea1903f0584",
+        "videoZoom": 1,
+        "thumb": false
+      }
+    },
+    "Detector": {
+      "0": {
+        "scene": "Post Effect",
+        "mode": 0,
+        "pointShape": 1,
+        "pointSize": 10,
+        "lineShape": "line",
+        "deformation": false,
+        "bgColor": 0,
+        "canvasZoom": 5,
+        "mouse": false,
+        "capture": false,
+        "stopMotion": false,
+        "inputAudio": false,
+        "audio": "default",
+        "detector": true,
+        "effect": "none",
+        "video": "http://localhost:1234/Dance-4428.8fe59b97.mp4",
+        "videoZoom": 1,
+        "thumb": true
+      }
+    }
+  },
+  "closed": false,
+  "folders": {
+    "Particle": {
+      "preset": "Default",
+      "closed": false,
+      "folders": {
+        "gl.POINTS": {
+          "preset": "Default",
+          "closed": false,
+          "folders": {}
+        },
+        "gl.LINE_STRIP": {
+          "preset": "Default",
+          "closed": true,
+          "folders": {}
+        },
+        "canvas": {
+          "preset": "Default",
+          "closed": false,
+          "folders": {}
+        },
+        "video": {
+          "preset": "Default",
+          "closed": false,
+          "folders": {}
+        },
+        "audio": {
+          "preset": "Default",
+          "closed": false,
+          "folders": {}
+        }
+      }
+    },
+    "Post Effect": {
+      "preset": "Default",
+      "closed": true,
+      "folders": {}
+    }
+  }
+}
