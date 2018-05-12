@@ -1,11 +1,11 @@
 
-.detector[data-v-16d699]{position:absolute;right:0;bottom:0;color:#ddd
+.detector[data-v-b5457d]{position:absolute;right:0;bottom:0;color:#ddd
 }
-p[data-v-16d699]{margin:1em
+p[data-v-b5457d]{margin:1em
 }
-.progress[data-v-16d699]{animation:loading-data-v-16d699 1s infinite
+.progress[data-v-b5457d]{animation:loading-data-v-b5457d 1s infinite
 }
-@keyframes loading-data-v-16d699{
+@keyframes loading-data-v-b5457d{
 0%{opacity:1
 }
 50%{opacity:0
