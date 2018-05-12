@@ -40,7 +40,7 @@
         "audio": "default",
         "detector": true,
         "effect": "none",
-        "video": "http://localhost:1234/Dance-4428.8fe59b97.mp4",
+        "video": "file:Dance-4428",
         "videoZoom": 1,
         "thumb": true
       }

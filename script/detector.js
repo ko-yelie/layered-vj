@@ -1,22 +1,25 @@
 import yolo, { downloadModel } from 'tfjs-yolo-tiny'
-import { Webcam } from './webcam.js'
+
+let storedModel
 
 export default class Detector {
-  constructor(video, wrapper) {
-    this.video = video
+  constructor(webcam, wrapper) {
+    this.webcam = webcam
+    this.video = webcam.webcamElement
     this.wrapper = wrapper
-
-    this.webcam = new Webcam(this.video)
-    // await this.webcam.setup()
-    this.webcam.adjustVideoSize(this.video.videoWidth, this.video.videoHeight)
 
     this.size = Math.min(this.video.width, this.video.height)
     this.diff = (this.video.width - this.size) / 2
 
-    this.promise = downloadModel().then(model => {
-      this.model = model
+    if (storedModel) {
+      this.promise = Promise.resolve()
       this.isReady = true
-    })
+    } else {
+      this.promise = downloadModel().then(model => {
+        storedModel = model
+        this.isReady = true
+      })
+    }
   }
 
   async detect() {
@@ -26,7 +29,7 @@ export default class Detector {
 
     const inputImage = this.webcam.capture()
 
-    const boxes = await yolo(inputImage, this.model)
+    const boxes = await yolo(inputImage, storedModel)
     boxes.forEach(box => {
       const { top, left, bottom, right, classProb, className } = box
       if (className !== 'person') return

@@ -1,5 +1,4 @@
 import getElements from 'get-elements-array'
-import Detector from './detector.js'
 
 export default class Media {
   constructor(size, pointResolution) {
@@ -36,31 +35,31 @@ export default class Media {
       })
 
       getElements('.video').forEach(video => {
+        const id = `file:${video.id}`
         video.width = this.size
         video.height = this.size
         video.loop = true
         video.muted = true
-        this.videoDevices[`File: ${video.innerText}`] = video.src
-        this.videoFiles[video.src] = video
+        this.videoDevices[`File: ${video.innerText}`] = id
+        this.videoFiles[id] = video
       })
     })
   }
 
   getUserMedia(sources) {
     let videoFile
-    if (/^http[s]?:/.test(sources.video)) {
+    if (/^file:/.test(sources.video)) {
       videoFile = this.videoFiles[sources.video]
-    } else {
-      this.videoSource = sources.video || this.videoSource
     }
+    this.videoSource = sources.video || this.videoSource
     this.audioSource = sources.audio || this.audioSource
 
     return new Promise(resolve => {
       // get webcam
       navigator.mediaDevices
         .getUserMedia({
-          audio: { deviceId: { exact: this.audioSource } },
-          video: { deviceId: { exact: this.videoSource } }
+          audio: { deviceId: this.audioSource },
+          video: { deviceId: this.videoSource }
         })
         .then(stream => {
           // on webcam enabled
@@ -89,11 +88,7 @@ export default class Media {
             // video 再生開始をコール
             this.currentVideo.play()
 
-            if (sources.video) {
-              this.detector = new Detector(this.currentVideo, this.wrapper)
-            }
-
-            resolve()
+            resolve(this.currentVideo)
           }
 
           if (this.currentVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
@@ -102,8 +97,8 @@ export default class Media {
             this.currentVideo.addEventListener('canplay', playVideo)
           }
         })
-        .catch(() => {
-          prompt.innerHTML = 'Unable to capture WebCam. Please reload the page.'
+        .catch(e => {
+          console.error(e)
         })
     })
   }

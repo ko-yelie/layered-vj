@@ -14,7 +14,9 @@ import {
 import { getFirstValue } from './utils.js'
 import { setVariables } from './postprocessing/utils.js'
 import Media from './media.js'
-import Detector from './vue/Detector.vue'
+import { Webcam } from './webcam.js'
+import Detector from './detector.js'
+import DetectorMessage from './vue/DetectorMessage.vue'
 
 const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
 const VIDEO_RESOLUTION = 416
@@ -68,9 +70,11 @@ let postDotScreenPrg
 
 let render
 let media
+let webcam
 let data = {}
 let video
-let detectorVM
+let detector
+let detectorMessage
 let vbo
 let arrayLength
 let isStop = 0
@@ -146,8 +150,8 @@ export default function run() {
       isCapture = true
     }
 
-    if (data.detector) {
-      media.detector.detect()
+    if (data.detector && detector) {
+      detector.detect()
     }
   })
 
@@ -417,22 +421,37 @@ function initGlsl() {
 function initMedia() {
   media = new Media(VIDEO_RESOLUTION, POINT_RESOLUTION)
   media.enumerateDevices().then(initControl)
+
+  detectorMessage = new Vue({
+    el: '#detector',
+    data: {
+      isShow: false,
+      isReady: false
+    },
+    components: {
+      [DetectorMessage.name]: DetectorMessage
+    }
+  })
 }
 
 async function initControl() {
+  const json = require('./gui/scene.json')
+  const preset = location.search.substring(1) || json.preset
   const gui = new dat.GUI({
-    load: require('./gui/detector.json'),
-    preset: location.search.substring(1)
+    load: json,
+    preset: preset
   })
   let particleFolder
   let postFolder
   let thumbController
+  let videoController
+  let changeDetector
 
+  data = json.remembered[preset][0]
   gui.remember(data)
 
   // scene
   const sceneMap = ['Particle', 'Post Effect']
-  data.scene = sceneMap[0]
   const changeScene = () => {
     particleFolder.close()
     postFolder.close()
@@ -461,7 +480,6 @@ async function initControl() {
       'gl.LINE_STRIP': gl.LINE_STRIP,
       'gl.TRIANGLES': gl.TRIANGLES
     }
-    data.mode = getFirstValue(modeMap)
     const changeMode = () => {
       pointFolder.close()
       lineFolder.close()
@@ -483,12 +501,10 @@ async function initControl() {
 
     // pointShape
     const pointShapeMap = { square: 0, circle: 1, star: 2, video: 3 }
-    data.pointShape = pointShapeMap.circle
     pointFolder.add(data, 'pointShape', pointShapeMap)
 
     // pointSize
     const pointSizeMap = [0.1, 30]
-    data.pointSize = SIZE
     pointFolder.add(data, 'pointSize', ...pointSizeMap)
 
     // line folder
@@ -508,11 +524,9 @@ async function initControl() {
           arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
       }
     }
-    data.lineShape = lineShapeMap[0]
     lineFolder.add(data, 'lineShape', lineShapeMap).onChange(changeLineShape)
 
     // deformation
-    data.deformationProgress = 0
     const tl = new TimelineMax({
       paused: true
     }).fromTo(
@@ -526,7 +540,6 @@ async function initControl() {
         ease: 'Power2.easeOut'
       }
     )
-    data.deformation = false
     const changeDeformation = () => {
       data.deformation ? tl.play() : tl.reverse()
     }
@@ -541,19 +554,16 @@ async function initControl() {
       let rgbInt = data.bgColor * 255
       canvas.style.backgroundColor = `rgb(${rgbInt}, ${rgbInt}, ${rgbInt})`
     }
-    data.bgColor = getFirstValue(bgColorMap)
     canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
 
     // canvasZoom
     const canvasZoomMap = [2, 8]
-    data.canvasZoom = 5
     const changeZoom = () => {
       updateCamera()
     }
     canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(changeZoom)
 
     // mouse
-    data.mouse = false
     const changeMouse = () => {
       if (!data.mouse) {
         mouse = [0.0, 0.0]
@@ -565,7 +575,6 @@ async function initControl() {
     const videoFolder = particleFolder.addFolder('video')
 
     // capture
-    data.capture = false
     const changeCapture = () => {
       isStop = data.capture ? 1 : 0
       isCapture = data.capture
@@ -573,7 +582,6 @@ async function initControl() {
     videoFolder.add(data, 'capture').onChange(changeCapture)
 
     // stopMotion
-    data.stopMotion = false
     let timer
     const changeStopMotion = () => {
       isStop = data.stopMotion ? 1 : 0
@@ -591,7 +599,6 @@ async function initControl() {
     const audioFolder = particleFolder.addFolder('audio')
 
     // inputAudio
-    data.inputAudio = false
     const changeInputAudio = () => {
       isAudio = data.inputAudio ? 1 : 0
     }
@@ -601,7 +608,6 @@ async function initControl() {
     const changeAudio = () => media.getUserMedia({ audio: data.audio })
     const audioDevicesKeys = Object.keys(media.audioDevices)
     const currentAudioKey = audioDevicesKeys[0]
-    data.audio = media.audioDevices[currentAudioKey]
     audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
 
     changeMode()
@@ -621,18 +627,18 @@ async function initControl() {
     postFolder = gui.addFolder('Post Effect')
 
     // detector
-    data.detector = false
-    const changeDetector = () => {
-      if (!media.detector) return
-
+    changeDetector = () => {
       if (data.detector) {
-        media.detector.detect()
         thumbController.setValue(true)
-        detectorVM.isShow = true
+        detectorMessage.isShow = true
+        runDetector()
       } else {
-        media.detector.reset()
+        if (!detector) return
+
         thumbController.setValue(false)
-        detectorVM.isShow = false
+        detectorMessage.isShow = false
+        resetDetector()
+        detector = null
       }
     }
     postFolder.add(data, 'detector').onChange(changeDetector)
@@ -655,33 +661,37 @@ async function initControl() {
           currentPostPrg = postNonePrg
       }
     }
-    data.effect = effectMap[0]
     postFolder.add(data, 'effect', effectMap).onChange(changeEffect)
 
-    changeDetector()
     changeEffect()
   }
 
   // video
-  const changeVideo = () =>
-    media.getUserMedia({ video: data.video }).then(() => {
-      video = media.currentVideo
+  const changeVideo = async () => {
+    video = await media.getUserMedia({ video: data.video })
+    if (!Object.keys(media.videoDevices).some(key => data.video === media.videoDevices[key])) {
+      videoController.setValue(getFirstValue(media.videoDevices))
+    }
 
-      media.detector.reset()
-    })
+    webcam = new Webcam(video)
+    // await webcam.setup()
+    webcam.adjustVideoSize(video.videoWidth, video.videoHeight)
+
+    if (detector) {
+      resetDetector()
+      runDetector()
+    }
+  }
   const videoDevicesKeys = Object.keys(media.videoDevices)
   const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
   const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
-  data.video = media.videoDevices[currentVideoKey]
-  gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
+  videoController = gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
 
   // videoZoom
   const videoZoomMap = [1, 3]
-  data.videoZoom = videoZoomMap[0]
   gui.add(data, 'videoZoom', ...videoZoomMap)
 
   // thumb
-  data.thumb = false
   const changeThumb = () => {
     media.toggleThumb(data.thumb)
   }
@@ -689,26 +699,22 @@ async function initControl() {
 
   changeScene()
   changeThumb()
-  await changeVideo(data.video)
-
-  detectorVM = new Vue({
-    el: '#detector',
-    data: {
-      isShow: false,
-      isReady: false
-    },
-    components: {
-      [Detector.name]: Detector
-    },
-    mounted() {
-      this.isShow = data.detector
-      media.detector.promise.then(() => {
-        this.isReady = true
-      })
-    }
-  })
+  await changeVideo()
+  changeDetector()
 
   init()
+}
+
+async function runDetector() {
+  detector = new Detector(webcam, media.wrapper)
+  await detector.promise
+  detector.detect()
+  detectorMessage.isReady = true
+}
+
+function resetDetector() {
+  detector.reset()
+  detectorMessage.isReady = false
 }
 
 function updateCamera() {
@@ -822,7 +828,7 @@ function init() {
     let targetBufferIndex = loopCount % 2
     let prevBufferIndex = 1 - targetBufferIndex
 
-    let posList = media.detector.posList || []
+    let posList = (detector && detector.posList) || []
     let focusCount = Math.min(posList.length || 1, 4)
 
     const volume = media.getVolume()
