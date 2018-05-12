@@ -93,7 +93,14 @@ export default function run() {
     return
   }
   setGl(gl)
+
   mat = new MatIV()
+  // matrix
+  mMatrix = mat.identity(mat.create())
+  vMatrix = mat.identity(mat.create())
+  pMatrix = mat.identity(mat.create())
+  vpMatrix = mat.identity(mat.create())
+  mvpMatrix = mat.identity(mat.create())
 
   // 拡張機能を有効化
   ext = getWebGLExtensions()
@@ -104,8 +111,7 @@ export default function run() {
     canvas.width = canvasWidth
     canvas.height = canvasHeight
 
-    mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
-    mat.multiply(pMatrix, vMatrix, vpMatrix)
+    updateCamera()
 
     sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
     gl.activeTexture(gl.TEXTURE0 + sceneBufferIndex)
