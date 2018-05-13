@@ -22,7 +22,6 @@ const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
 const VIDEO_RESOLUTION = 416
 const S_WIDTH = 256
 const T_HEIGHT = 256
-const SIZE = 10 * 128 / POINT_RESOLUTION
 
 let canvas
 let canvasWidth
@@ -605,10 +604,13 @@ async function initControl() {
     audioFolder.add(data, 'inputAudio').onChange(changeInputAudio)
 
     // audio
-    const changeAudio = () => media.getUserMedia({ audio: data.audio })
-    const audioDevicesKeys = Object.keys(media.audioDevices)
-    const currentAudioKey = audioDevicesKeys[0]
-    audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
+    const changeAudio = async () => {
+      await media.getUserMedia({ audio: data.audio })
+      if (!Object.keys(media.audioDevices).some(key => data.audio === media.audioDevices[key])) {
+        audioController.setValue(getFirstValue(media.audioDevices))
+      }
+    }
+    const audioController = audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
 
     changeMode()
     changeLineShape()
@@ -682,9 +684,6 @@ async function initControl() {
       runDetector()
     }
   }
-  const videoDevicesKeys = Object.keys(media.videoDevices)
-  const faceTimeCameraKeys = videoDevicesKeys.filter(key => /FaceTime HD Camera/.test(key))
-  const currentVideoKey = (faceTimeCameraKeys.length > 0 ? faceTimeCameraKeys : videoDevicesKeys)[0]
   videoController = gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
 
   // videoZoom
