@@ -9,21 +9,20 @@ uniform vec4      focusPos2;
 uniform vec4      focusPos3;
 uniform vec4      focusPos4;
 
-float convert(float coord, float rate) {
-  return coord / rate + (rate - 1.) / 2.;
+vec2 fit(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
+  vec2 ratio = vec2(
+    min((outputResolution.x / outputResolution.y) / (inputResolution.x / inputResolution.y), 1.0),
+    min((outputResolution.y / outputResolution.x) / (inputResolution.y / inputResolution.x), 1.0)
+  );
+  return vec2(
+    coord.x * ratio.x + (1.0 - ratio.x) * 0.5,
+    coord.y * ratio.y + (1.0 - ratio.y) * 0.5
+  );
 }
 
 void main(){
   vec2 coord = gl_FragCoord.st / resolution;
   coord.y = 1. - coord.y;
-
-  float rateX = videoResolution.x / (resolution.x * videoResolution.y / resolution.y);
-  float rateY = videoResolution.y / (resolution.y * videoResolution.x / resolution.x);
-  float ratio = step(0., (resolution.x / resolution.y) - (videoResolution.x / videoResolution.y));
-  vec2 convertedCoord = vec2(
-    mix(convert(coord.x, rateX), coord.x, ratio),
-    mix(coord.y, convert(coord.y, rateY), ratio)
-  );
 
   float width = 1. / focusCount;
   vec4 pos = (focusCount >= 4. && coord.x > width * 3.) ? focusPos4
@@ -40,13 +39,15 @@ void main(){
   float height = focusWidth * focusCount;
   float y = min(center.y, 1. - height);
   vec2 focusCoord = vec2(
-    mix(x - focusHalfWidth, x + focusHalfWidth, mod(convertedCoord.x, width) * focusCount),
-    mix(y, y + height, convertedCoord.y)
+    mix(x - focusHalfWidth, x + focusHalfWidth, mod(coord.x, width) * focusCount),
+    mix(y, y + height, coord.y)
   );
 
+  vec2 uv = fit(focusCoord, videoResolution, resolution);
+
   gl_FragColor = mix(
-    texture2D(videoTexture, focusCoord),
+    texture2D(videoTexture, uv),
     vec4(0.),
-    (vec4(1.) - step(focusCoord.x, 1.)) + (vec4(1.) - step(0., focusCoord.x))
+    (vec4(1.) - step(uv.x, 1.)) + (vec4(1.) - step(0., uv.x))
   );
 }
