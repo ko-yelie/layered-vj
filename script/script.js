@@ -672,7 +672,7 @@ async function initControl() {
 
     webcam = new Webcam(video)
     // await webcam.setup()
-    webcam.adjustVideoSize(video.videoWidth, video.videoHeight)
+    webcam.adjustVideoSize(video.videoWidth || video.naturalWidth, video.videoHeight || video.naturalHeight)
 
     if (detector) {
       resetDetector()

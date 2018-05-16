@@ -15,6 +15,18 @@ export default class Media {
 
     this.size = size
     this.pointResolution = pointResolution
+
+    this.loadSmartphone()
+  }
+
+  // smartphone webcam
+  loadSmartphone() {
+    const smartphone = document.getElementById('smartphone')
+    if (!smartphone) return
+
+    this.smartphone = smartphone
+    this.smartphone.width = this.size
+    this.smartphone.height = this.size
   }
 
   enumerateDevices() {
@@ -34,7 +46,11 @@ export default class Media {
         }
       })
 
-      getElements('.video').forEach(video => {
+      if (this.smartphone) {
+        this.videoDevices['Smartphone'] = 'smartphone'
+      }
+
+      getElements('.js-video').forEach(video => {
         const id = `file:${video.id}`
         video.width = this.size
         video.height = this.size
@@ -47,9 +63,11 @@ export default class Media {
   }
 
   getUserMedia(sources) {
-    let videoFile
+    let videoFile, smartphoneFile
     if (/^file:/.test(sources.video)) {
       videoFile = this.videoFiles[sources.video]
+    } else if (sources.video === 'smartphone') {
+      smartphoneFile = this.smartphone
     }
     this.videoSource = sources.video || this.videoSource
     this.audioSource = sources.audio || this.audioSource
@@ -67,6 +85,10 @@ export default class Media {
             this.currentVideo && (this.currentVideo.style.display = 'none')
             this.currentVideo = videoFile
             videoFile.style.display = 'block'
+          } else if (smartphoneFile) {
+            this.currentVideo && (this.currentVideo.style.display = 'none')
+            this.currentVideo = smartphoneFile
+            smartphoneFile.style.display = 'block'
           } else {
             this.currentVideo && (this.currentVideo.style.display = 'none')
             this.video.srcObject = stream
@@ -91,7 +113,9 @@ export default class Media {
             resolve(this.currentVideo)
           }
 
-          if (this.currentVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          if (smartphoneFile) {
+            resolve(this.currentVideo)
+          } else if (this.currentVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
             playVideo()
           } else {
             this.currentVideo.addEventListener('canplay', playVideo)
