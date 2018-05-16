@@ -27,7 +27,7 @@ void main(){
   float deformationDistance = mix(1., maxDeformationDistance, deformationProgress);
   vec4 position = mix(texture2D(positionTexture, texCoord), texture2D(capturedPositionTexture, texCoord), isStop);
   position.xy *= pow(deformationDistance, 1.5);
-  position.z *= mix(1., volume / 255. * 2., isAudio) * deformationDistance;
+  position.z *= mix(1., volume, isAudio) * deformationDistance;
   vec3 videoPosition = vec3(position.xyz);
 
   float randomValue = (data.p + random(texCoord + mod(loopCount, 10.))) / 2.;

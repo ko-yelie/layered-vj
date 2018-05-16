@@ -1,5 +1,3 @@
-#pragma glslify: random = require(glsl-random)
-
 precision mediump float;
 uniform vec2      resolution;
 uniform sampler2D texture;

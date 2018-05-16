@@ -63,7 +63,8 @@ let scenePrg
 let videoScenePrg
 let currentPostPrg
 let postNonePrg
-let postNoisePrg
+let postGlitchPrg
+let postYkobGlitchPrg
 let postDotPrg
 let postDotScreenPrg
 
@@ -213,10 +214,16 @@ export default function run() {
     postNonePrg = new ProgramParameter(prg)
   }
   {
-    let fs = createShader(require('../shader/post/noise.frag'), gl.FRAGMENT_SHADER)
+    let fs = createShader(require('../shader/post/glitch.frag'), gl.FRAGMENT_SHADER)
     let prg = createProgram(postVs, fs)
     if (prg == null) return
-    postNoisePrg = new ProgramParameter(prg)
+    postGlitchPrg = new ProgramParameter(prg)
+  }
+  {
+    let fs = createShader(require('../shader/post/ykobGlitch.frag'), gl.FRAGMENT_SHADER)
+    let prg = createProgram(postVs, fs)
+    if (prg == null) return
+    postYkobGlitchPrg = new ProgramParameter(prg)
   }
   {
     let fs = createShader(require('../shader/post/dot.frag'), gl.FRAGMENT_SHADER)
@@ -339,7 +346,8 @@ function initGlsl() {
   videoScenePrg.uniType[8] = 'uniform4fv'
 
   setVariables(gl, postNonePrg)
-  setVariables(gl, postNoisePrg)
+  setVariables(gl, postGlitchPrg)
+  setVariables(gl, postYkobGlitchPrg)
   setVariables(gl, postDotPrg)
   setVariables(gl, postDotScreenPrg)
 
@@ -594,24 +602,6 @@ async function initControl() {
     }
     videoFolder.add(data, 'stopMotion').onChange(changeStopMotion)
 
-    // audio folder
-    const audioFolder = particleFolder.addFolder('audio')
-
-    // inputAudio
-    const changeInputAudio = () => {
-      isAudio = data.inputAudio ? 1 : 0
-    }
-    audioFolder.add(data, 'inputAudio').onChange(changeInputAudio)
-
-    // audio
-    const changeAudio = async () => {
-      await media.getUserMedia({ audio: data.audio })
-      if (!Object.keys(media.audioDevices).some(key => data.audio === media.audioDevices[key])) {
-        audioController.setValue(getFirstValue(media.audioDevices))
-      }
-    }
-    const audioController = audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
-
     changeMode()
     changeLineShape()
     changeDeformation()
@@ -620,8 +610,6 @@ async function initControl() {
     changeMouse()
     changeCapture()
     changeStopMotion()
-    changeInputAudio()
-    changeAudio()
   }
 
   // Post Effect folder
@@ -646,11 +634,14 @@ async function initControl() {
     postFolder.add(data, 'detector').onChange(changeDetector)
 
     // effect
-    const effectMap = ['none', 'noise', 'dot', 'dot screen']
+    const effectMap = ['none', 'glitch', 'ykob glitch', 'dot', 'dot screen']
     const changeEffect = () => {
       switch (data.effect) {
-        case 'noise':
-          currentPostPrg = postNoisePrg
+        case 'glitch':
+          currentPostPrg = postGlitchPrg
+          break
+        case 'ykob glitch':
+          currentPostPrg = postYkobGlitchPrg
           break
         case 'dot':
           currentPostPrg = postDotPrg
@@ -668,6 +659,10 @@ async function initControl() {
     changeEffect()
   }
 
+  // video folder
+  const videoFolder = gui.addFolder('video')
+  videoFolder.open()
+
   // video
   const changeVideo = async () => {
     video = await media.getUserMedia({ video: data.video })
@@ -684,20 +679,41 @@ async function initControl() {
       runDetector()
     }
   }
-  videoController = gui.add(data, 'video', media.videoDevices).onChange(changeVideo)
+  videoController = videoFolder.add(data, 'video', media.videoDevices).onChange(changeVideo)
 
   // videoZoom
   const videoZoomMap = [1, 3]
-  gui.add(data, 'videoZoom', ...videoZoomMap)
+  videoFolder.add(data, 'videoZoom', ...videoZoomMap)
 
   // thumb
   const changeThumb = () => {
     media.toggleThumb(data.thumb)
   }
-  thumbController = gui.add(data, 'thumb').onChange(changeThumb)
+  thumbController = videoFolder.add(data, 'thumb').onChange(changeThumb)
+
+  // audio folder
+  const audioFolder = gui.addFolder('audio')
+  audioFolder.open()
+
+  // inputAudio
+  const changeInputAudio = () => {
+    isAudio = data.inputAudio ? 1 : 0
+  }
+  audioFolder.add(data, 'inputAudio').onChange(changeInputAudio)
+
+  // audio
+  const changeAudio = async () => {
+    await media.getUserMedia({ audio: data.audio })
+    if (!Object.keys(media.audioDevices).some(key => data.audio === media.audioDevices[key])) {
+      audioController.setValue(getFirstValue(media.audioDevices))
+    }
+  }
+  const audioController = audioFolder.add(data, 'audio', media.audioDevices).onChange(changeAudio)
 
   changeScene()
   changeThumb()
+  changeInputAudio()
+  changeAudio()
   await changeVideo()
   changeDetector()
 
@@ -977,8 +993,10 @@ function init() {
 
       setAttribute(planeVBO, currentPostPrg.attLocation, currentPostPrg.attStride, planeIBO)
       gl[currentPostPrg.uniType[0]](currentPostPrg.uniLocation[0], sceneBufferIndex)
-      gl[currentPostPrg.uniType[1]](currentPostPrg.uniLocation[1], loopCount)
+      gl[currentPostPrg.uniType[1]](currentPostPrg.uniLocation[1], loopCount / 60)
       gl[currentPostPrg.uniType[2]](currentPostPrg.uniLocation[2], [canvasWidth, canvasHeight])
+      gl[currentPostPrg.uniType[3]](currentPostPrg.uniLocation[3], volume)
+      gl[currentPostPrg.uniType[4]](currentPostPrg.uniLocation[4], isAudio)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
     }
 

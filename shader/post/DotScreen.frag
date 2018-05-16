@@ -1,4 +1,4 @@
-/**
+/**!
  * @author alteredq / http://alteredqualia.com/
  *
  * Dot screen shader
@@ -7,8 +7,6 @@
  */
 precision mediump float;
 uniform sampler2D texture;
-uniform float     time;
-uniform vec2      resolution;
 varying vec2      vUv;
 
 const vec2 center = vec2(0.5);

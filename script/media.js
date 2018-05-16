@@ -109,7 +109,7 @@ export default class Media {
     for (let i = 0; i < this.analyser.fftSize; ++i) {
       max = Math.max(this.array[i], max)
     }
-    return max
+    return max / 255 * 2
   }
 
   toggleThumb(showThumb) {

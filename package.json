@@ -26,6 +26,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "0.9.0",
     "get-elements-array": "^1.0.1",
+    "glsl-noise": "0.0.0",
     "glsl-random": "0.0.5",
     "tfjs-yolo-tiny": "0.0.4",
     "vue": "^2.5.16",
