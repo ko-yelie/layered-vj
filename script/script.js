@@ -91,6 +91,7 @@ let popArrayLength
 let isStop = 0
 let isCapture = false
 let isAudio = 0
+let volume = 1
 let defaultFocus = [0, 0, 1, 1]
 
 export default function run() {
@@ -1034,7 +1035,7 @@ function init() {
     const posList = (detector && detector.posList) || []
     const focusCount = Math.min(posList.length || 1, 4)
 
-    const volume = media.getVolume()
+    volume += (media.getVolume() - volume) * 0.1
 
     // video texture
     createTexture(video)
@@ -1178,8 +1179,8 @@ function init() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      rotation[0] += (mouse[0] - rotation[0]) * 0.05
-      rotation[1] += (mouse[1] - rotation[1]) * 0.05
+      rotation[0] += (mouse[0] - rotation[0]) * 0.01
+      rotation[1] += (mouse[1] - rotation[1]) * 0.01
       mat.identity(mMatrix)
       mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
       mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
@@ -1197,7 +1198,7 @@ function init() {
       popScenePrg.setUniform('isAudio', isAudio)
       popScenePrg.setUniform('deformationProgress', data.deformationProgress)
       popScenePrg.setUniform('time', time)
-      gl.drawArrays(data.mode, 0, popArrayLength)
+      gl.drawArrays(gl.POINTS, 0, popArrayLength)
     } else if (data.scene === 'Post Effect') {
       // Post Effect
 

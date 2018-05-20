@@ -13,7 +13,7 @@ varying vec4 vPosition;
 
 #pragma glslify: random = require(glsl-random)
 
-const float xAmplitude = 0.1;
+const float xAmplitude = 0.3;
 const float zAmplitude = 2.;
 const float speed = 0.3;
 const float amplitude = 0.1;
@@ -21,6 +21,7 @@ const float halfAmplitude = amplitude / 2.;
 const float standardRadius = 1.1;
 const float maxDeformationDistance = 5.;
 const float deformationSize = 1. / maxDeformationDistance;
+const float scaleSpeed = 0.8;
 
 void main(){
   vec2 texCoord = data.st;
@@ -29,11 +30,11 @@ void main(){
 
   float deformationDistance = mix(1., maxDeformationDistance, deformationProgress);
   vec4 position = texture2D(positionTexture, texCoord);
-  position.x += (symmetryRnd + sin(time * rnd * 0.08)) / 2. * xAmplitude;
+  position.x += symmetryRnd * sin(time * rnd * 4.) * xAmplitude;
   position.y += rnd * 0.1;
   position.xy *= pow(deformationDistance, 1.5);
   position.z += rnd * zAmplitude;
-  position.z *= mix(1., volume, isAudio) * deformationDistance;
+  position.z *= deformationDistance;
   position.w = zAmplitude;
   vec3 videoPosition = vec3(position.xyz);
 
@@ -47,5 +48,5 @@ void main(){
   vTexCoord = texCoord;
   vPosition = position;
   gl_Position = mvpMatrix * vec4(mix(videoPosition, circlePosition, deformationProgress), 1.);
-  gl_PointSize = pow(velocity.y * resolution.y * 0.8, 2.) * pointSize;
+  gl_PointSize = pow(velocity.y * resolution.y * mix(1., volume * 1.2, isAudio), 2.) * scaleSpeed * pointSize;
 }

@@ -9,12 +9,14 @@ varying vec4 vPosition;
 #pragma glslify: random = require(glsl-random)
 
 const float amplitude = 0.1;
+const float amplitude2 = amplitude * 2.;
 const float maxColor = 0.9;
 const float minColor = 0.1;
 const float minPopColor = 0.5;
+const float maxPopAlpha = 0.8;
 
 float circle(vec2 st) {
-  return 1. - step(1. - amplitude, length(st));
+  return 1. - step(1. - amplitude2, length(st));
 }
 
 void main(){
@@ -27,11 +29,12 @@ void main(){
   vec2 pointCoord = gl_PointCoord.st * 2. - 1.;
   float distort = (sin(randomTime * 20.) * sin(pointCoord.y + sin(randomTime * 5.)) * 2. - 1.) * 0.05;
   pointCoord.x += distort;
-  vec3 particleColor = vec3(
+  float particleColor = 1. - step(length(vec2(
     circle(pointCoord - vec2(0., distort) * amplitude),
-    circle(pointCoord + vec2(0., distort) * amplitude),
-    circle(pointCoord + vec2(distort, 0.) * amplitude)
-  );
+    circle(pointCoord + vec2(0., distort) * amplitude)
+  )), 0.);
 
-  gl_FragColor = vec4(mix(vec3(minPopColor - minPopColor * (1. - bgColor)), vec3(1. - minPopColor * (1. - bgColor)), color) * particleColor, 1. - step(1., 1. - length(particleColor)));
+  float minCurrentColor = mix(minPopColor, minPopColor * maxPopAlpha, bgColor);
+
+  gl_FragColor = vec4(mix(vec3(minCurrentColor - minCurrentColor * (1. - bgColor)), vec3(1. - minCurrentColor * (1. - bgColor)), color), particleColor * mix(1., maxPopAlpha, bgColor));
 }
