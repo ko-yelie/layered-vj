@@ -176,3 +176,15 @@ export function start(draw, mode, count) {
   }
   requestAnimationFrame(render)
 }
+
+export function getPointVbo(interval) {
+  let pointTexCoord = []
+  for (let t = 0; t < 1; t += interval) {
+    const back = t % (interval * 2) === interval
+    for (let s = 0; s < 1; s += interval) {
+      const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
+      pointTexCoord.push(cS, t, Math.random())
+    }
+  }
+  return createVbo(pointTexCoord)
+}

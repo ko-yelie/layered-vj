@@ -10,7 +10,8 @@ import {
   bindTexture,
   useProgram,
   bindFramebuffer,
-  clearColor
+  clearColor,
+  getPointVbo
 } from './gl-utils.js'
 import { setGl, createFramebuffer, createFramebufferFloat, getWebGLExtensions } from './doxas-utils.js'
 import { getFirstValue } from './utils.js'
@@ -20,9 +21,9 @@ import Detector from './detector.js'
 import DetectorMessage from './vue/DetectorMessage.vue'
 
 const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
+const POP_RESOLUTION = 32
 const VIDEO_RESOLUTION = 416
-const S_WIDTH = 256
-const T_HEIGHT = 256
+const BASE_RESOLUTION = 256
 
 let canvas
 let canvasWidth
@@ -34,26 +35,31 @@ let mat
 let mouse = [0.0, 0.0]
 let rotation = [0.0, 0.0]
 
-let pointVBO
-let meshPointVBO
 let planeIndex
 let planeVBO
 let planeIBO
+let pointVBO
+let meshPointVBO
+let popPointVBO
 let mMatrix
 let vMatrix
 let pMatrix
 let vpMatrix
 let mvpMatrix
-let videoFramebuffers
-let pictureFramebuffers
-let velocityFramebuffers
-let positionFramebuffers
+let videoFramebuffers = []
+let pictureFramebuffers = []
+let velocityFramebuffers = []
+let positionFramebuffers = []
 let sceneFramebuffer
+let popVelocityFramebuffers = []
+let popPositionFramebuffers = []
 let videoBufferIndex
 let pictureBufferIndex
 let velocityBufferIndex
 let positionBufferIndex
 let sceneBufferIndex
+let popVelocityBufferIndex
+let popPositionBufferIndex
 
 let videoPrg
 let picturePrg
@@ -61,6 +67,9 @@ let resetPrg
 let positionPrg
 let velocityPrg
 let scenePrg
+let popVelocityPrg
+let popPositionPrg
+let popScenePrg
 let videoScenePrg
 let currentPostPrg
 let postNonePrg
@@ -78,6 +87,7 @@ let detector
 let detectorMessage
 let vbo
 let arrayLength
+let popArrayLength
 let isStop = 0
 let isCapture = false
 let isAudio = 0
@@ -97,8 +107,7 @@ export default function run() {
       updateCamera()
 
       sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
-      gl.activeTexture(gl.TEXTURE0 + sceneBufferIndex)
-      gl.bindTexture(gl.TEXTURE_2D, sceneFramebuffer.texture)
+      bindTexture(sceneFramebuffer.texture, sceneBufferIndex)
     }
   })
 
@@ -185,6 +194,23 @@ export default function run() {
     if (!scenePrg) return
   }
 
+  {
+    const fs = createShader(require('../shader/pop_velocity.frag'), 'fragment')
+    popVelocityPrg = new Program(noneVs, fs)
+    if (!popVelocityPrg) return
+  }
+  {
+    const fs = createShader(require('../shader/pop_position.frag'), 'fragment')
+    popPositionPrg = new Program(noneVs, fs)
+    if (!popPositionPrg) return
+  }
+  {
+    const vs = createShader(require('../shader/pop_scene.vert'), 'vertex')
+    const fs = createShader(require('../shader/pop_scene.frag'), 'fragment')
+    popScenePrg = new Program(vs, fs)
+    if (!popScenePrg) return
+  }
+
   const postVs = createShader(require('../shader/post/post.vert'), 'vertex')
   {
     const fs = createShader(require('../shader/video_scene.frag'), 'fragment')
@@ -221,34 +247,28 @@ export default function run() {
 }
 
 function initGlsl() {
-  const sInterval = S_WIDTH / POINT_RESOLUTION / S_WIDTH
-  const tInterval = T_HEIGHT / POINT_RESOLUTION / T_HEIGHT
+  const interval = BASE_RESOLUTION / POINT_RESOLUTION / BASE_RESOLUTION
 
-  let pointTexCoord = []
-  for (let t = 0; t < 1; t += tInterval) {
-    const back = t % (tInterval * 2) === tInterval
-    for (let s = 0; s < 1; s += sInterval) {
-      const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
-      pointTexCoord.push(cS, t, Math.random())
-    }
-  }
-  pointVBO = createVbo(pointTexCoord)
+  pointVBO = getPointVbo(interval)
 
-  pointTexCoord = []
-  for (let t = 0; t < 1 - tInterval; t += tInterval) {
-    for (let s = 0; s < 1; s += sInterval) {
-      if (s === S_WIDTH - sInterval) {
+  const pointTexCoord = []
+  for (let t = 0; t < 1 - interval; t += interval) {
+    for (let s = 0; s < 1; s += interval) {
+      if (s === BASE_RESOLUTION - interval) {
         pointTexCoord.push(s, t, Math.random())
-        pointTexCoord.push(s, t + tInterval, Math.random())
+        pointTexCoord.push(s, t + interval, Math.random())
       } else {
         pointTexCoord.push(s, t, Math.random())
-        pointTexCoord.push(s, t + tInterval, Math.random())
-        pointTexCoord.push(s + sInterval, t + tInterval, Math.random())
+        pointTexCoord.push(s, t + interval, Math.random())
+        pointTexCoord.push(s + interval, t + interval, Math.random())
         pointTexCoord.push(s, t, Math.random())
       }
     }
   }
   meshPointVBO = createVbo(pointTexCoord)
+
+  popPointVBO = getPointVbo(1 / POP_RESOLUTION)
+  popArrayLength = POP_RESOLUTION * POP_RESOLUTION
 
   // vertices
   let planeCoord = [1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]
@@ -389,6 +409,80 @@ function initGlsl() {
     }
   })
 
+  popVelocityPrg.createAttribute(planeAttribute)
+  popVelocityPrg.createUniform({
+    resolution: {
+      type: '2fv'
+    },
+    prevVelocityTexture: {
+      type: '1i'
+    },
+    pictureTexture: {
+      type: '1i'
+    },
+    mouse: {
+      type: '2fv'
+    }
+  })
+
+  popPositionPrg.createAttribute(planeAttribute)
+  popPositionPrg.createUniform({
+    resolution: {
+      type: '2fv'
+    },
+    prevPositionTexture: {
+      type: '1i'
+    },
+    velocityTexture: {
+      type: '1i'
+    },
+    pictureTexture: {
+      type: '1i'
+    }
+  })
+
+  popScenePrg.createAttribute({
+    data: {
+      stride: 3,
+      vbo: popPointVBO
+    }
+  })
+  popScenePrg.createUniform({
+    mvpMatrix: {
+      type: 'Matrix4fv'
+    },
+    resolution: {
+      type: '2fv'
+    },
+    pointSize: {
+      type: '1f'
+    },
+    videoTexture: {
+      type: '1i'
+    },
+    positionTexture: {
+      type: '1i'
+    },
+    velocityTexture: {
+      type: '1i'
+    },
+    bgColor: {
+      type: '1f'
+    },
+    volume: {
+      type: '1f'
+    },
+    isAudio: {
+      type: '1f'
+    },
+    deformationProgress: {
+      type: '1f'
+    },
+    time: {
+      type: '1f'
+    }
+  })
+
   videoScenePrg.createAttribute(planeAttribute)
   videoScenePrg.createUniform({
     resolution: {
@@ -449,38 +543,51 @@ function initGlsl() {
   // framebuffer
   let framebufferCount = 1
 
-  videoFramebuffers = [
-    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION),
-    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION),
-    createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
-  ]
+  const videoFramebuffersCount = 3
+  for (var i = 0; i < videoFramebuffersCount; i++) {
+    videoFramebuffers.push(createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION))
+  }
   videoBufferIndex = framebufferCount
-  framebufferCount += videoFramebuffers.length
+  framebufferCount += videoFramebuffersCount
 
-  pictureFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
-  ]
+  const pictureFramebuffersCount = 2
+  for (let i = 0; i < videoFramebuffersCount; i++) {
+    pictureFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
+  }
   pictureBufferIndex = framebufferCount
-  framebufferCount += pictureFramebuffers.length
+  framebufferCount += pictureFramebuffersCount
 
-  velocityFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
-  ]
+  const velocityFramebuffersCount = 2
+  for (let i = 0; i < videoFramebuffersCount; i++) {
+    velocityFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
+  }
   velocityBufferIndex = framebufferCount
-  framebufferCount += velocityFramebuffers.length
+  framebufferCount += velocityFramebuffersCount
 
-  positionFramebuffers = [
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION),
-    createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION)
-  ]
+  const positionFramebuffersCount = 3
+  for (let i = 0; i < videoFramebuffersCount; i++) {
+    positionFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
+  }
   positionBufferIndex = framebufferCount
-  framebufferCount += positionFramebuffers.length
+  framebufferCount += positionFramebuffersCount
+
+  const popVelocityFramebuffersCount = 2
+  for (let i = 0; i < videoFramebuffersCount; i++) {
+    popVelocityFramebuffers.push(createFramebufferFloat(ext, POP_RESOLUTION, POP_RESOLUTION))
+  }
+  popVelocityBufferIndex = framebufferCount
+  framebufferCount += popVelocityFramebuffersCount
+
+  const popPositionFramebuffersCount = 2
+  for (let i = 0; i < videoFramebuffersCount; i++) {
+    popPositionFramebuffers.push(createFramebufferFloat(ext, POP_RESOLUTION, POP_RESOLUTION))
+  }
+  popPositionBufferIndex = framebufferCount
+  framebufferCount += popPositionFramebuffersCount
 
   sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
   sceneBufferIndex = framebufferCount
+  framebufferCount += 1
 
   initMedia()
 }
@@ -518,12 +625,15 @@ async function initControl() {
   gui.remember(data)
 
   // scene
-  const sceneMap = ['Particle', 'Post Effect']
+  const sceneMap = ['Particle', 'Pop', 'Post Effect']
   const changeScene = () => {
     particleFolder.close()
     postFolder.close()
 
     switch (data.scene) {
+      case 'Pop':
+        particleFolder.open()
+        break
       case 'Post Effect':
         postFolder.open()
         break
@@ -793,7 +903,12 @@ function resetDetector() {
 }
 
 function updateCamera() {
-  mat.lookAt([0.0, 0.0, data.canvasZoom / (S_WIDTH / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
+  mat.lookAt(
+    [0.0, 0.0, data.canvasZoom / (BASE_RESOLUTION / POINT_RESOLUTION)],
+    [0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    vMatrix
+  )
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)
 }
@@ -804,19 +919,29 @@ function init() {
   // textures
   createTexture(video)
 
-  bindTexture(videoFramebuffers[0].texture, videoBufferIndex)
-  bindTexture(videoFramebuffers[1].texture, videoBufferIndex + 1)
-  bindTexture(videoFramebuffers[2].texture, videoBufferIndex + 2)
+  for (let i = 0; i < videoFramebuffers.length; ++i) {
+    bindTexture(videoFramebuffers[i].texture, videoBufferIndex + i)
+  }
 
-  bindTexture(pictureFramebuffers[0].texture, pictureBufferIndex)
-  bindTexture(pictureFramebuffers[1].texture, pictureBufferIndex + 1)
+  for (let i = 0; i < pictureFramebuffers.length; ++i) {
+    bindTexture(pictureFramebuffers[i].texture, pictureBufferIndex + i)
+  }
 
-  bindTexture(velocityFramebuffers[0].texture, velocityBufferIndex)
-  bindTexture(velocityFramebuffers[1].texture, velocityBufferIndex + 1)
+  for (let i = 0; i < velocityFramebuffers.length; ++i) {
+    bindTexture(velocityFramebuffers[i].texture, velocityBufferIndex + i)
+  }
 
-  bindTexture(positionFramebuffers[0].texture, positionBufferIndex)
-  bindTexture(positionFramebuffers[1].texture, positionBufferIndex + 1)
-  bindTexture(positionFramebuffers[2].texture, positionBufferIndex + 2)
+  for (let i = 0; i < positionFramebuffers.length; ++i) {
+    bindTexture(positionFramebuffers[i].texture, positionBufferIndex + i)
+  }
+
+  for (let i = 0; i < popVelocityFramebuffers.length; ++i) {
+    bindTexture(popVelocityFramebuffers[i].texture, popVelocityBufferIndex + i)
+  }
+
+  for (let i = 0; i < popPositionFramebuffers.length; ++i) {
+    bindTexture(popPositionFramebuffers[i].texture, popPositionBufferIndex + i)
+  }
 
   bindTexture(sceneFramebuffer.texture, sceneBufferIndex)
 
@@ -871,6 +996,27 @@ function init() {
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
   }
 
+  // reset pop position
+  useProgram(resetPrg)
+  resetPrg.setAttribute('position')
+  resetPrg.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
+  resetPrg.setUniform('videoTexture', 0)
+  gl.viewport(0, 0, POP_RESOLUTION, POP_RESOLUTION)
+  for (let targetBufferIndex = 0; targetBufferIndex < popVelocityFramebuffers.length; ++targetBufferIndex) {
+    // pop velocity buffer
+    bindFramebuffer(popVelocityFramebuffers[targetBufferIndex].framebuffer)
+    clearColor(0.0, 0.0, 0.0, 0.0)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+  }
+  for (let targetBufferIndex = 0; targetBufferIndex < popPositionFramebuffers.length; ++targetBufferIndex) {
+    // pop position buffer
+    bindFramebuffer(popPositionFramebuffers[targetBufferIndex].framebuffer)
+    clearColor(0.0, 0.0, 0.0, 0.0)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+  }
+
   // flags
   gl.disable(gl.DEPTH_TEST)
   gl.enable(gl.BLEND)
@@ -881,11 +1027,12 @@ function init() {
   isRun = true
 
   render = () => {
-    let targetBufferIndex = loopCount % 2
-    let prevBufferIndex = 1 - targetBufferIndex
+    const targetBufferIndex = loopCount % 2
+    const prevBufferIndex = 1 - targetBufferIndex
+    const time = loopCount / 60
 
-    let posList = (detector && detector.posList) || []
-    let focusCount = Math.min(posList.length || 1, 4)
+    const posList = (detector && detector.posList) || []
+    const focusCount = Math.min(posList.length || 1, 4)
 
     const volume = media.getVolume()
 
@@ -964,12 +1111,12 @@ function init() {
     }
 
     // render to canvas -------------------------------------------
-    gl.enable(gl.BLEND)
-    clearColor(0.0, 0.0, 0.0, 0.0)
-    gl.clearDepth(1.0)
-
     if (data.scene === 'Particle') {
       // Particle
+      gl.enable(gl.BLEND)
+      clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clearDepth(1.0)
+
       useProgram(scenePrg)
       bindFramebuffer(null)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -998,6 +1145,59 @@ function init() {
       scenePrg.setUniform('deformationProgress', data.deformationProgress)
       scenePrg.setUniform('loopCount', loopCount)
       gl.drawArrays(data.mode, 0, arrayLength)
+    } else if (data.scene === 'Pop') {
+      // Pop
+      gl.viewport(0, 0, POP_RESOLUTION, POP_RESOLUTION)
+
+      // velocity update
+      useProgram(popVelocityPrg)
+      bindFramebuffer(popVelocityFramebuffers[targetBufferIndex].framebuffer)
+      popVelocityPrg.setAttribute('position')
+      popVelocityPrg.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
+      popVelocityPrg.setUniform('prevVelocityTexture', popVelocityBufferIndex + prevBufferIndex)
+      popVelocityPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+      popVelocityPrg.setUniform('mouse', mouse)
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+      // position update
+      useProgram(popPositionPrg)
+      bindFramebuffer(popPositionFramebuffers[targetBufferIndex].framebuffer)
+      popPositionPrg.setAttribute('position')
+      popPositionPrg.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
+      popPositionPrg.setUniform('prevPositionTexture', popPositionBufferIndex + prevBufferIndex)
+      popPositionPrg.setUniform('velocityTexture', popVelocityBufferIndex + targetBufferIndex)
+      popPositionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+      gl.enable(gl.BLEND)
+      clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clearDepth(1.0)
+
+      useProgram(popScenePrg)
+      bindFramebuffer(null)
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+      gl.viewport(0, 0, canvasWidth, canvasHeight)
+
+      rotation[0] += (mouse[0] - rotation[0]) * 0.05
+      rotation[1] += (mouse[1] - rotation[1]) * 0.05
+      mat.identity(mMatrix)
+      mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
+      mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
+      mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+
+      popScenePrg.setAttribute('data')
+      popScenePrg.setUniform('mvpMatrix', mvpMatrix)
+      popScenePrg.setUniform('resolution', [canvasWidth, canvasHeight])
+      popScenePrg.setUniform('pointSize', data.pointSize * canvasHeight / 930)
+      popScenePrg.setUniform('videoTexture', videoBufferIndex + targetBufferIndex)
+      popScenePrg.setUniform('positionTexture', popPositionBufferIndex + targetBufferIndex)
+      popScenePrg.setUniform('velocityTexture', popVelocityBufferIndex + targetBufferIndex)
+      popScenePrg.setUniform('bgColor', data.bgColor)
+      popScenePrg.setUniform('volume', volume)
+      popScenePrg.setUniform('isAudio', isAudio)
+      popScenePrg.setUniform('deformationProgress', data.deformationProgress)
+      popScenePrg.setUniform('time', time)
+      gl.drawArrays(data.mode, 0, popArrayLength)
     } else if (data.scene === 'Post Effect') {
       // Post Effect
 
@@ -1020,6 +1220,10 @@ function init() {
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       // post process
+      gl.enable(gl.BLEND)
+      clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clearDepth(1.0)
+
       useProgram(currentPostPrg)
       bindFramebuffer(null)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -1028,7 +1232,7 @@ function init() {
       currentPostPrg.setAttribute('position')
       currentPostPrg.setUniform('resolution', [canvasWidth, canvasHeight])
       currentPostPrg.setUniform('texture', sceneBufferIndex)
-      currentPostPrg.setUniform('time', loopCount / 60)
+      currentPostPrg.setUniform('time', time)
       currentPostPrg.setUniform('volume', volume)
       currentPostPrg.setUniform('isAudio', isAudio)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
