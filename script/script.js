@@ -224,7 +224,7 @@ export default function run() {
 
   const postVs = createShader(require('../shader/post/post.vert'), 'vertex')
   {
-    const fs = createShader(require('../shader/video_scene.frag'), 'fragment')
+    const fs = createShader(require('../shader/post/scene.frag'), 'fragment')
     videoScenePrg = new Program(noneVs, fs)
     if (!videoScenePrg) return
   }

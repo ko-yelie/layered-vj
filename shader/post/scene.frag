@@ -9,16 +9,7 @@ uniform vec4      focusPos2;
 uniform vec4      focusPos3;
 uniform vec4      focusPos4;
 
-vec2 fit(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
-  vec2 ratio = vec2(
-    min((outputResolution.x / outputResolution.y) / (inputResolution.x / inputResolution.y), 1.0),
-    min((outputResolution.y / outputResolution.x) / (inputResolution.y / inputResolution.x), 1.0)
-  );
-  return vec2(
-    coord.x * ratio.x + (1.0 - ratio.x) * 0.5,
-    coord.y * ratio.y + (1.0 - ratio.y) * 0.5
-  );
-}
+#pragma glslify: adjustRatio = require(../modules/ratio.glsl)
 
 void main(){
   vec2 coord = gl_FragCoord.st / resolution;
@@ -43,7 +34,7 @@ void main(){
     mix(y, y + height, coord.y)
   );
 
-  vec2 uv = fit(focusCoord, videoResolution, resolution);
+  vec2 uv = adjustRatio(focusCoord, videoResolution, resolution);
 
   gl_FragColor = mix(
     texture2D(videoTexture, uv),
