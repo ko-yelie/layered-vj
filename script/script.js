@@ -14,16 +14,22 @@ import {
   getPointVbo
 } from './gl-utils.js'
 import { setGl, createFramebuffer, createFramebufferFloat, getWebGLExtensions } from './doxas-utils.js'
-import { getFirstValue } from './utils.js'
+import { getFirstValue, clamp } from './utils.js'
 import Media from './media.js'
 import { Webcam } from './webcam.js'
 import Detector from './detector.js'
 import DetectorMessage from './vue/DetectorMessage.vue'
 
 const POINT_RESOLUTION = window.innerWidth < 1000 ? 64 : 128
-const POP_RESOLUTION = 32
+const POP_RESOLUTION = 16
 const VIDEO_RESOLUTION = 416
 const BASE_RESOLUTION = 256
+
+const MIN_ZOOM = 2
+const MAX_ZOOM = 8
+
+const GPGPU_FRAMEBUFFERS_COUNT = 2
+const CAPTURE_FRAMEBUFFERS_COUNT = 3
 
 let canvas
 let canvasWidth
@@ -88,6 +94,7 @@ let detectorMessage
 let vbo
 let arrayLength
 let popArrayLength
+let zoom = 1
 let isStop = 0
 let isCapture = false
 let isAudio = 0
@@ -104,8 +111,6 @@ export default function run() {
     onResize() {
       canvasWidth = canvas.width
       canvasHeight = canvas.height
-
-      updateCamera()
 
       sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
       bindTexture(sceneFramebuffer.texture, sceneBufferIndex)
@@ -149,6 +154,11 @@ export default function run() {
     timer = setTimeout(() => {
       canvas.classList.remove('s-move')
     }, 500)
+  })
+
+  canvas.addEventListener('wheel', e => {
+    data.canvasZoom += e.deltaY * 0.05
+    data.canvasZoom = clamp(data.canvasZoom, MIN_ZOOM, MAX_ZOOM)
   })
 
   canvas.addEventListener('click', e => {
@@ -544,47 +554,41 @@ function initGlsl() {
   // framebuffer
   let framebufferCount = 1
 
-  const videoFramebuffersCount = 3
-  for (var i = 0; i < videoFramebuffersCount; i++) {
+  for (var i = 0; i < CAPTURE_FRAMEBUFFERS_COUNT; i++) {
     videoFramebuffers.push(createFramebufferFloat(ext, VIDEO_RESOLUTION, VIDEO_RESOLUTION))
   }
   videoBufferIndex = framebufferCount
-  framebufferCount += videoFramebuffersCount
+  framebufferCount += CAPTURE_FRAMEBUFFERS_COUNT
 
-  const pictureFramebuffersCount = 2
-  for (let i = 0; i < videoFramebuffersCount; i++) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; i++) {
     pictureFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
   }
   pictureBufferIndex = framebufferCount
-  framebufferCount += pictureFramebuffersCount
+  framebufferCount += GPGPU_FRAMEBUFFERS_COUNT
 
-  const velocityFramebuffersCount = 2
-  for (let i = 0; i < videoFramebuffersCount; i++) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; i++) {
     velocityFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
   }
   velocityBufferIndex = framebufferCount
-  framebufferCount += velocityFramebuffersCount
+  framebufferCount += GPGPU_FRAMEBUFFERS_COUNT
 
-  const positionFramebuffersCount = 3
-  for (let i = 0; i < videoFramebuffersCount; i++) {
+  for (let i = 0; i < CAPTURE_FRAMEBUFFERS_COUNT; i++) {
     positionFramebuffers.push(createFramebufferFloat(ext, POINT_RESOLUTION, POINT_RESOLUTION))
   }
   positionBufferIndex = framebufferCount
-  framebufferCount += positionFramebuffersCount
+  framebufferCount += CAPTURE_FRAMEBUFFERS_COUNT
 
-  const popVelocityFramebuffersCount = 2
-  for (let i = 0; i < videoFramebuffersCount; i++) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; i++) {
     popVelocityFramebuffers.push(createFramebufferFloat(ext, POP_RESOLUTION, POP_RESOLUTION))
   }
   popVelocityBufferIndex = framebufferCount
-  framebufferCount += popVelocityFramebuffersCount
+  framebufferCount += GPGPU_FRAMEBUFFERS_COUNT
 
-  const popPositionFramebuffersCount = 2
-  for (let i = 0; i < videoFramebuffersCount; i++) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; i++) {
     popPositionFramebuffers.push(createFramebufferFloat(ext, POP_RESOLUTION, POP_RESOLUTION))
   }
   popPositionBufferIndex = framebufferCount
-  framebufferCount += popPositionFramebuffersCount
+  framebufferCount += GPGPU_FRAMEBUFFERS_COUNT
 
   sceneFramebuffer = createFramebuffer(canvasWidth, canvasHeight)
   sceneBufferIndex = framebufferCount
@@ -735,11 +739,8 @@ async function initControl() {
     canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
 
     // canvasZoom
-    const canvasZoomMap = [2, 8]
-    const changeZoom = () => {
-      updateCamera()
-    }
-    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).onChange(changeZoom)
+    const canvasZoomMap = [MIN_ZOOM, MAX_ZOOM]
+    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).listen()
 
     // mouse
     const changeMouse = () => {
@@ -777,7 +778,6 @@ async function initControl() {
     changeLineShape()
     changeDeformation()
     changeBgColor()
-    changeZoom()
     changeMouse()
     changeCapture()
     changeStopMotion()
@@ -904,43 +904,36 @@ function resetDetector() {
 }
 
 function updateCamera() {
-  mat.lookAt(
-    [0.0, 0.0, data.canvasZoom / (BASE_RESOLUTION / POINT_RESOLUTION)],
-    [0.0, 0.0, 0.0],
-    [0.0, 1.0, 0.0],
-    vMatrix
-  )
+  mat.lookAt([0.0, 0.0, zoom / (BASE_RESOLUTION / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)
 }
 
 function init() {
-  updateCamera()
-
   // textures
   createTexture(video)
 
-  for (let i = 0; i < videoFramebuffers.length; ++i) {
+  for (let i = 0; i < CAPTURE_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(videoFramebuffers[i].texture, videoBufferIndex + i)
   }
 
-  for (let i = 0; i < pictureFramebuffers.length; ++i) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(pictureFramebuffers[i].texture, pictureBufferIndex + i)
   }
 
-  for (let i = 0; i < velocityFramebuffers.length; ++i) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(velocityFramebuffers[i].texture, velocityBufferIndex + i)
   }
 
-  for (let i = 0; i < positionFramebuffers.length; ++i) {
+  for (let i = 0; i < CAPTURE_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(positionFramebuffers[i].texture, positionBufferIndex + i)
   }
 
-  for (let i = 0; i < popVelocityFramebuffers.length; ++i) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(popVelocityFramebuffers[i].texture, popVelocityBufferIndex + i)
   }
 
-  for (let i = 0; i < popPositionFramebuffers.length; ++i) {
+  for (let i = 0; i < GPGPU_FRAMEBUFFERS_COUNT; ++i) {
     bindTexture(popPositionFramebuffers[i].texture, popPositionBufferIndex + i)
   }
 
@@ -954,7 +947,7 @@ function init() {
   videoPrg.setUniform('videoTexture', 0)
   videoPrg.setUniform('zoom', data.videoZoom)
   gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex < videoFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < CAPTURE_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // video buffer
     bindFramebuffer(videoFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
@@ -968,7 +961,7 @@ function init() {
   picturePrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
   picturePrg.setUniform('videoTexture', 0)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex < pictureFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // picture buffer
     bindFramebuffer(pictureFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
@@ -982,14 +975,14 @@ function init() {
   resetPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
   resetPrg.setUniform('videoTexture', 0)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex < velocityFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // velocity buffer
     bindFramebuffer(velocityFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
   }
-  for (let targetBufferIndex = 0; targetBufferIndex < positionFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < CAPTURE_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // position buffer
     bindFramebuffer(positionFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
@@ -1003,14 +996,14 @@ function init() {
   resetPrg.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
   resetPrg.setUniform('videoTexture', 0)
   gl.viewport(0, 0, POP_RESOLUTION, POP_RESOLUTION)
-  for (let targetBufferIndex = 0; targetBufferIndex < popVelocityFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // pop velocity buffer
     bindFramebuffer(popVelocityFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
   }
-  for (let targetBufferIndex = 0; targetBufferIndex < popPositionFramebuffers.length; ++targetBufferIndex) {
+  for (let targetBufferIndex = 0; targetBufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetBufferIndex) {
     // pop position buffer
     bindFramebuffer(popPositionFramebuffers[targetBufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
@@ -1026,6 +1019,7 @@ function init() {
   // setting
   let loopCount = 0
   isRun = true
+  zoom = data.canvasZoom
 
   render = () => {
     const targetBufferIndex = loopCount % 2
@@ -1034,6 +1028,9 @@ function init() {
 
     const posList = (detector && detector.posList) || []
     const focusCount = Math.min(posList.length || 1, 4)
+
+    zoom += (data.canvasZoom - zoom) * 0.1
+    updateCamera()
 
     volume += (media.getVolume() - volume) * 0.1
 
@@ -1066,41 +1063,23 @@ function init() {
     picturePrg.setUniform('prevPictureTexture', pictureBufferIndex + prevBufferIndex)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-    // velocity update
-    useProgram(velocityPrg)
-    bindFramebuffer(velocityFramebuffers[targetBufferIndex].framebuffer)
-    velocityPrg.setAttribute('position')
-    velocityPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
-    velocityPrg.setUniform('prevVelocityTexture', velocityBufferIndex + prevBufferIndex)
-    velocityPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
-    velocityPrg.setUniform('mouse', mouse)
-    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+    // render to canvas -------------------------------------------
+    if (data.scene === 'Particle') {
+      // Particle
 
-    // position update
-    useProgram(positionPrg)
-    bindFramebuffer(positionFramebuffers[targetBufferIndex].framebuffer)
-    positionPrg.setAttribute('position')
-    positionPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
-    positionPrg.setUniform('prevPositionTexture', positionBufferIndex + prevBufferIndex)
-    positionPrg.setUniform('velocityTexture', velocityBufferIndex + targetBufferIndex)
-    positionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
-    gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
-
-    if (isCapture) {
-      gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
-      useProgram(videoPrg)
-      bindFramebuffer(videoFramebuffers[2].framebuffer)
-      videoPrg.setAttribute('position')
-      videoPrg.setUniform('resolution', [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
-      videoPrg.setUniform('videoResolution', [media.currentVideo.videoWidth, media.currentVideo.videoHeight])
-      videoPrg.setUniform('videoTexture', 0)
-      videoPrg.setUniform('zoom', data.videoZoom)
+      // velocity update
+      useProgram(velocityPrg)
+      bindFramebuffer(velocityFramebuffers[targetBufferIndex].framebuffer)
+      velocityPrg.setAttribute('position')
+      velocityPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
+      velocityPrg.setUniform('prevVelocityTexture', velocityBufferIndex + prevBufferIndex)
+      velocityPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+      velocityPrg.setUniform('mouse', mouse)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-      gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
-
+      // position update
       useProgram(positionPrg)
-      bindFramebuffer(positionFramebuffers[2].framebuffer)
+      bindFramebuffer(positionFramebuffers[targetBufferIndex].framebuffer)
       positionPrg.setAttribute('position')
       positionPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
       positionPrg.setUniform('prevPositionTexture', positionBufferIndex + prevBufferIndex)
@@ -1108,12 +1087,31 @@ function init() {
       positionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-      isCapture = false
-    }
+      if (isCapture) {
+        gl.viewport(0, 0, VIDEO_RESOLUTION, VIDEO_RESOLUTION)
+        useProgram(videoPrg)
+        bindFramebuffer(videoFramebuffers[2].framebuffer)
+        videoPrg.setAttribute('position')
+        videoPrg.setUniform('resolution', [VIDEO_RESOLUTION, VIDEO_RESOLUTION])
+        videoPrg.setUniform('videoResolution', [media.currentVideo.videoWidth, media.currentVideo.videoHeight])
+        videoPrg.setUniform('videoTexture', 0)
+        videoPrg.setUniform('zoom', data.videoZoom)
+        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-    // render to canvas -------------------------------------------
-    if (data.scene === 'Particle') {
-      // Particle
+        gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
+
+        useProgram(positionPrg)
+        bindFramebuffer(positionFramebuffers[2].framebuffer)
+        positionPrg.setAttribute('position')
+        positionPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
+        positionPrg.setUniform('prevPositionTexture', positionBufferIndex + prevBufferIndex)
+        positionPrg.setUniform('velocityTexture', velocityBufferIndex + targetBufferIndex)
+        positionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+        isCapture = false
+      }
+
       gl.enable(gl.BLEND)
       clearColor(0.0, 0.0, 0.0, 0.0)
       gl.clearDepth(1.0)
@@ -1148,6 +1146,7 @@ function init() {
       gl.drawArrays(data.mode, 0, arrayLength)
     } else if (data.scene === 'Pop') {
       // Pop
+
       gl.viewport(0, 0, POP_RESOLUTION, POP_RESOLUTION)
 
       // velocity update
