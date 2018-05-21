@@ -266,13 +266,13 @@ function initGlsl() {
   for (let t = 0; t < 1 - interval; t += interval) {
     for (let s = 0; s < 1; s += interval) {
       if (s === BASE_RESOLUTION - interval) {
-        pointTexCoord.push(s, t, Math.random())
-        pointTexCoord.push(s, t + interval, Math.random())
+        pointTexCoord.push(s, t, Math.random(), Math.random())
+        pointTexCoord.push(s, t + interval, Math.random(), Math.random())
       } else {
-        pointTexCoord.push(s, t, Math.random())
-        pointTexCoord.push(s, t + interval, Math.random())
-        pointTexCoord.push(s + interval, t + interval, Math.random())
-        pointTexCoord.push(s, t, Math.random())
+        pointTexCoord.push(s, t, Math.random(), Math.random())
+        pointTexCoord.push(s, t + interval, Math.random(), Math.random())
+        pointTexCoord.push(s + interval, t + interval, Math.random(), Math.random())
+        pointTexCoord.push(s, t, Math.random(), Math.random())
       }
     }
   }
@@ -371,7 +371,7 @@ function initGlsl() {
 
   scenePrg.createAttribute({
     data: {
-      stride: 3,
+      stride: 4,
       vbo: pointVBO
     }
   })
@@ -454,7 +454,7 @@ function initGlsl() {
 
   popScenePrg.createAttribute({
     data: {
-      stride: 3,
+      stride: 4,
       vbo: popPointVBO
     }
   })

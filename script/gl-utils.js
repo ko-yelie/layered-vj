@@ -183,7 +183,7 @@ export function getPointVbo(interval) {
     const back = t % (interval * 2) === interval
     for (let s = 0; s < 1; s += interval) {
       const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
-      pointTexCoord.push(cS, t, Math.random())
+      pointTexCoord.push(cS, t, Math.random(), Math.random())
     }
   }
   return createVbo(pointTexCoord)

@@ -5,8 +5,7 @@ uniform float     bgColor;
 uniform float     time;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
-
-#pragma glslify: random = require(glsl-random)
+varying float vRnd;
 
 const float amplitude = 0.1;
 const float amplitude2 = amplitude * 2.;
@@ -20,7 +19,7 @@ float circle(vec2 st) {
 }
 
 void main(){
-  float rnd = random(vTexCoord);
+  float rnd = vRnd;
   float randomTime = time * mix(0.5, 1., rnd);
 
   vec4 video = texture2D(videoTexture, vTexCoord);

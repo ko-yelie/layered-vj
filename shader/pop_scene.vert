@@ -1,4 +1,4 @@
-attribute vec3 data;
+attribute vec4 data;
 uniform mat4 mvpMatrix;
 uniform vec2 resolution;
 uniform float pointSize;
@@ -10,6 +10,7 @@ uniform float deformationProgress;
 uniform float time;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
+varying float vRnd;
 
 #pragma glslify: random = require(glsl-random)
 
@@ -25,8 +26,8 @@ const float deformationSize = 1. / maxDeformationDistance;
 const float scaleSpeed = 0.8;
 
 void main(){
-  vec2 texCoord = data.st;
-  float rnd = random(texCoord);
+  vec2 texCoord = data.xy;
+  float rnd = data.w;
   float symmetryRnd = rnd * 2. - 1.;
 
   float deformationDistance = mix(1., maxDeformationDistance, deformationProgress);
@@ -41,13 +42,14 @@ void main(){
 
   vec4 velocity = texture2D(velocityTexture, texCoord);
 
-  float randomValue = (data.p + random(texCoord + mod(time, 10.))) / 2.;
+  float randomValue = (data.z + random(texCoord + mod(time, 10.))) / 2.;
   float radian = time * speed * randomValue;
   float radius = standardRadius + randomValue * amplitude - halfAmplitude;
   vec3 circlePosition = vec3(cos(radian) * radius, sin(radian) * radius, 0.);
 
   vTexCoord = texCoord;
   vPosition = position;
+  vRnd = rnd;
   gl_Position = mvpMatrix * vec4(mix(videoPosition, circlePosition, deformationProgress), 1.);
   gl_PointSize = pow(velocity.y * resolution.y * mix(1., volume * 1.5, isAudio), 2.) * scaleSpeed * pointSize;
 }
