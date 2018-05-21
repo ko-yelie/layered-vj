@@ -27,11 +27,11 @@ void main(){
   vec3 color = video.rgb * (maxColor - minColor) + minColor;
 
   vec2 pointCoord = gl_PointCoord.st * 2. - 1.;
-  float distort = (sin(randomTime * 20.) * sin(pointCoord.y + sin(randomTime * 5.)) * 2. - 1.) * 0.05;
-  pointCoord.x += distort;
+  float distortion = (sin(randomTime * 35.) * sin(pointCoord.y + sin(randomTime * 15.)) * 2. - 1.) * 0.05;
+  pointCoord.x += distortion;
   float particleColor = 1. - step(length(vec2(
-    circle(pointCoord - vec2(0., distort) * amplitude),
-    circle(pointCoord + vec2(0., distort) * amplitude)
+    circle(pointCoord - vec2(0., distortion) * amplitude),
+    circle(pointCoord + vec2(-distortion, distortion) * amplitude)
   )), 0.);
 
   float minCurrentColor = mix(minPopColor, minPopColor * maxPopAlpha, bgColor);
