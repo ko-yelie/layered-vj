@@ -7,7 +7,7 @@ uniform float     isAccel;
 uniform float     isRotation;
 
 const float normalSpeed = -0.0004;
-const float warpSpeed = 0.02;
+const float warpSpeed = 0.018;
 const float accelWarpSpeed = 0.05;
 const float rotationSpeed = -0.08;
 
@@ -19,7 +19,7 @@ void main(){
   float radian = mix(0., prevVelocity.x + rotationSpeed, animation) * isRotation;
   vec2 velocityXY = vec2(mix(radian, 0., picture.w));
 
-  float speed = mix(prevVelocity.z + normalSpeed, prevVelocity.z * 0.1 + warpSpeed + (accelWarpSpeed - warpSpeed) * isAccel, animation);
+  float speed = mix(prevVelocity.z + normalSpeed, prevVelocity.z * 0.2 + warpSpeed + (accelWarpSpeed - warpSpeed) * isAccel, animation);
   float velocityZ = mix(speed, 0., picture.w);
 
   gl_FragColor = vec4(velocityXY, velocityZ, 0.);

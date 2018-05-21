@@ -5,8 +5,8 @@ uniform sampler2D pictureTexture;
 uniform vec2      resolution;
 uniform float     animation;
 
-const float maxZ = 1.;
-const float minZ = 0.3;
+const float maxZ = 0.8;
+const float minZ = 0.5;
 const float PI   = 3.1415926;
 const float PI2  = PI * 2.;
 
