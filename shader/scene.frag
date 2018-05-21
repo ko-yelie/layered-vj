@@ -28,5 +28,5 @@ void main(){
   vec4 thumbColor = texture2D(videoTexture, vec2(gl_PointCoord.s, 1. - gl_PointCoord.t));
   vec4 particleColor = mix(shapeColor, thumbColor, step(3., pointShape));
 
-  gl_FragColor = vec4((color + maxColor * (1. - rate) * mix(-1., 1., bgColor)), sqrt(rate)) * particleColor;
+  gl_FragColor = vec4(color, sqrt(rate)) * particleColor;
 }

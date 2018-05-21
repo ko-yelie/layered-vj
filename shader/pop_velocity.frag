@@ -2,7 +2,6 @@ precision mediump float;
 uniform sampler2D prevVelocityTexture;
 uniform sampler2D pictureTexture;
 uniform vec2      resolution;
-uniform vec2      mouse;
 const float speed = 0.00003;
 void main(){
   vec2 coord = gl_FragCoord.st / resolution;

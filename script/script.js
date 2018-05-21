@@ -26,20 +26,20 @@ const VIDEO_RESOLUTION = 416
 const BASE_RESOLUTION = 256
 
 const MIN_ZOOM = 2
-const MAX_ZOOM = 8
+const MAX_ZOOM = 10
 
 const GPGPU_FRAMEBUFFERS_COUNT = 2
 const CAPTURE_FRAMEBUFFERS_COUNT = 3
+
+const ANIMATION_NORMAL = 0
+const ANIMATION_WARP = 1
 
 let canvas
 let canvasWidth
 let canvasHeight
 let gl
 let ext
-let isRun
 let mat
-let mouse = [0.0, 0.0]
-let rotation = [0.0, 0.0]
 
 let planeIndex
 let planeVBO
@@ -94,7 +94,20 @@ let detectorMessage
 let vbo
 let arrayLength
 let popArrayLength
-let zoom = 1
+let isRun
+let pointer = {
+  x: 0,
+  y: 0
+}
+let rotation = {
+  x: 0,
+  y: 0
+}
+let cameraPosition = {
+  x: 0,
+  y: 0,
+  z: 5
+}
 let isStop = 0
 let isCapture = false
 let isAudio = 0
@@ -142,12 +155,15 @@ export default function run() {
   })
 
   let timer
-  canvas.addEventListener('mousemove', e => {
-    if (!data.mouse) return
+  canvas.addEventListener('pointermove', e => {
+    if (!data.pointer) return
 
     let x = e.clientX / canvasWidth * 2.0 - 1.0
     let y = e.clientY / canvasHeight * 2.0 - 1.0
-    mouse = [x, -y]
+    pointer = {
+      x,
+      y: -y
+    }
 
     clearTimeout(timer)
     canvas.classList.add('s-move')
@@ -156,9 +172,17 @@ export default function run() {
     }, 500)
   })
 
+  canvas.addEventListener('pointerdown', e => {
+    data.rotation = 1
+  })
+
+  canvas.addEventListener('pointerup', e => {
+    data.rotation = 0
+  })
+
   canvas.addEventListener('wheel', e => {
-    data.canvasZoom += e.deltaY * 0.05
-    data.canvasZoom = clamp(data.canvasZoom, MIN_ZOOM, MAX_ZOOM)
+    data.zPosition += e.deltaY * 0.05
+    data.zPosition = clamp(data.zPosition, MIN_ZOOM, MAX_ZOOM)
   })
 
   canvas.addEventListener('click', e => {
@@ -348,8 +372,14 @@ function initGlsl() {
     pictureTexture: {
       type: '1i'
     },
-    mouse: {
-      type: '2fv'
+    animation: {
+      type: '1f'
+    },
+    isAccel: {
+      type: '1f'
+    },
+    isRotation: {
+      type: '1f'
     }
   })
 
@@ -366,6 +396,9 @@ function initGlsl() {
     },
     pictureTexture: {
       type: '1i'
+    },
+    animation: {
+      type: '1f'
     }
   })
 
@@ -430,9 +463,6 @@ function initGlsl() {
     },
     pictureTexture: {
       type: '1i'
-    },
-    mouse: {
-      type: '2fv'
     }
   })
 
@@ -656,6 +686,10 @@ async function initControl() {
 
     particleFolder = gui.addFolder('Particle')
 
+    // animation
+    const animationMap = { normal: ANIMATION_NORMAL, warp: ANIMATION_WARP }
+    particleFolder.add(data, 'animation', animationMap)
+
     // mode
     const modeMap = {
       'gl.POINTS': gl.POINTS,
@@ -738,17 +772,26 @@ async function initControl() {
     }
     canvasFolder.add(data, 'bgColor', bgColorMap).onChange(changeBgColor)
 
-    // canvasZoom
-    const canvasZoomMap = [MIN_ZOOM, MAX_ZOOM]
-    canvasFolder.add(data, 'canvasZoom', ...canvasZoomMap).listen()
+    // z position
+    const zPositionMap = [MIN_ZOOM, MAX_ZOOM]
+    canvasFolder.add(data, 'zPosition', ...zPositionMap).listen()
 
-    // mouse
+    // pointer
     const changeMouse = () => {
-      if (!data.mouse) {
-        mouse = [0.0, 0.0]
+      if (!data.pointer) {
+        pointer = {
+          x: 0,
+          y: 0
+        }
       }
     }
-    canvasFolder.add(data, 'mouse').onChange(changeMouse)
+    canvasFolder.add(data, 'pointer').onChange(changeMouse)
+
+    // accel
+    canvasFolder.add(data, 'accel')
+
+    // rotation
+    canvasFolder.add(data, 'rotation').listen()
 
     // video folder
     const videoFolder = particleFolder.addFolder('video')
@@ -888,6 +931,8 @@ async function initControl() {
   await changeVideo()
   changeDetector()
 
+  cameraPosition.z = data.zPosition
+
   init()
 }
 
@@ -904,9 +949,24 @@ function resetDetector() {
 }
 
 function updateCamera() {
-  mat.lookAt([0.0, 0.0, zoom / (BASE_RESOLUTION / POINT_RESOLUTION)], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], vMatrix)
+  const cameraPositionRate = data.animation === ANIMATION_WARP ? 1.5 : 0.3
+  cameraPosition.x += (pointer.x * cameraPositionRate - cameraPosition.x) * 0.1
+  cameraPosition.y += (pointer.y * cameraPositionRate - cameraPosition.y) * 0.1
+  cameraPosition.z += (data.zPosition - cameraPosition.z) * 0.1
+
+  mat.identity(mMatrix)
+  mat.lookAt(
+    [cameraPosition.x, cameraPosition.y, cameraPosition.z / (BASE_RESOLUTION / POINT_RESOLUTION)],
+    [cameraPosition.x, cameraPosition.y, 0.0],
+    [0.0, 1.0, 0.0],
+    vMatrix
+  )
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)
+
+  mat.rotate(mMatrix, rotation.x, [0.0, 1.0, 0.0], mMatrix)
+  mat.rotate(mMatrix, rotation.y, [-1.0, 0.0, 0.0], mMatrix)
+  mat.multiply(vpMatrix, mMatrix, mvpMatrix)
 }
 
 function init() {
@@ -1019,7 +1079,6 @@ function init() {
   // setting
   let loopCount = 0
   isRun = true
-  zoom = data.canvasZoom
 
   render = () => {
     const targetBufferIndex = loopCount % 2
@@ -1028,9 +1087,6 @@ function init() {
 
     const posList = (detector && detector.posList) || []
     const focusCount = Math.min(posList.length || 1, 4)
-
-    zoom += (data.canvasZoom - zoom) * 0.1
-    updateCamera()
 
     volume += (media.getVolume() - volume) * 0.1
 
@@ -1074,7 +1130,9 @@ function init() {
       velocityPrg.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
       velocityPrg.setUniform('prevVelocityTexture', velocityBufferIndex + prevBufferIndex)
       velocityPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
-      velocityPrg.setUniform('mouse', mouse)
+      velocityPrg.setUniform('animation', data.animation)
+      velocityPrg.setUniform('isAccel', data.accel)
+      velocityPrg.setUniform('isRotation', data.rotation)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       // position update
@@ -1085,6 +1143,7 @@ function init() {
       positionPrg.setUniform('prevPositionTexture', positionBufferIndex + prevBufferIndex)
       positionPrg.setUniform('velocityTexture', velocityBufferIndex + targetBufferIndex)
       positionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+      positionPrg.setUniform('animation', data.animation)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       if (isCapture) {
@@ -1107,6 +1166,7 @@ function init() {
         positionPrg.setUniform('prevPositionTexture', positionBufferIndex + prevBufferIndex)
         positionPrg.setUniform('velocityTexture', velocityBufferIndex + targetBufferIndex)
         positionPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
+        positionPrg.setUniform('animation', data.animation)
         gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
         isCapture = false
@@ -1121,12 +1181,9 @@ function init() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      rotation[0] += (mouse[0] - rotation[0]) * 0.05
-      rotation[1] += (mouse[1] - rotation[1]) * 0.05
-      mat.identity(mMatrix)
-      mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
-      mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
-      mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+      rotation.x += (pointer.x - rotation.x) * 0.05
+      rotation.y += (pointer.y - rotation.y) * 0.05
+      updateCamera()
 
       scenePrg.setAttribute('data', vbo)
       scenePrg.setUniform('mvpMatrix', mvpMatrix)
@@ -1156,7 +1213,6 @@ function init() {
       popVelocityPrg.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
       popVelocityPrg.setUniform('prevVelocityTexture', popVelocityBufferIndex + prevBufferIndex)
       popVelocityPrg.setUniform('pictureTexture', pictureBufferIndex + targetBufferIndex)
-      popVelocityPrg.setUniform('mouse', mouse)
       gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
       // position update
@@ -1178,12 +1234,9 @@ function init() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      rotation[0] += (mouse[0] - rotation[0]) * 0.01
-      rotation[1] += (mouse[1] - rotation[1]) * 0.01
-      mat.identity(mMatrix)
-      mat.rotate(mMatrix, rotation[0], [0.0, 1.0, 0.0], mMatrix)
-      mat.rotate(mMatrix, rotation[1], [-1.0, 0.0, 0.0], mMatrix)
-      mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+      rotation.x += (pointer.x - rotation.x) * 0.01
+      rotation.y += (pointer.y - rotation.y) * 0.01
+      updateCamera()
 
       popScenePrg.setAttribute('data')
       popScenePrg.setUniform('mvpMatrix', mvpMatrix)
