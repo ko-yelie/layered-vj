@@ -3,7 +3,7 @@ import yolo, { downloadModel } from 'tfjs-yolo-tiny'
 let storedModel
 
 export default class Detector {
-  constructor(webcam, wrapper) {
+  constructor (webcam, wrapper) {
     this.webcam = webcam
     this.video = webcam.webcamElement
     this.wrapper = wrapper
@@ -22,7 +22,7 @@ export default class Detector {
     }
   }
 
-  async detect() {
+  async detect () {
     if (!this.isReady) return
 
     this.reset()
@@ -46,11 +46,11 @@ export default class Detector {
     })
   }
 
-  convert(val) {
+  convert (val) {
     return (val + this.diff) / this.video.width
   }
 
-  drawRect(x, y, w, h, text = '', color = 'red') {
+  drawRect (x, y, w, h, text = '', color = 'red') {
     const rect = document.createElement('div')
     rect.classList.add('rect')
     color === 'blue' && rect.classList.add('o-blue')
@@ -64,14 +64,14 @@ export default class Detector {
     this.wrapper.appendChild(rect)
   }
 
-  clearRects() {
+  clearRects () {
     const rects = document.getElementsByClassName('rect')
     while (rects[0]) {
       rects[0].parentNode.removeChild(rects[0])
     }
   }
 
-  reset() {
+  reset () {
     this.clearRects()
     this.posList = []
   }

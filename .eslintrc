@@ -1,20 +1,10 @@
 extends:
   - standard
   - plugin:vue/essential
-  - prettier
 env:
   browser: true
-plugins:
-  - prettier
 parserOptions:
   ecmaVersion: 2017
-rules:
-  prettier/prettier:
-    - error
-    -
-      singleQuote: true
-      semi: false
-      printWidth: 120
 globals:
   dat: true
   TimelineMax: true

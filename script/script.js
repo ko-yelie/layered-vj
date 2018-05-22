@@ -114,14 +114,14 @@ let isAudio = 0
 let volume = 1
 let defaultFocus = [0, 0, 1, 1]
 
-export default function run() {
+export default function run () {
   // canvas element を取得しサイズをウィンドウサイズに設定
   const obj = initWebGL(document.getElementById('canvas'))
   canvas = obj.canvas
   gl = obj.gl
 
   initSize({
-    onResize() {
+    onResize () {
       canvasWidth = canvas.width
       canvasHeight = canvas.height
 
@@ -281,7 +281,7 @@ export default function run() {
   initGlsl()
 }
 
-function initGlsl() {
+function initGlsl () {
   const interval = BASE_RESOLUTION / POINT_RESOLUTION / BASE_RESOLUTION
 
   pointVBO = getPointVbo(interval)
@@ -555,7 +555,7 @@ function initGlsl() {
     }
   })
 
-  function setPostVariables(prg) {
+  function setPostVariables (prg) {
     prg.createAttribute(planeAttribute)
     prg.createUniform({
       resolution: {
@@ -627,7 +627,7 @@ function initGlsl() {
   initMedia()
 }
 
-function initMedia() {
+function initMedia () {
   media = new Media(VIDEO_RESOLUTION, POINT_RESOLUTION)
   media.enumerateDevices().then(initControl)
 
@@ -643,7 +643,7 @@ function initMedia() {
   })
 }
 
-async function initControl() {
+async function initControl () {
   const json = require('./gui/scene.json')
   const preset = location.search.substring(1) || json.preset
   const gui = new dat.GUI({
@@ -936,19 +936,19 @@ async function initControl() {
   init()
 }
 
-async function runDetector() {
+async function runDetector () {
   detector = new Detector(webcam, media.wrapper)
   await detector.promise
   detector.detect()
   detectorMessage.isReady = true
 }
 
-function resetDetector() {
+function resetDetector () {
   detector.reset()
   detectorMessage.isReady = false
 }
 
-function updateCamera() {
+function updateCamera () {
   const cameraPositionRate = data.animation === ANIMATION_WARP ? 1.5 : 0.3
   cameraPosition.x += (pointer.x * cameraPositionRate - cameraPosition.x) * 0.1
   cameraPosition.y += (pointer.y * cameraPositionRate - cameraPosition.y) * 0.1
@@ -969,7 +969,7 @@ function updateCamera() {
   mat.multiply(vpMatrix, mMatrix, mvpMatrix)
 }
 
-function init() {
+function init () {
   // textures
   createTexture(video)
 

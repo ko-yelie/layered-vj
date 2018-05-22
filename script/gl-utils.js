@@ -1,12 +1,12 @@
 let canvas, gl
 
-export function initWebGL(myCanvas) {
+export function initWebGL (myCanvas) {
   canvas = myCanvas
   gl = canvas.getContext('webgl')
   return { canvas, gl }
 }
 
-export function createShader(source, type) {
+export function createShader (source, type) {
   const shader = gl.createShader(type === 'vertex' ? gl.VERTEX_SHADER : type === 'fragment' ? gl.FRAGMENT_SHADER : null)
   gl.shaderSource(shader, source)
   gl.compileShader(shader)
@@ -20,7 +20,7 @@ export function createShader(source, type) {
 }
 
 export class Program {
-  constructor(vs, fs) {
+  constructor (vs, fs) {
     const program = gl.createProgram()
     gl.attachShader(program, vs)
     gl.attachShader(program, fs)
@@ -38,7 +38,7 @@ export class Program {
     this.uniforms = {}
   }
 
-  createAttribute(data) {
+  createAttribute (data) {
     Object.keys(data).forEach(name => {
       const { stride, vbo, ibo } = data[name]
 
@@ -52,7 +52,7 @@ export class Program {
     })
   }
 
-  setAttribute(name, newVbo) {
+  setAttribute (name, newVbo) {
     const { vbo, location, stride, ibo } = this.attributes[name]
 
     gl.bindBuffer(gl.ARRAY_BUFFER, newVbo || vbo)
@@ -61,7 +61,7 @@ export class Program {
     ibo !== void 0 && gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
   }
 
-  createUniform(data) {
+  createUniform (data) {
     Object.keys(data).forEach(name => {
       const uniform = data[name]
 
@@ -73,7 +73,7 @@ export class Program {
     })
   }
 
-  setUniform(name, value) {
+  setUniform (name, value) {
     const uniform = this.uniforms[name]
     if (!uniform) return
 
@@ -85,7 +85,7 @@ export class Program {
   }
 }
 
-export function createVbo(data) {
+export function createVbo (data) {
   const vbo = gl.createBuffer()
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
@@ -93,7 +93,7 @@ export function createVbo(data) {
   return vbo
 }
 
-export function createIbo(data) {
+export function createIbo (data) {
   let ibo = gl.createBuffer()
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW)
@@ -101,14 +101,14 @@ export function createIbo(data) {
   return ibo
 }
 
-export function bindTexture(texture, index = 0) {
+export function bindTexture (texture, index = 0) {
   gl.activeTexture(gl.TEXTURE0 + index)
   gl.bindTexture(gl.TEXTURE_2D, texture)
   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 }
 
-export function createTexture(img, index) {
+export function createTexture (img, index) {
   const texture = gl.createTexture()
   bindTexture(texture, index)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
@@ -120,19 +120,19 @@ export function createTexture(img, index) {
   // gl.bindTexture(gl.TEXTURE_2D, null)
 }
 
-export function useProgram(prg) {
+export function useProgram (prg) {
   gl.useProgram(prg.program)
 }
 
-export function bindFramebuffer(framebuffer) {
+export function bindFramebuffer (framebuffer) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)
 }
 
-export function clearColor(...args) {
+export function clearColor (...args) {
   gl.clearColor(...args)
 }
 
-export function loadImage(src, callback) {
+export function loadImage (src, callback) {
   const img = new Image()
   img.addEventListener('load', () => {
     callback(img)
@@ -141,7 +141,7 @@ export function loadImage(src, callback) {
   img.src = src
 }
 
-export function setSize(width = window.innerWidth, height = window.innerHeight) {
+export function setSize (width = window.innerWidth, height = window.innerHeight) {
   const windowRatio = window.innerWidth / window.innerHeight
   const imgRatio = width / height
 
@@ -156,7 +156,7 @@ export function setSize(width = window.innerWidth, height = window.innerHeight) 
   gl.viewport(0, 0, canvas.width, canvas.height)
 }
 
-export function initSize(option = {}) {
+export function initSize (option = {}) {
   setSize(option.width, option.height)
   window.addEventListener('resize', () => {
     setSize(option.width, option.height)
@@ -164,8 +164,8 @@ export function initSize(option = {}) {
   })
 }
 
-export function start(draw, mode, count) {
-  function render(time) {
+export function start (draw, mode, count) {
+  function render (time) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     draw(time)
@@ -177,7 +177,7 @@ export function start(draw, mode, count) {
   requestAnimationFrame(render)
 }
 
-export function getPointVbo(interval) {
+export function getPointVbo (interval) {
   let pointTexCoord = []
   for (let t = 0; t < 1; t += interval) {
     const back = t % (interval * 2) === interval

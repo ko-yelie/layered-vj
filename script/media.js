@@ -1,7 +1,7 @@
 import getElements from 'get-elements-array'
 
 export default class Media {
-  constructor(size, pointResolution) {
+  constructor (size, pointResolution) {
     this.video = document.createElement('video')
     this.video.width = size
     this.video.height = size
@@ -20,7 +20,7 @@ export default class Media {
   }
 
   // smartphone webcam
-  loadSmartphone() {
+  loadSmartphone () {
     const smartphone = document.getElementById('smartphone')
     if (!smartphone) return
 
@@ -29,7 +29,7 @@ export default class Media {
     this.smartphone.height = this.size
   }
 
-  enumerateDevices() {
+  enumerateDevices () {
     return navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
       this.videoDevices = {}
       this.videoFiles = {}
@@ -62,7 +62,7 @@ export default class Media {
     })
   }
 
-  getUserMedia(sources) {
+  getUserMedia (sources) {
     let videoFile, smartphoneFile
     if (/^file:/.test(sources.video)) {
       videoFile = this.videoFiles[sources.video]
@@ -127,7 +127,7 @@ export default class Media {
     })
   }
 
-  getVolume() {
+  getVolume () {
     let max = 0
     this.analyser.getByteTimeDomainData(this.array)
     for (let i = 0; i < this.analyser.fftSize; ++i) {
@@ -136,7 +136,7 @@ export default class Media {
     return max / 255 * 2
   }
 
-  toggleThumb(showThumb) {
+  toggleThumb (showThumb) {
     this.wrapper.style.display = showThumb ? 'flex' : 'none'
   }
 }
