@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "dev": "parcel --open",
-    "build": "parcel build index.pug --no-source-maps -d docs --public-url /webcam-particle/"
+    "dev": "parcel src/**/*.pug --open",
+    "build": "parcel build src/**/*.pug --no-source-maps -d docs --public-url /webcam-particle/"
   },
   "devDependencies": {
     "@vue/component-compiler-utils": "^1.2.1",

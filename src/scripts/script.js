@@ -196,84 +196,84 @@ export default function run () {
   })
 
   // 外部ファイルのシェーダのソースを取得しプログラムオブジェクトを生成
-  const noneVs = createShader(require('../shader/nothing.vert'), 'vertex')
+  const noneVs = createShader(require('../shaders/nothing.vert'), 'vertex')
   {
-    const fs = createShader(require('../shader/video.frag'), 'fragment')
+    const fs = createShader(require('../shaders/video.frag'), 'fragment')
     videoPrg = new Program(noneVs, fs)
     if (!videoPrg) return
   }
   {
-    const fs = createShader(require('../shader/picture.frag'), 'fragment')
+    const fs = createShader(require('../shaders/picture.frag'), 'fragment')
     picturePrg = new Program(noneVs, fs)
     if (!picturePrg) return
   }
   {
-    const fs = createShader(require('../shader/reset.frag'), 'fragment')
+    const fs = createShader(require('../shaders/reset.frag'), 'fragment')
     resetPrg = new Program(noneVs, fs)
     if (!resetPrg) return
   }
   {
-    const fs = createShader(require('../shader/position.frag'), 'fragment')
+    const fs = createShader(require('../shaders/position.frag'), 'fragment')
     positionPrg = new Program(noneVs, fs)
     if (!positionPrg) return
   }
   {
-    const fs = createShader(require('../shader/velocity.frag'), 'fragment')
+    const fs = createShader(require('../shaders/velocity.frag'), 'fragment')
     velocityPrg = new Program(noneVs, fs)
     if (!velocityPrg) return
   }
   {
-    const vs = createShader(require('../shader/scene.vert'), 'vertex')
-    const fs = createShader(require('../shader/scene.frag'), 'fragment')
+    const vs = createShader(require('../shaders/scene.vert'), 'vertex')
+    const fs = createShader(require('../shaders/scene.frag'), 'fragment')
     scenePrg = new Program(vs, fs)
     if (!scenePrg) return
   }
 
   {
-    const fs = createShader(require('../shader/pop_velocity.frag'), 'fragment')
+    const fs = createShader(require('../shaders/pop_velocity.frag'), 'fragment')
     popVelocityPrg = new Program(noneVs, fs)
     if (!popVelocityPrg) return
   }
   {
-    const fs = createShader(require('../shader/pop_position.frag'), 'fragment')
+    const fs = createShader(require('../shaders/pop_position.frag'), 'fragment')
     popPositionPrg = new Program(noneVs, fs)
     if (!popPositionPrg) return
   }
   {
-    const vs = createShader(require('../shader/pop_scene.vert'), 'vertex')
-    const fs = createShader(require('../shader/pop_scene.frag'), 'fragment')
+    const vs = createShader(require('../shaders/pop_scene.vert'), 'vertex')
+    const fs = createShader(require('../shaders/pop_scene.frag'), 'fragment')
     popScenePrg = new Program(vs, fs)
     if (!popScenePrg) return
   }
 
-  const postVs = createShader(require('../shader/post/post.vert'), 'vertex')
+  const postVs = createShader(require('../shaders/post/post.vert'), 'vertex')
   {
-    const fs = createShader(require('../shader/post/scene.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/scene.frag'), 'fragment')
     videoScenePrg = new Program(noneVs, fs)
     if (!videoScenePrg) return
   }
   {
-    const fs = createShader(require('../shader/post/none.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/none.frag'), 'fragment')
     postNonePrg = new Program(postVs, fs)
     if (!postNonePrg) return
   }
   {
-    const fs = createShader(require('../shader/post/glitch.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/glitch.frag'), 'fragment')
     postGlitchPrg = new Program(postVs, fs)
     if (!postGlitchPrg) return
   }
   {
-    const fs = createShader(require('../shader/post/ykobGlitch.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/ykobGlitch.frag'), 'fragment')
     postYkobGlitchPrg = new Program(postVs, fs)
     if (!postYkobGlitchPrg) return
   }
   {
-    const fs = createShader(require('../shader/post/dot.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/dot.frag'), 'fragment')
     postDotPrg = new Program(postVs, fs)
     if (!postDotPrg) return
   }
   {
-    const fs = createShader(require('../shader/post/DotScreen.frag'), 'fragment')
+    const fs = createShader(require('../shaders/post/DotScreen.frag'), 'fragment')
     postDotScreenPrg = new Program(postVs, fs)
     if (!postDotScreenPrg) return
   }
