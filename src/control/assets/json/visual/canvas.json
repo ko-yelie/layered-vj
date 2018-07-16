@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Webcam x Particle",
+    "type": "webcamParticle",
+    "gui": "webcamParticle",
+    "thumbnail": "/assets/thumbnail/webcam-particle.gif"
+  },
+  {
+    "title": "particles.js",
+    "type": "particlesJs",
+    "gui": "particlesJsGui",
+    "config": "default",
+    "thumbnail": "/assets/thumbnail/687474703a2f2f76696e63656e74676172726561752e636f6d2f7061727469636c65732e6a732f6173736574732f696d672f6769746875622d73637265656e2e6a7067.jpeg"
+  },
+  {
+    "title": "particles.js - top",
+    "type": "particlesJs",
+    "gui": "particlesJsGui",
+    "config": "top",
+    "thumbnail": "/assets/thumbnail/687474703a2f2f76696e63656e74676172726561752e636f6d2f7061727469636c65732e6a732f6173736574732f696d672f6769746875622d73637265656e2e6a7067.jpeg"
+  },
+  {
+    "title": "Infinite Tubes - Brick Tunnel",
+    "type": "infiniteTubes",
+    "demo": "brick",
+    "thumbnail": "/assets/thumbnail/InfiniteTubes_01.jpg"
+  },
+  {
+    "title": "Infinite Tubes - Particles",
+    "type": "infiniteTubes",
+    "demo": "particles",
+    "thumbnail": "/assets/thumbnail/infiniteTube2.png"
+  },
+  {
+    "title": "Infinite Tubes - Star Wars",
+    "type": "infiniteTubes",
+    "demo": "starWars",
+    "thumbnail": "/assets/thumbnail/infiniteTube3.jpg"
+  },
+  {
+    "title": "Infinite Tubes - Triangle",
+    "type": "infiniteTubes",
+    "demo": "triangle",
+    "thumbnail": "/assets/thumbnail/infiniteTube5.jpg"
+  },
+  {
+    "title": "quietflow.js - shootingLines",
+    "type": "quietflow",
+    "thumbnail": "/assets/thumbnail/quietflow.png",
+    "opacity": 0.5
+  },
+  {
+    "title": "Two.js: Dynamic Text",
+    "type": "dynamicText",
+    "thumbnail": "/assets/thumbnail/text.gif"
+  }
+]

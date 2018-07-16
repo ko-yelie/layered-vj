@@ -19,3 +19,9 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+
+# original
+src/control/assets/thumbnail/
+src/visual/assets/video/
+src/visual/assets/iframe/
+src/visual/assets/_*/
