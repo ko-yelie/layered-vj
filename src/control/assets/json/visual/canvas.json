@@ -44,12 +44,6 @@
     "thumbnail": "/assets/thumbnail/infiniteTube5.jpg"
   },
   {
-    "title": "quietflow.js - shootingLines",
-    "type": "quietflow",
-    "thumbnail": "/assets/thumbnail/quietflow.png",
-    "opacity": 0.5
-  },
-  {
     "title": "Two.js: Dynamic Text",
     "type": "dynamicText",
     "thumbnail": "/assets/thumbnail/text.gif"
