@@ -15,6 +15,9 @@ export default {
     VjThumb
   },
   computed: {
+    visualWebcam () {
+      return this.$store.state.Video.visualWebcam
+    },
     visualStock: {
       get () {
         return this.$store.state.Video.visualStock

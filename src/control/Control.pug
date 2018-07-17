@@ -24,6 +24,17 @@
     md-layout(md-column='', md-flex='40').column
       .column-inner
         md-list.md-dense.video-stock
+          draggable(
+            :list='visualWebcam'
+            :options="{ group: { name: 'video', pull: 'clone', put: false }, sort: false }"
+          )
+            md-list-item(
+              v-for="(visual, index) in visualWebcam"
+              :key='index'
+            )
+              md-avatar.md-large(v-if="visual.thumbnail")
+                img(:src="visual.thumbnail", alt="")
+              span {{ visual.title }}
           md-list-item(
             v-for="(visuals, index) in visualStock"
             :key='index'

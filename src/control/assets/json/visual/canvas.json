@@ -1,11 +1,5 @@
 [
   {
-    "title": "Webcam x Particle",
-    "type": "webcamParticle",
-    "gui": "webcamParticle",
-    "thumbnail": "/assets/thumbnail/webcam-particle.gif"
-  },
-  {
     "title": "particles.js",
     "type": "particlesJs",
     "gui": "particlesJsGui",

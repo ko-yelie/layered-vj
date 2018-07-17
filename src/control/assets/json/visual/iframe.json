@@ -1,10 +1,5 @@
 [
   {
-    "url": "/src/visual/assets/iframe/nature-homes/",
-    "title": "少年自然の家",
-    "thumbnail": "/assets/thumbnail/nature-homes.jpg"
-  },
-  {
     "url": "/src/visual/assets/iframe/sakura-animation-using-webgl/",
     "title": "Sakura Animation using WebGl",
     "thumbnail": "/assets/thumbnail/sakura-animation-using-webgl.png"
@@ -18,11 +13,6 @@
     "url": "/src/visual/assets/iframe/css-wormhole/",
     "title": "CSS wormhole",
     "thumbnail": "/assets/thumbnail/css-wormhole.png"
-  },
-  {
-    "url": "/src/visual/assets/iframe/planetygon/",
-    "title": "Planetygon 🌐",
-    "thumbnail": "/assets/thumbnail/planetygon.png"
   },
   {
     "url": "/src/visual/assets/iframe/codevember-18-pixi-colorful-smoke/",
@@ -47,10 +37,5 @@
     "url": "/src/visual/assets/iframe/blank/",
     "title": "blank",
     "opacity": 1
-  },
-  {
-    "url": "/src/visual/assets/iframe/shattering-images/",
-    "title": "Shattering Images",
-    "thumbnail": "/assets/thumbnail/shattering-images.png"
   }
 ]

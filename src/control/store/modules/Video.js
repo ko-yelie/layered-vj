@@ -4,16 +4,26 @@ import ipc from '../../modules/ipc'
 import videoData from '../../assets/json/visual/video.json'
 import canvasData from '../../assets/json/visual/canvas.json'
 import iframeData from '../../assets/json/visual/iframe.json'
+import privateVideoData from '../../_assets/json/visual/video.json'
+import privateCanvasData from '../../_assets/json/visual/canvas.json'
+import privateIframeData from '../../_assets/json/visual/iframe.json'
 
+const visualWebcam = [{
+  title: 'Webcam x Particle',
+  type: 'webcamParticle',
+  gui: 'webcamParticle',
+  thumbnail: '/assets/thumbnail/webcam-particle.gif',
+  opacity: 1
+}]
 const visualStock = {
-  video: videoData.map(visualData => Object.assign(visualData, {
+  video: videoData.concat(privateVideoData).map(visualData => Object.assign(visualData, {
     type: 'videoTag',
     opacity: visualData.opacity || 1
   })),
-  canvas: canvasData.map(visualData => Object.assign(visualData, {
+  canvas: canvasData.concat(privateCanvasData).map(visualData => Object.assign(visualData, {
     opacity: visualData.opacity || 1
   })),
-  iframe: iframeData.map(visualData => Object.assign(visualData, {
+  iframe: iframeData.concat(privateIframeData).map(visualData => Object.assign(visualData, {
     type: 'iframeTag',
     opacity: visualData.opacity || 1
   }))
@@ -25,6 +35,7 @@ function dispatchToVisual (typeName, ...payload) {
 
 export default {
   state: {
+    visualWebcam,
     visualStock,
     displayingVideos: []
   },
