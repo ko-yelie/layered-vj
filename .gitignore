@@ -21,6 +21,4 @@ yarn-error.log*
 *.sw*
 
 # original
-src/visual/assets/video/
-src/visual/assets/iframe/
 src/**/_*/
