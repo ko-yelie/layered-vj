@@ -39,10 +39,5 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-
-  &-copyright {
-    object-fit: cover;
-    transform: scale(1.08);
-  }
 }
 </style>

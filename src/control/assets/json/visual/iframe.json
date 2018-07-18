@@ -1,5 +1,10 @@
 [
   {
+    "url": "https://www.youtube.com/embed/NpEaa2P7qZI?rel=0&amp;controls=0&amp;showinfo=0&autoplay=1&loop=1&playlist=NpEaa2P7qZI",
+    "title": "video placeholder",
+    "thumbnail": "/assets/thumbnail/mqdefault.jpg"
+  },
+  {
     "url": "/src/visual/assets/iframe/sakura-animation-using-webgl/",
     "title": "Sakura Animation using WebGl",
     "thumbnail": "/assets/thumbnail/sakura-animation-using-webgl.png"
