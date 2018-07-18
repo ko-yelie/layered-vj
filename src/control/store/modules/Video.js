@@ -4,9 +4,12 @@ import ipc from '../../modules/ipc'
 import videoData from '../../assets/json/visual/video.json'
 import canvasData from '../../assets/json/visual/canvas.json'
 import iframeData from '../../assets/json/visual/iframe.json'
-import privateVideoData from '../../_assets/json/visual/video.json'
-import privateCanvasData from '../../_assets/json/visual/canvas.json'
-import privateIframeData from '../../_assets/json/visual/iframe.json'
+// import privateVideoData from '../../_assets/json/visual/video.json'
+// import privateCanvasData from '../../_assets/json/visual/canvas.json'
+// import privateIframeData from '../../_assets/json/visual/iframe.json'
+// videoData = videoData.concat(privateVideoData)
+// canvasData = canvasData.concat(privateCanvasData)
+// iframeData = iframeData.concat(privateIframeData)
 
 const visualWebcam = [{
   title: 'Webcam x Particle',
@@ -16,14 +19,14 @@ const visualWebcam = [{
   opacity: 1
 }]
 const visualStock = {
-  video: videoData.concat(privateVideoData).map(visualData => Object.assign(visualData, {
+  video: videoData.map(visualData => Object.assign(visualData, {
     type: 'videoTag',
     opacity: visualData.opacity || 1
   })),
-  canvas: canvasData.concat(privateCanvasData).map(visualData => Object.assign(visualData, {
+  canvas: canvasData.map(visualData => Object.assign(visualData, {
     opacity: visualData.opacity || 1
   })),
-  iframe: iframeData.concat(privateIframeData).map(visualData => Object.assign(visualData, {
+  iframe: iframeData.map(visualData => Object.assign(visualData, {
     type: 'iframeTag',
     opacity: visualData.opacity || 1
   }))
