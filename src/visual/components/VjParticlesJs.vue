@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import 'particles.js/particles.js'
+import 'particles.js'
 import ipc from '../modules/ipc'
 
 function mounted () {

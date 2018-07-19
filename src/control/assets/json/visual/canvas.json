@@ -1,19 +1,5 @@
 [
   {
-    "title": "particles.js",
-    "type": "particlesJs",
-    "gui": "particlesJsGui",
-    "config": "default",
-    "thumbnail": "/assets/thumbnail/687474703a2f2f76696e63656e74676172726561752e636f6d2f7061727469636c65732e6a732f6173736574732f696d672f6769746875622d73637265656e2e6a7067.jpeg"
-  },
-  {
-    "title": "particles.js - top",
-    "type": "particlesJs",
-    "gui": "particlesJsGui",
-    "config": "top",
-    "thumbnail": "/assets/thumbnail/687474703a2f2f76696e63656e74676172726561752e636f6d2f7061727469636c65732e6a732f6173736574732f696d672f6769746875622d73637265656e2e6a7067.jpeg"
-  },
-  {
     "title": "Infinite Tubes - Particles",
     "type": "infiniteTubes",
     "demo": "particles",

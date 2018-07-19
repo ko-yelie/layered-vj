@@ -24,7 +24,7 @@ class Ipc extends EventEmitter {
   }
 
   send (channel, ...args) {
-    this.emit(channel, ...args)
+    super.emit(channel, ...args)
   }
 }
 
