@@ -8,7 +8,8 @@ import {
   POST_LIST,
   POINTS,
   LINE_STRIP,
-  TRIANGLES
+  TRIANGLES,
+  DEFORMATION_LIST
 } from '../../../visual/webcamParticle/script/modules/constant.js'
 
 export default async function (argConfig, store) {
@@ -81,13 +82,11 @@ export default async function (argConfig, store) {
     lineFolder.add(settings, 'lineShape', lineShapeMap).onChange(dispatchVisual)
 
     // deformation
-    deformationMap = {
-      video: 0,
-      circle: 1,
-      logo: 2,
-      face: 3,
-      logo2: 4
-    }
+    deformationMap = {}
+    let deformationCount = 0
+    DEFORMATION_LIST.forEach(({ key }) => {
+      deformationMap[key] = deformationCount++
+    })
     particleFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
 
     // changeDeformation

@@ -25,6 +25,26 @@ export const POST_LIST = [
   'shake',
   'flash'
 ]
+export const DEFORMATION_LIST = [
+  {
+    key: 'video'
+  },
+  {
+    key: 'circle'
+  }
+  // {
+  //   key: 'logo',
+  //   src: '/src/visual/assets/_img/luminous101/oZbSsm6C_400x400.jpg'
+  // },
+  // {
+  //   key: 'face',
+  //   src: '/src/visual/assets/_img/luminous101/4c7111_f7526816f93c430dbaa71b416325430e_mv2.png'
+  // },
+  // {
+  //   key: 'logo2',
+  //   src: '/src/visual/assets/_img/luminous101/C9dg3xVV0AERtu7.jpg'
+  // }
+]
 
 export const POINTS = 0
 export const LINE_STRIP = 1

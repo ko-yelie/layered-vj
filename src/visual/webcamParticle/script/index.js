@@ -6,7 +6,8 @@ import {
   MAX_ZOOM,
   GPGPU_FRAMEBUFFERS_COUNT,
   CAPTURE_FRAMEBUFFERS_COUNT,
-  POST_LIST
+  POST_LIST,
+  DEFORMATION_LIST
 } from './modules/constant.js'
 import MatIV from './modules/minMatrix.js'
 import {
@@ -260,9 +261,10 @@ async function initMedia () {
   // textures
   textures.video = createTexture(video)
 
-  textures.logo = await createTexture('/src/visual/assets/_img/luminous101/oZbSsm6C_400x400.jpg')
-  textures.logo2 = await createTexture('/src/visual/assets/_img/luminous101/4c7111_f7526816f93c430dbaa71b416325430e_mv2.png')
-  textures.face = await createTexture('/src/visual/assets/_img/luminous101/C9dg3xVV0AERtu7.jpg')
+  DEFORMATION_LIST.forEach(async ({ key, src }) => {
+    if (!src) return
+    textures[key] = await createTexture(src)
+  })
 }
 
 function initGlsl () {
@@ -897,9 +899,10 @@ function init () {
         prgs.particleScene.setUniform('pointSize', pointSize)
         prgs.particleScene.setUniform('videoTexture', textures.videoBuffer[capturedbufferIndex].index)
         prgs.particleScene.setUniform('positionTexture', textures.position[capturedbufferIndex].index)
-        prgs.particleScene.setUniform('logoTexture', textures.logo.index)
-        prgs.particleScene.setUniform('logo2Texture', textures.logo2.index)
-        prgs.particleScene.setUniform('faceTexture', textures.face.index)
+        DEFORMATION_LIST.forEach(({ key, src }) => {
+          if (!src) return
+          prgs.particleScene.setUniform(`${key}Texture`, textures[key].index)
+        })
         prgs.particleScene.setUniform('bgColor', settings.bgColor)
         prgs.particleScene.setUniform('volume', volume)
         prgs.particleScene.setUniform('isAudio', isAudio)
