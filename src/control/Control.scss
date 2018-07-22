@@ -113,4 +113,8 @@ body {
       box-sizing: content-box;
     }
   }
+
+  ul:not(.md-list) > li + li {
+    margin-top: 0;
+  }
 }

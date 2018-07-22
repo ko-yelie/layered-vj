@@ -10,8 +10,6 @@
 </template>
 
 <style lang="scss">
-@import "../assets/css/vue-material.css";
-
 nav {
   position: fixed;
   padding: 30px;

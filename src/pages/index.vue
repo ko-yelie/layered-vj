@@ -1,9 +1,9 @@
 <template lang="pug">
 .home
-  h1 Layered VJ
+  h1.md-display-4 Layered VJ
   router-link(to="/control")
     md-button.md-raised.md-primary Go to Control
-  p: strong Note: The new tab will automatically open on the control page.
+  p: strong.md-body-2 Note: The new tab will automatically open on the control page.
 </template>
 
 <style lang="scss">
@@ -21,8 +21,6 @@ body {
 }
 
 h1 {
-  margin: 0 0 0.8em;
-  font-size: 3rem;
-  line-height: 1;
+  margin: 0 0 48px;
 }
 </style>

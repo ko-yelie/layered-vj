@@ -21,7 +21,7 @@
     "three": "0.86.0",
     "two.js": "^0.7.0-alpha.1",
     "vue": "^2.5.16",
-    "vue-material": "0.7.1",
+    "vue-material": "0.8.1",
     "vue-range-slider": "^0.6.0",
     "vue-router": "^3.0.1",
     "vue-router-layout": "^0.1.2",
