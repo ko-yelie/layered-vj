@@ -2,21 +2,28 @@
   {
     "url": "https://www.youtube.com/embed/NpEaa2P7qZI?rel=0&amp;controls=0&amp;showinfo=0&autoplay=1&loop=1&playlist=NpEaa2P7qZI",
     "title": "video placeholder",
-    "thumbnail": "/assets/thumbnail/mqdefault.jpg"
+    "thumbnail": "/assets/thumbnail/mqdefault.jpg",
+    "copyright": "Tristan Brehaut",
+    "copyrightLink": "https://www.youtube.com/watch?v=NpEaa2P7qZI"
   },
   {
     "url": "/src/visual/assets/iframe/plasmatic-isosurface/",
     "title": "Plasmatic Isosurface",
-    "thumbnail": "/assets/thumbnail/plasmatic-isosurface.png"
+    "thumbnail": "/assets/thumbnail/plasmatic-isosurface.png",
+    "copyright": "Justin Windle",
+    "copyrightLink": "https://codepen.io/soulwire/pen/kqtrz"
   },
   {
     "url": "/src/visual/assets/iframe/css-wormhole/",
     "title": "CSS wormhole",
-    "thumbnail": "/assets/thumbnail/css-wormhole.png"
+    "thumbnail": "/assets/thumbnail/css-wormhole.png",
+    "copyright": "Indrek Paas",
+    "copyrightLink": "https://codepen.io/indrekpaas/pen/xEmRVd"
   },
   {
     "url": "/src/visual/assets/iframe/blank/",
     "title": "blank",
+    "thumbnail": "http://placehold.jp/ffffff/ffffff/100x100.png",
     "opacity": 1
   }
 ]

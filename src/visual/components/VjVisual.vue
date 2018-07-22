@@ -1,11 +1,13 @@
 <template lang="pug">
-component.visual(
-  :is="visual.type"
-  :visual="visual"
-  :class="{ 'visual-copyright': visual.copyright }"
+div.visual(
   :style="{ 'z-index': order, opacity: visual.opacity }"
   v-if="isShow"
 )
+  component.visual-content(
+    :is="visual.type"
+    :visual="visual"
+  )
+  p.visual-copyright(v-if="visual.copyright") &copy {{ visual.copyright }}
 </template>
 
 <script>
@@ -38,6 +40,22 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+
+  &-content {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &-copyright {
+    opacity: 0.7;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 1em;
+    color: #fff;
+    font-size: 10px;
+    text-shadow: 0 0 1px rgba(#000000, 0.7), 1px 1px 1px rgba(#000000, 0.4);
+  }
 }
 </style>
