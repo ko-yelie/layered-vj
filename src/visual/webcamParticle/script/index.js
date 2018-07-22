@@ -32,7 +32,6 @@ import Tween from './modules/tween.js'
 
 const POINT_RESOLUTION_RATE = POINT_RESOLUTION / BASE_RESOLUTION
 
-let options
 let canvas
 let canvasWidth
 let canvasHeight
@@ -92,8 +91,7 @@ let nextDeformation = 0
 let deformationProgressTl
 let stopMotionTimer
 
-export async function run (argOptions) {
-  options = argOptions
+export async function run (options) {
   settings = options.settings
   media = options.media
 

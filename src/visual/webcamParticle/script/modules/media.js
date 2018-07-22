@@ -59,7 +59,7 @@ export default class Media {
 
   enumerateDevices () {
     return navigator.mediaDevices.enumerateDevices().then(mediaDeviceInfos => {
-      let webcamCount = 0
+      // let webcamCount = 0
       const videoDevices = {}
       const audioDevices = {}
 
@@ -67,7 +67,7 @@ export default class Media {
         switch (mediaDeviceInfo.kind) {
           case 'videoinput':
             videoDevices[mediaDeviceInfo.label.replace(/ \(.+?\)/, '')] = mediaDeviceInfo.deviceId
-            webcamCount++
+            // webcamCount++
             break
           case 'audioinput':
             audioDevices[mediaDeviceInfo.label.replace(/ \(.+?\)/, '')] = mediaDeviceInfo.deviceId
@@ -75,9 +75,9 @@ export default class Media {
         }
       })
 
-      if (webcamCount > 1) {
-        delete videoDevices['FaceTime HD Camera']
-      }
+      // if (webcamCount > 1) {
+      //   delete videoDevices['FaceTime HD Camera']
+      // }
 
       this.videoSource = videoDevices['HD Pro Webcam C920'] || getFirstValue(videoDevices)
       this.audioSource = audioDevices['HD Pro Webcam C920'] || getFirstValue(audioDevices)

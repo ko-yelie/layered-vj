@@ -84,7 +84,11 @@ export default async function (argConfig, store) {
     // deformation
     deformationMap = {}
     let deformationCount = 0
-    DEFORMATION_LIST.forEach(({ key }) => {
+    let deformationList = DEFORMATION_LIST
+    if (argConfig && argConfig.deformation) {
+      deformationList = deformationList.concat(argConfig.deformation)
+    }
+    deformationList.forEach(({ key }) => {
       deformationMap[key] = deformationCount++
     })
     particleFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()

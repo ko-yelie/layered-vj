@@ -1,4 +1,7 @@
-import { uniqueId } from 'lodash'
+import {
+  uniqueId
+  // merge
+} from 'lodash'
 
 import ipc from '../../modules/ipc'
 import videoData from '../../assets/json/visual/video.json'
@@ -10,14 +13,33 @@ import iframeData from '../../assets/json/visual/iframe.json'
 // videoData = videoData.concat(privateVideoData)
 // canvasData = canvasData.concat(privateCanvasData)
 // iframeData = iframeData.concat(privateIframeData)
+// import webcamParticleJson from '../../assets/json/js/webcamParticle/scene.json'
+// import webcamParticleLuminous101Json from '../../_assets/json/js/webcamParticle/luminous101.json'
 
-const visualWebcam = [{
-  title: 'Webcam x Particle',
-  type: 'webcamParticle',
-  gui: 'webcamParticle',
-  thumbnail: '/assets/thumbnail/webcam-particle.gif',
-  opacity: 1
-}]
+const visualWebcam = [
+  {
+    title: 'Webcam x Particle',
+    type: 'webcamParticle',
+    gui: 'webcamParticle',
+    thumbnail: '/assets/thumbnail/webcam-particle.gif',
+    opacity: 1
+  }
+]
+// const visualWebcam = [
+//   {
+//     title: 'Luminous 101',
+//     type: 'webcamParticle',
+//     gui: 'webcamParticle',
+//     thumbnail: '/_assets/thumbnail/luminous101.jpg',
+//     config: merge(
+//       {},
+//       webcamParticleLuminous101Json,
+//       webcamParticleJson
+//     ),
+//     opacity: 1
+//   }
+// ]
+
 const visualStock = {
   video: videoData.map(visualData => Object.assign(visualData, {
     type: 'videoTag',

@@ -38,6 +38,13 @@ module.exports = {
             ]
           },
           {
+            from: path.resolve('src/control/_assets'),
+            to: path.resolve('dist/_assets'),
+            ignore: [
+              '.*'
+            ]
+          },
+          {
             from: path.resolve('src/visual/assets'),
             to: path.resolve('dist/src/visual/assets'),
             ignore: [
