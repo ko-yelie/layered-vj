@@ -3,7 +3,7 @@
   h1 Layered VJ
   router-link(to="/control")
     md-button.md-raised.md-primary Go to Control
-  p: strong Note: The new tab will automatically open on the next page.
+  p: strong Note: The new tab will automatically open on the control page.
 </template>
 
 <style lang="scss">
