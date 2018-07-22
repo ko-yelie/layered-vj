@@ -1,8 +1,9 @@
 .container
   md-toolbar
-    h1.md-title VJ Control
+    h1.md-title Layered VJ - Control
     md-button.md-icon-button(@click.native="refresh")
       md-icon refresh
+      md-tooltip(md-direction="left") Reload
 
   md-layout.layout
     //- 表示中ビデオ
@@ -54,5 +55,7 @@
                     md-avatar.md-large(v-if="visual.thumbnail")
                       img(:src="visual.thumbnail", alt="")
                     span {{ visual.title }}
+
+        md-tooltip(md-direction="top") Drag the item and drop it on the left area
 
   vj-thumb

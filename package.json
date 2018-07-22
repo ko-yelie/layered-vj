@@ -24,6 +24,7 @@
     "vue-material": "0.7.1",
     "vue-range-slider": "^0.6.0",
     "vue-router": "^3.0.1",
+    "vue-router-layout": "^0.1.2",
     "vuedraggable": "^2.16.0",
     "vuex": "^3.0.1"
   },
@@ -39,6 +40,8 @@
     "pug-plain-loader": "^1.0.0",
     "raw-loader": "^0.5.1",
     "sass-loader": "^7.0.1",
+    "vue-auto-routing": "^0.1.2",
+    "vue-cli-plugin-auto-routing": "^0.1.0",
     "vue-template-compiler": "^2.5.16"
   },
   "gitHooks": {

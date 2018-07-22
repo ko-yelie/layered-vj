@@ -3248,7 +3248,7 @@ fast-deep-equal@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-2.0.1.tgz#7b05218ddf9667bf7f370bf7fdb2cb15fdd0aa49"
 
-fast-glob@^2.0.2:
+fast-glob@^2.0.2, fast-glob@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-2.2.2.tgz#71723338ac9b4e0e2fff1d6748a2a13d5ed352bf"
   dependencies:
@@ -7933,6 +7933,16 @@ void-elements@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/void-elements/-/void-elements-2.0.1.tgz#c066afb582bb1cb4128d60ea92392e94d5e9dbec"
 
+vue-auto-routing@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/vue-auto-routing/-/vue-auto-routing-0.1.2.tgz#e3241df1cbecaa76ffa40380f917a99351468177"
+  dependencies:
+    vue-route-generator "^0.1.0"
+
+vue-cli-plugin-auto-routing@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/vue-cli-plugin-auto-routing/-/vue-cli-plugin-auto-routing-0.1.0.tgz#5fe3532aeec15e253c5666bf4e718df3c6da31b3"
+
 vue-eslint-parser@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-2.0.3.tgz#c268c96c6d94cfe3d938a5f7593959b0ca3360d1"
@@ -7967,6 +7977,16 @@ vue-material@0.7.1:
 vue-range-slider@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/vue-range-slider/-/vue-range-slider-0.6.0.tgz#a2c1927a5a38e72a96146478b421752817df34ff"
+
+vue-route-generator@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/vue-route-generator/-/vue-route-generator-0.1.0.tgz#4f6f6931d3dec52eb22f50981ec2394880e45010"
+  dependencies:
+    fast-glob "^2.2.2"
+
+vue-router-layout@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/vue-router-layout/-/vue-router-layout-0.1.2.tgz#516df3d380cf7af964a19444ddc313cecc1eea6e"
 
 vue-router@^3.0.1:
   version "3.0.1"

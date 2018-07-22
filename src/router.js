@@ -1,22 +1,21 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from './views/Home.vue'
-import Control from './control/Control.vue'
+import routes from 'vue-auto-routing'
+import { createRouterLayout } from 'vue-router-layout'
 
 Vue.use(Router)
+
+const RouterLayout = createRouterLayout(layout => {
+  return import(`@/layouts/${layout}.vue`)
+})
 
 export default new Router({
   mode: 'history',
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: Home
-    },
-    {
-      path: '/control',
-      name: 'control',
-      component: Control
+      component: RouterLayout,
+      children: routes
     }
   ]
 })

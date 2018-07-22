@@ -1,12 +1,6 @@
 import EventEmitter from '../../modules/event-emitter'
 
 class Ipc extends EventEmitter {
-  constructor () {
-    super()
-
-    this.openVisual()
-  }
-
   openVisual () {
     this.visualWindow = window.open('visual.html', 'visual')
   }
