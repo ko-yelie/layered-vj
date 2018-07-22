@@ -41,7 +41,6 @@
     "raw-loader": "^0.5.1",
     "sass-loader": "^7.0.1",
     "vue-auto-routing": "^0.1.2",
-    "vue-cli-plugin-auto-routing": "^0.1.0",
     "vue-template-compiler": "^2.5.16"
   },
   "gitHooks": {

@@ -1,9 +1,21 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+
+const baseUrl = process.env.NODE_ENV === 'production'
+  ? '/layered-vj/'
+  : '/'
+const outputDir = process.env.NODE_ENV === 'production'
+  ? 'docs'
+  : 'dist'
 
 module.exports = {
+  baseUrl,
+  outputDir,
+  productionSourceMap: false,
   configureWebpack: {
+    entry: {
+      visual: ['./src/visual/main.js']
+    },
     module: {
       rules: [
         {
@@ -20,42 +32,54 @@ module.exports = {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        chunks: ['app'],
-        template: path.resolve('public/index.html')
-      }),
-      new HtmlWebpackPlugin({
-        chunks: ['visual'],
+        excludeChunks: ['app'],
         filename: 'visual.html',
         template: path.resolve('public/visual.html')
-      }),
-      new CopyWebpackPlugin(
-        [
+      })
+    ]
+  },
+  chainWebpack: config => {
+    config
+      .plugin('html')
+      .tap(args => {
+        args[0].excludeChunks = ['visual']
+        return args
+      })
+
+    config
+      .plugin('copy')
+      .tap(args => {
+        args[0].push(
           {
             from: path.resolve('src/control/assets'),
-            to: path.resolve('dist/assets'),
+            to: path.resolve(outputDir + '/assets'),
             ignore: [
               '.*'
             ]
           },
-          {
-            from: path.resolve('src/control/_assets'),
-            to: path.resolve('dist/_assets'),
-            ignore: [
-              '.*'
-            ]
-          },
+          // {
+          //   from: path.resolve('src/control/_assets'),
+          //   to: path.resolve(outputDir + '/_assets'),
+          //   ignore: [
+          //     '.*'
+          //   ]
+          // },
           {
             from: path.resolve('src/visual/assets'),
-            to: path.resolve('dist/src/visual/assets'),
+            to: path.resolve(outputDir + '/src/visual/assets'),
             ignore: [
               '.*'
             ]
           }
-        ]
-      )
-    ],
-    entry: {
-      visual: './src/visual/main.js'
-    }
+          // {
+          //   from: path.resolve('src/visual/_assets'),
+          //   to: path.resolve(outputDir + '/src/visual/_assets'),
+          //   ignore: [
+          //     '.*'
+          //   ]
+          // }
+        )
+        return args
+      })
   }
 }

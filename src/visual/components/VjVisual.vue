@@ -14,10 +14,10 @@ div.visual(
 import VjIframe from './VjIframe'
 import VjVideo from './VjVideo'
 import WebcamParticle from './WebcamParticle'
-import VjParticlesJs from './VjParticlesJs'
+// import VjParticlesJs from './VjParticlesJs'
 import VjInfiniteTubes from './VjInfiniteTubes'
 import VjDynamicText from './VjDynamicText'
-import VjParticleSandbox from './VjParticleSandbox'
+// import VjParticleSandbox from './VjParticleSandbox'
 
 export default {
   props: ['visual', 'order', 'isShow'],
@@ -25,10 +25,10 @@ export default {
     iframeTag: VjIframe,
     videoTag: VjVideo,
     webcamParticle: WebcamParticle,
-    particlesJs: VjParticlesJs,
+    // particlesJs: VjParticlesJs,
     infiniteTubes: VjInfiniteTubes,
-    dynamicText: VjDynamicText,
-    particleSandbox: VjParticleSandbox
+    dynamicText: VjDynamicText
+    // particleSandbox: VjParticleSandbox
   }
 }
 </script>

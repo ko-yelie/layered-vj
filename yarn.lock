@@ -7939,10 +7939,6 @@ vue-auto-routing@^0.1.2:
   dependencies:
     vue-route-generator "^0.1.0"
 
-vue-cli-plugin-auto-routing@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/vue-cli-plugin-auto-routing/-/vue-cli-plugin-auto-routing-0.1.0.tgz#5fe3532aeec15e253c5666bf4e718df3c6da31b3"
-
 vue-eslint-parser@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-2.0.3.tgz#c268c96c6d94cfe3d938a5f7593959b0ca3360d1"
