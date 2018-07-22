@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import routes from 'vue-auto-routing'
+import Index from './pages/index.vue'
+import Control from './pages/control.vue'
+// import routes from 'vue-auto-routing'
 import { createRouterLayout } from 'vue-router-layout'
 
 Vue.use(Router)
@@ -9,13 +11,39 @@ const RouterLayout = createRouterLayout(layout => {
   return import(`@/layouts/${layout}.vue`)
 })
 
-export default new Router({
+const router = new Router({
   mode: 'history',
   routes: [
     {
       path: '/',
       component: RouterLayout,
-      children: routes
+      children: [
+        {
+          path: '/',
+          name: 'index',
+          component: Index,
+          meta: {
+            title: 'Layered VJ'
+          }
+        },
+        {
+          path: '/control',
+          name: 'control',
+          component: Control,
+          meta: {
+            title: 'Layered VJ - Control'
+          }
+        }
+      ]
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.meta && to.meta.title) {
+    document.title = to.meta.title
+  }
+  next()
+})
+
+export default router
