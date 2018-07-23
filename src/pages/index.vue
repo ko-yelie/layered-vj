@@ -1,6 +1,8 @@
 <template lang="pug">
 .home
-  h1.md-display-4 Layered VJ
+  .title
+    h1.md-display-4 Layered VJ
+    p.md-display-1 v0.1.0
   router-link(to="/control")
     md-button.md-raised.md-primary Go to Control
   p: strong.md-body-2 Note: The pop-up for visual will automatically open on the control page.
@@ -23,7 +25,15 @@ body {
   text-align: center;
 }
 
-h1 {
-  margin: 0 0 48px;
+.title {
+  margin-bottom: 48px;
+
+  h1 {
+    margin: 0;
+  }
+
+  p {
+    margin: 10px 0 0;
+  }
 }
 </style>
