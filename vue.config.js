@@ -32,13 +32,15 @@ module.exports = {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        excludeChunks: ['app'],
+        chunks: ['visual'],
         filename: 'visual.html',
         template: path.resolve('public/visual.html')
       })
     ]
   },
   chainWebpack: config => {
+    config.optimization.delete('splitChunks')
+
     config
       .plugin('html')
       .tap(args => {

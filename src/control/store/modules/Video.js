@@ -16,12 +16,19 @@ import iframeData from '../../assets/json/visual/iframe.json'
 // import webcamParticleJson from '../../assets/json/js/webcamParticle/scene.json'
 // import webcamParticleLuminous101Json from '../../_assets/json/js/webcamParticle/luminous101.json'
 
+function getUrl (str) {
+  if (/^\/[^/]/.test(str)) {
+    return process.env.BASE_URL + str.slice(1)
+  }
+  return str
+}
+
 const visualWebcam = [
   {
     title: 'Webcam x Particle',
     type: 'webcamParticle',
     gui: 'webcamParticle',
-    thumbnail: '/assets/thumbnail/webcam-particle.gif',
+    thumbnail: getUrl('/assets/thumbnail/webcam-particle.gif'),
     opacity: 1
   }
 ]
@@ -41,17 +48,28 @@ const visualWebcam = [
 // ]
 
 const visualStock = {
-  video: videoData.map(visualData => Object.assign(visualData, {
-    type: 'videoTag',
-    opacity: visualData.opacity || 1
-  })),
-  canvas: canvasData.map(visualData => Object.assign(visualData, {
-    opacity: visualData.opacity || 1
-  })),
-  iframe: iframeData.map(visualData => Object.assign(visualData, {
-    type: 'iframeTag',
-    opacity: visualData.opacity || 1
-  }))
+  video: videoData.map(visualData => {
+    visualData.url = getUrl(visualData.url)
+    visualData.thumbnail = getUrl(visualData.thumbnail)
+    return Object.assign(visualData, {
+      type: 'videoTag',
+      opacity: visualData.opacity || 1
+    })
+  }),
+  canvas: canvasData.map(visualData => {
+    visualData.thumbnail = getUrl(visualData.thumbnail)
+    return Object.assign(visualData, {
+      opacity: visualData.opacity || 1
+    })
+  }),
+  iframe: iframeData.map(visualData => {
+    visualData.url = getUrl(visualData.url)
+    visualData.thumbnail = getUrl(visualData.thumbnail)
+    return Object.assign(visualData, {
+      type: 'iframeTag',
+      opacity: visualData.opacity || 1
+    })
+  })
 }
 
 function dispatchToVisual (typeName, ...payload) {
