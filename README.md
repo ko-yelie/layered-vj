@@ -1,4 +1,7 @@
-# web-vj
+# Layered VJ
+VJ app on the web. You can change the visual by dragging and dropping.
+
+https://ko-yelie.github.io/layered-vj/
 
 ## Project setup
 ```

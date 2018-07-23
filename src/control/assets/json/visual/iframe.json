@@ -23,7 +23,7 @@
   {
     "url": "/src/visual/assets/iframe/blank/",
     "title": "blank",
-    "thumbnail": "http://placehold.jp/ffffff/ffffff/100x100.png",
+    "thumbnail": "/assets/thumbnail/blank.png",
     "opacity": 1
   }
 ]
