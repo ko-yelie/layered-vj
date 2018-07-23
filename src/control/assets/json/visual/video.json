@@ -1,0 +1,24 @@
+[
+  {
+    "url": "/src/visual/assets/video/D0002050643_00000_V_000.mp4",
+    "title": "ウユニの天空の鏡に映る時の流れ",
+    "thumbnail": "/assets/thumbnail/D0002050643_00000_S_005.jpg",
+    "copyright": "NHK",
+    "copyrightLink": "http://www2.nhk.or.jp/archives/creative/material/view.cgi?m=D0002050643_00000"
+  },
+  {
+    "url": "/src/visual/assets/video/D0002100090_00000_V_000.mp4",
+    "title": "オーロラ",
+    "thumbnail": "/assets/thumbnail/D0002100090_00000_S_005.jpg",
+    "copyright": "NHK",
+    "copyrightLink": "http://www2.nhk.or.jp/archives/creative/material/view.cgi?m=D0002100090_00000"
+  },
+  {
+    "url": "/src/visual/assets/video/D0002100042_00000_V_000.mp4",
+    "title": "夜の高速道路　トンネル",
+    "thumbnail": "/assets/thumbnail/D0002100042_00000_S_005.jpg",
+    "copyright": "NHK",
+    "copyrightLink": "http://www2.nhk.or.jp/archives/creative/material/view.cgi?m=D0002100042_00000",
+    "playbackRate": 2
+  }
+]

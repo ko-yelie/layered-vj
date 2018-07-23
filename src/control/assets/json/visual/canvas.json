@@ -1,0 +1,33 @@
+[
+  {
+    "title": "Infinite Tubes - Particles",
+    "type": "infiniteTubes",
+    "demo": "particles",
+    "thumbnail": "/assets/thumbnail/infiniteTube2.png",
+    "copyright": "Louis Hoebregts",
+    "copyrightLink": "https://tympanus.net/codrops/2017/05/09/infinite-tubes-with-three-js/"
+  },
+  {
+    "title": "Infinite Tubes - Star Wars",
+    "type": "infiniteTubes",
+    "demo": "starWars",
+    "thumbnail": "/assets/thumbnail/infiniteTube3.jpg",
+    "copyright": "Louis Hoebregts",
+    "copyrightLink": "https://tympanus.net/codrops/2017/05/09/infinite-tubes-with-three-js/"
+  },
+  {
+    "title": "Infinite Tubes - Triangle",
+    "type": "infiniteTubes",
+    "demo": "triangle",
+    "thumbnail": "/assets/thumbnail/infiniteTube5.jpg",
+    "copyright": "Louis Hoebregts",
+    "copyrightLink": "https://tympanus.net/codrops/2017/05/09/infinite-tubes-with-three-js/"
+  },
+  {
+    "title": "Two.js: Dynamic Text",
+    "type": "dynamicText",
+    "thumbnail": "/assets/thumbnail/text.gif",
+    "copyright": "jonobr1",
+    "copyrightLink": "https://two.js.org/"
+  }
+]

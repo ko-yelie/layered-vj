@@ -1,0 +1,120 @@
+body {
+  height: 100%;
+  line-height: 1.43;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-right: 245px * 2;
+}
+
+.column {
+  overflow: auto;
+}
+
+// header
+.md-toolbar {
+  .md-title {
+    flex: 1;
+  }
+}
+
+// Vue Material
+.md-avatar img {
+  object-fit: cover;
+}
+
+// video stock
+.video-stock {
+  &.md-list.md-dense .md-list-item.md-inset {
+    .md-list-item-container {
+      padding-left: 32px;
+
+      .md-avatar:first-child {
+        margin-right: 16px;
+      }
+    }
+
+    span {
+      margin: 8px 0;
+    }
+  }
+
+  .md-list-item {
+    cursor: -webkit-grab;
+    transition: all .4s cubic-bezier(.25,.8,.25,1);
+
+    &:hover {
+      background-color: rgba(153,153,153,0.2);
+    }
+
+    &.sortable-chosen {
+      cursor: -webkit-grabbing;
+    }
+  }
+}
+
+// displaying videos
+.displaying-videos {
+  background-color: #d0d5ed;
+
+  &-list {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 8px;
+    padding-bottom: calc(24% + 8px);
+  }
+
+  &-item {
+    margin: 8px;
+    transition: 1s;
+  }
+
+  // dragging
+  .md-list-item {
+    width: 100%;
+    margin: 8px;
+    border-radius: 2px;
+    box-shadow: 0 1px 5px rgba(0,0,0,.2), 0 2px 2px rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.12);
+    background-color: #fff;
+    list-style: none;
+  }
+}
+
+// Animation
+.flip-list {
+  &-enter, &-leave-active {
+    opacity: 0;
+  }
+  &-move {
+    transition: transform 1s;
+  }
+}
+
+// dat.GUI
+.dg {
+  &.ac {
+    z-index: 1000;
+  }
+  &.a {
+    min-height: 1px;
+    margin-right: 0;
+  }
+
+  li.save-row {
+    select {
+      width: 96px;
+    }
+
+    .button {
+      box-sizing: content-box;
+    }
+  }
+
+  ul:not(.md-list) > li + li {
+    margin-top: 0;
+  }
+}

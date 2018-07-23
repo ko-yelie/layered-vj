@@ -1,0 +1,72 @@
+// Scene -----------------------------------------
+
+body {
+  background-color: #1e0059;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  perspective: 5em;
+}
+
+body::after {
+  background-color: inherit;
+  border-radius: 50%;
+  box-shadow: 0 0 2em 2em #1e0059;
+  content: "";
+  height: 1em;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1em;
+}
+
+
+// Cylinder --------------------------------------
+
+.cylinder {
+  animation-iteration-count: infinite;
+  animation-name: tunnel;
+  animation-timing-function: linear;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-style: preserve-3d;
+  transform: rotatex(90deg) rotatey(0) translatey(-25em);
+
+  &:nth-child(1) { animation-duration: 8s; }
+  &:nth-child(2) { animation-duration: 4s; }
+}
+
+
+// Side ------------------------------------------
+
+.side {
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/231848/fractal-fire-sky-seamless-background.jpg);
+  background-size: 32em 10em;
+  filter: hue-rotate(-11.25deg);
+  height: 40em;
+  position: absolute;
+  transform-origin: 0;
+  width: 2em;
+
+  @for $i from 1 through 32 {
+    &:nth-child(#{$i}) {
+      background-position: -1em * $i;
+      transform: rotatey(11.25deg * $i) translate3d(-50%, 0, 5em);
+    }
+  }
+
+  .cylinder:nth-child(2) & {
+    opacity: 0.5;
+  }
+}
+
+
+// Animation -------------------------------------
+
+@keyframes tunnel {
+  100% {
+    transform: rotatex(90deg) rotatey(360deg) translatey(-15em);
+  }
+}

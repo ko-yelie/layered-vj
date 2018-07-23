@@ -1,0 +1,61 @@
+.container
+  md-toolbar
+    h1.md-title Layered VJ - Control
+    md-button.md-icon-button(@click.native="refresh")
+      md-icon refresh
+      md-tooltip(md-direction="left") Reload
+
+  md-layout.layout
+    //- 表示中ビデオ
+    md-layout(md-column='').column.displaying-videos
+      .column-inner
+        draggable(
+          v-model='displayingVideos'
+          :options="{ group: 'video' }"
+          @change="changeDisplayingVideos"
+        )
+          transition-group.displaying-videos-list(name="flip-list")
+            vj-displaying-video.displaying-videos-item(
+              v-for="video in displayingVideos"
+              :key='video.id'
+              :video="video"
+            )
+
+    //- ビデオリスト
+    md-layout(md-column='', md-flex='40').column
+      .column-inner
+        md-list.md-dense.video-stock
+          draggable(
+            :list='visualWebcam'
+            :options="{ group: { name: 'video', pull: 'clone', put: false }, sort: false }"
+          )
+            md-list-item(
+              v-for="(visual, index) in visualWebcam"
+              :key='index'
+            )
+              md-avatar.md-large(v-if="visual.thumbnail")
+                img(:src="visual.thumbnail", alt="")
+              span {{ visual.title }}
+          md-list-item(
+            v-for="(visuals, index) in visualStock"
+            :key='index'
+          )
+            span {{ index }}
+            md-list-expand
+              md-list
+                draggable(
+                  :list='visuals'
+                  :options="{ group: { name: 'video', pull: 'clone', put: false }, sort: false }"
+                )
+                  md-list-item.md-inset(
+                    v-for="(visual, index) in visuals"
+                    :key='index'
+                    md-expand-multiple=""
+                  )
+                    md-avatar.md-large(v-if="visual.thumbnail")
+                      img(:src="visual.thumbnail", alt="")
+                    span {{ visual.title }}
+
+        md-tooltip(md-direction="top") Drag the item and drop it on the left area
+
+  vj-thumb
