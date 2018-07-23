@@ -3,6 +3,7 @@ import {
   // merge
 } from 'lodash'
 
+import { getUrl } from '../../../modules/url'
 import ipc from '../../modules/ipc'
 import videoData from '../../assets/json/visual/video.json'
 import canvasData from '../../assets/json/visual/canvas.json'
@@ -15,13 +16,6 @@ import iframeData from '../../assets/json/visual/iframe.json'
 // iframeData = iframeData.concat(privateIframeData)
 // import webcamParticleJson from '../../assets/json/js/webcamParticle/scene.json'
 // import webcamParticleLuminous101Json from '../../_assets/json/js/webcamParticle/luminous101.json'
-
-function getUrl (str) {
-  if (/^\/[^/]/.test(str)) {
-    return process.env.BASE_URL + str.slice(1)
-  }
-  return str
-}
 
 const visualWebcam = [
   {

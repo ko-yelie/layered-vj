@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 
+import { getUrl } from '../../../modules/url'
+
 export default function (canvas) {
   /* eslint-disable */
   var ww = window.innerWidth;
@@ -232,7 +234,7 @@ export default function (canvas) {
   loader.crossOrigin = "Anonymous";
 
   loader.load(
-    "/src/visual/assets/img/infiniteTubes/starWars/galaxyTexture.jpg",
+    getUrl("/src/visual/assets/img/infiniteTubes/starWars/galaxyTexture.jpg"),
     function(texture) {
       document.body.classList.remove("loading");
       window.tunnel = new Tunnel(texture);
