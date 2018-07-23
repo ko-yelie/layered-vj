@@ -3,7 +3,9 @@
   h1.md-display-4 Layered VJ
   router-link(to="/control")
     md-button.md-raised.md-primary Go to Control
-  p: strong.md-body-2 Note: The new tab will automatically open on the control page.
+  p: strong.md-body-2 Note: The pop-up for visual will automatically open on the control page.
+    br
+    | Please allow pop-ups for this site.
 </template>
 
 <style lang="scss">
@@ -18,6 +20,7 @@ body {
   align-items: center;
   position: relative;
   height: 100%;
+  text-align: center;
 }
 
 h1 {
