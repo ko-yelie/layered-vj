@@ -1,6 +1,6 @@
 <template lang="pug">
-.home
-  .title
+.vj-home
+  .vj-title
     h1.md-display-4 Layered VJ
     p.md-display-1 v0.1.0
   router-link(to="/control")
@@ -15,7 +15,7 @@ body {
   height: 100%;
 }
 
-.home {
+.vj-home {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -25,7 +25,7 @@ body {
   text-align: center;
 }
 
-.title {
+.vj-title {
   margin-bottom: 48px;
 
   h1 {
