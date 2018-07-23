@@ -21,4 +21,5 @@ yarn-error.log*
 *.sw*
 
 # original
+.cache
 src/**/_*/
