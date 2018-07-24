@@ -8,6 +8,7 @@ import ipc from '../../modules/ipc'
 import videoData from '../../assets/json/visual/video.json'
 import canvasData from '../../assets/json/visual/canvas.json'
 import iframeData from '../../assets/json/visual/iframe.json'
+import youtubeData from '../../assets/json/visual/youtube.json'
 // import privateVideoData from '../../_assets/json/visual/video.json'
 // import privateCanvasData from '../../_assets/json/visual/canvas.json'
 // import privateIframeData from '../../_assets/json/visual/iframe.json'
@@ -19,8 +20,8 @@ import iframeData from '../../assets/json/visual/iframe.json'
 
 const visualWebcam = [
   {
-    title: 'Webcam x Particle',
     type: 'webcamParticle',
+    title: 'Webcam x Particle',
     gui: 'webcamParticle',
     thumbnail: getUrl('/assets/thumbnail/webcam-particle.gif'),
     opacity: 1
@@ -63,8 +64,26 @@ const visualStock = {
       type: 'iframeTag',
       opacity: visualData.opacity || 1
     })
+  }),
+  youtube: youtubeData.map(visualData => {
+    visualData.url = getUrl(visualData.url)
+    visualData.thumbnail = getUrl(visualData.thumbnail)
+    return Object.assign(visualData, {
+      type: 'iframeTag',
+      opacity: visualData.opacity || 1
+    })
   })
 }
+
+const visualBlank = [
+  {
+    type: 'iframeTag',
+    url: '/src/visual/assets/iframe/blank/',
+    title: 'blank',
+    thumbnail: '/assets/thumbnail/blank.png',
+    opacity: 1
+  }
+]
 
 function dispatchToVisual (typeName, ...payload) {
   ipc.send('dispatch-connect', typeName, ...payload)
@@ -73,6 +92,7 @@ function dispatchToVisual (typeName, ...payload) {
 export default {
   state: {
     visualWebcam,
+    visualBlank,
     visualStock,
     displayingVideos: []
   },

@@ -59,6 +59,17 @@
                       span {{ visual.title }}
                       span(v-if="visual.copyright")
                         a(:href="visual.copyrightLink" target="_blank") &copy {{ visual.copyright }}
+          draggable(
+            :list='visualBlank'
+            :options="{ group: { name: 'video', pull: 'clone', put: false }, sort: false }"
+          )
+            md-list-item(
+              v-for="(visual, index) in visualBlank"
+              :key='index'
+            )
+              md-avatar.md-large(v-if="visual.thumbnail")
+                img(:src="visual.thumbnail", alt="")
+              span.md-list-text-container {{ visual.title }}
 
         md-tooltip(md-direction="top") Drag the item and drop it on the left area
 

@@ -21,6 +21,9 @@ export default {
     visualWebcam () {
       return this.$store.state.Video.visualWebcam
     },
+    visualBlank () {
+      return this.$store.state.Video.visualBlank
+    },
     visualStock: {
       get () {
         return this.$store.state.Video.visualStock
