@@ -1,6 +1,9 @@
 {
   "name": "layered-vj",
   "version": "0.1.0",
+  "description": "VJ app on the web. You can change the visual by dragging and dropping.",
+  "author": "Ko.Yelie",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
