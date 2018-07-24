@@ -112,20 +112,14 @@ $rail-fill-color: #3f51b5;
 }
 
 .md-card .md-card-media-cover .md-subhead {
-  opacity: 0.7;
-  color: #fff;
-  font-size: 10px;
-
   a {
+    opacity: 0.7;
     color: currentColor;
-    text-decoration: none;
+    font-size: 10px;
     &:hover {
+      opacity: 1;
       color: currentColor;
     }
-  }
-
-  &:hover {
-    opacity: 1;
   }
 }
 </style>

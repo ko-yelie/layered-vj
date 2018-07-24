@@ -30,15 +30,12 @@ body {
 .video-stock {
   &.md-list.md-dense .md-list-item.md-inset {
     .md-list-item-container {
+      margin: 8px 0;
       padding-left: 32px;
 
       .md-avatar:first-child {
         margin-right: 16px;
       }
-    }
-
-    span {
-      margin: 8px 0;
     }
   }
 
@@ -53,6 +50,20 @@ body {
     &.sortable-chosen {
       cursor: -webkit-grabbing;
     }
+  }
+}
+
+.md-list-text-container {
+  > :nth-child(1) {
+    font-size: inherit;
+  }
+
+  > :nth-child(2) {
+    font-size: 11px;
+  }
+
+  .md-theme-default & a:not(.md-button) {
+    color: rgba(0, 0, 0, 0.54);
   }
 }
 
