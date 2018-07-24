@@ -5,6 +5,7 @@
     p.md-display-1 v0.1.0
   router-link(to="/control")
     md-button.md-raised.md-primary Play
+  p.vj-browser.md-caption Recommended browser: Google Chrome
   p.vj-note: strong
     span.md-body-2 Note:
     br
@@ -21,6 +22,14 @@ body {
   height: 100%;
 }
 
+h1 {
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
 .vj-home {
   display: flex;
   flex-direction: column;
@@ -34,13 +43,13 @@ body {
 .vj-title {
   margin-bottom: 48px;
 
-  h1 {
-    margin: 0;
-  }
-
   p {
-    margin: 10px 0 0;
+    margin-top: 10px;
   }
+}
+
+.vj-browser {
+  margin-top: 5px;
 }
 
 .vj-note {

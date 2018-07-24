@@ -65,7 +65,7 @@ const visualStock = {
       opacity: visualData.opacity || 1
     })
   }),
-  youtube: youtubeData.map(visualData => {
+  YouTube: youtubeData.map(visualData => {
     visualData.url = getUrl(visualData.url)
     visualData.thumbnail = getUrl(visualData.thumbnail)
     return Object.assign(visualData, {

@@ -9,6 +9,10 @@ Vue.config.productionTip = false
 
 Vue.use(VueMaterial)
 
+Vue.material.registerTheme('default', {
+  accent: 'teal'
+})
+
 new Vue({
   router,
   store,
