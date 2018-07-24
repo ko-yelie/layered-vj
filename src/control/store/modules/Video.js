@@ -78,9 +78,9 @@ const visualStock = {
 const visualBlank = [
   {
     type: 'iframeTag',
-    url: '/src/visual/assets/iframe/blank/',
+    url: getUrl('/src/visual/assets/iframe/blank/'),
     title: 'blank',
-    thumbnail: '/assets/thumbnail/blank.png',
+    thumbnail: getUrl('/assets/thumbnail/blank.png'),
     opacity: 1
   }
 ]
