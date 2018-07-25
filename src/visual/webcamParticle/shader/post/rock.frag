@@ -17,7 +17,7 @@ const float rgbDiff = 0.1;
 const float offInterval = 3.;
 const float onInterval = 1.;
 const float colorInterval = 40.;
-const float binalizationThreshold = 0.3;
+const float binalizationThreshold = 0.5;
 
 void main(){
   vec4 video = texture2D(texture, vUv);
@@ -48,7 +48,7 @@ void main(){
   color2.rgb = binary2 * rndColor;
 
   // gl_FragColor = video + color * color2;
-  gl_FragColor = video * 0.5 + color2;
+  // gl_FragColor = video * 0.5 + color2;
   // gl_FragColor = mono;
-  // gl_FragColor = color2;
+  gl_FragColor = color2;
 }
