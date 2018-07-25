@@ -1,5 +1,6 @@
 import { getFirstValue } from './utils.js'
 import { Webcam } from './webcam.js'
+import { getUrl } from '../../../../modules/url'
 
 export default class Media {
   constructor (size, pointResolution) {
@@ -21,7 +22,7 @@ export default class Media {
     this.audioCtx = new AudioContext()
 
     this.initWebcam()
-    // this.initVideoFiles()
+    this.initVideoFiles()
     this.loadSmartphone()
   }
 
@@ -32,10 +33,10 @@ export default class Media {
   }
 
   initVideoFiles () {
-    ;['live-1-2'].forEach(videoId => {
+    ;['Dance-4428'].forEach(videoId => {
       const id = `file:${videoId}`
       const video = document.createElement('video')
-      video.src = `/src/visual/assets/video/${videoId}.mp4`
+      video.src = getUrl(`/src/visual/assets/video/${videoId}.mp4`)
       video.width = this.size
       video.height = this.size
       video.loop = true
