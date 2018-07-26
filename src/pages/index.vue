@@ -8,7 +8,9 @@
       | Drag and drop to switch visuals.
   div(v-if="isMobile")
     p.vj-note
-      strong.md-body-2 This app does not support mobile device.
+      strong.md-body-2 Not support mobile device.
+        br
+        | Please browse with PC.
   div(v-else)
     router-link(to="/control")
       md-button.md-raised.md-primary Play

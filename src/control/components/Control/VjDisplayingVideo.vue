@@ -17,8 +17,10 @@ md-card
             v-model="opacity"
             @input="updateOpacity"
           )
-          md-tooltip(md-direction="left") opacity
-        md-button(@click.native="removeDisplayingVideo") Remove
+          md-tooltip(md-direction="left") Fader
+        md-button.md-icon-button(@click.native="removeDisplayingVideo")
+          md-icon delete
+          md-tooltip(md-direction="top") Delete
 </template>
 
 <script>
@@ -107,7 +109,7 @@ $rail-fill-color: #3f51b5;
   }
 
   .dv-slider {
-    margin-right: 10px;
+    margin-right: 30px;
   }
 }
 

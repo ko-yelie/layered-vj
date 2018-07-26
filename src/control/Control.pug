@@ -3,7 +3,7 @@
     h1.md-title VJ Control
     md-button.md-icon-button(@click.native="refresh")
       md-icon refresh
-      md-tooltip(md-direction="left") Reload
+      md-tooltip(md-direction="left") Refresh
 
   md-layout.layout
     //- 表示中ビデオ
@@ -36,7 +36,7 @@
               md-avatar.md-large(v-if="visual.thumbnail")
                 img(:src="visual.thumbnail", alt="")
               span.md-list-text-container {{ visual.title }}
-              md-tooltip(md-direction="right") Please allow to access your camera and microphone.
+              md-tooltip(md-direction="right") Allow to access your camera and microphone.
           md-list-item(
             v-for="(visuals, index) in visualStock"
             :key='index'
