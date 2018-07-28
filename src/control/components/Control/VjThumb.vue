@@ -39,7 +39,8 @@ class ControlMedia extends Media {
       'audioDevices',
       'videoSource',
       'audioSource',
-      'smartphone'
+      'smartphone',
+      'noMedia'
     ].forEach(key => {
       this[key] = media[key]
     })
