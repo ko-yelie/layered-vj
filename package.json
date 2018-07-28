@@ -1,7 +1,7 @@
 {
   "name": "layered-vj",
-  "version": "0.1.0",
-  "description": "VJ app on browser. Drag and drop to switch visuals.",
+  "version": "0.1.1",
+  "description": "VJ web app. Drag and drop to switch visuals.",
   "author": "Ko.Yelie",
   "license": "MIT",
   "private": true,

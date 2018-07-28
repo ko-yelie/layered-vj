@@ -11,6 +11,7 @@ Vue.config.productionTip = false
 Vue.mixin({
   data () {
     return {
+      env: process.env,
       isMobile: isMobile
     }
   }

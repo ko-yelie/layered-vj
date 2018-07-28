@@ -1,5 +1,5 @@
 # Layered VJ
-VJ app on browser. Drag and drop to switch visuals.
+VJ web app. Drag and drop to switch visuals.
 
 https://ko-yelie.github.io/layered-vj/
 

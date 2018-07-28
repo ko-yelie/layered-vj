@@ -2,10 +2,8 @@
 .vj-home
   .vj-title
     h1.md-display-4 Layered VJ
-    p.md-display-1 v0.1.0
-    p.md-subheading VJ app on browser.
-      br
-      | Drag and drop to switch visuals.
+    p.md-display-1 v{{ env.VERSION }}
+    p.md-subheading {{ env.DESCRIPTION }}
   div(v-if="isMobile")
     p.vj-note
       strong.md-body-2 Not support mobile device.

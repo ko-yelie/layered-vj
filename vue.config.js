@@ -1,5 +1,6 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const packageJson = require('./package.json')
 
 const baseUrl = process.env.NODE_ENV === 'production'
   ? '/layered-vj/'
@@ -40,6 +41,14 @@ module.exports = {
   },
   chainWebpack: config => {
     config.optimization.delete('splitChunks')
+
+    config
+      .plugin('define')
+      .tap(args => {
+        args[0]['process.env']['VERSION'] = JSON.stringify(packageJson.version)
+        args[0]['process.env']['DESCRIPTION'] = JSON.stringify(packageJson.description)
+        return args
+      })
 
     config
       .plugin('html')
