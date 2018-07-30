@@ -19,7 +19,7 @@ export const POST_LIST = [
   'toon',
   'water',
   'glitch',
-  'ykobGlitch',
+  'dorolitch',
   'dot',
   'dotScreen',
   'shake',

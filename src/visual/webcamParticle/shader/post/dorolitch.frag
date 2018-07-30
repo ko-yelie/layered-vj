@@ -16,8 +16,6 @@ const float rgbDiff = 0.5;
 
 void main(){
   float rnd = random(vec2(time));
-  float slowSn = step(0.74, snoise2(floor(vec2(0., vUv.y * 2.) * random(vec2(floor(time * 50.))) * 60.)));
-  float sn = step(0.5, snoise2(floor(vec2(vUv.x * 0.05, vUv.y * 0.8) * rnd * 100.)));
   float modTime = mod(time, interval);
   float regularBomb = smoothstep(interval - 0.3 * 2., interval - 0.3, modTime) * (1. - smoothstep(interval - 0.3, interval, modTime)) * 0.05;
   float strength = (rnd * 2. - 1.) * ((1. - isAudio) * regularBomb + isAudio * (volume - 1.) * 0.02);
@@ -25,8 +23,7 @@ void main(){
   float yRnd = random(vec2(0., floor(vUv.y * resolution.y / divisionPx)) + mod(time, 10.));
   vec2 uv = vec2(vUv.x + (yRnd * 2. - 1.) * deflection * (strength + rnd * 0.4), vUv.y);
 
-  uv += slowSn * 0.1;
-  uv += strength * (1. - sn) * 3.;
+  uv += strength * 3. * (snoise2(vUv * rnd * 10.) * 2. - 1.);
   float cRgbDiff = rgbDiff * (strength + rnd * 0.02);
   float r = texture2D(texture, vec2(uv.x + cRgbDiff, uv.y)).r;
   float g = texture2D(texture, vec2(uv.x, uv.y)).g;
@@ -42,5 +39,4 @@ void main(){
   color *= scanLine;
 
   gl_FragColor = vec4(color, 1.0);
-  // gl_FragColor = vec4(vec3(slowSn * 0.1), 1.0);
 }
