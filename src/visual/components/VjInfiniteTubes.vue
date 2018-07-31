@@ -3,13 +3,11 @@ canvas
 </template>
 
 <script>
-import brick from './infiniteTubes/brick'
 import particles from './infiniteTubes/particles'
 import starWars from './infiniteTubes/starWars'
 import triangle from './infiniteTubes/triangle'
 
 const demos = {
-  brick,
   particles,
   starWars,
   triangle
