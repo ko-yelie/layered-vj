@@ -1,5 +1,5 @@
 export const VIDEO_RESOLUTION = 416
-export const POINT_RESOLUTION = 256
+export const POINT_RESOLUTION = 128
 export const POP_RESOLUTION = 16
 export const BASE_RESOLUTION = 128
 

@@ -882,6 +882,7 @@ function init () {
         }
 
         gl.enable(gl.BLEND)
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
         useProgram(prgs.particleScene)
         bindFramebuffer(textures.particleScene.framebuffer)

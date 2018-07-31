@@ -33,8 +33,8 @@ void main(){
   vec4 thumbColor = texture2D(videoTexture, vec2(gl_PointCoord.s, 1. - gl_PointCoord.t));
   vec4 particleColor = (pointShape == 3.) ? thumbColor : shapeColor;
 
-  float minCurrentColor = (bgColor == 1.) ? 0.4 : (animation == 1.) ? 0.3 : 0.2;
-  float maxCurrentColor = (bgColor == 1.) ? 0.95 : 0.95;
+  float minCurrentColor = (bgColor == 1.) ? 0.3 : (animation == 1.) ? 0.1 : 0.2;
+  float maxCurrentColor = (bgColor == 1.) ? 0.8 : 1.;
   vec4 currentColor = mix(vec4(minCurrentColor), vec4(maxCurrentColor), video);
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
 
