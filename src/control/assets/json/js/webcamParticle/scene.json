@@ -66,7 +66,7 @@
     "Warp": {
       "0": {
         "animation": "warp",
-        "mode": 3,
+        "mode": 1,
         "pointShape": 1,
         "pointSize": 5,
         "lineShape": "line",
@@ -156,37 +156,6 @@
         "videoAlpha": 1
       }
     },
-    "Toon": {
-      "0": {
-        "animation": "none",
-        "mode": 0,
-        "pointShape": 1,
-        "pointSize": 5,
-        "lineShape": "line",
-        "deformation": 0,
-        "autoDeformation": false,
-        "deformationProgress": 0,
-        "bgColor": 1,
-        "zPosition": 2.5,
-        "pointer": false,
-        "accel": false,
-        "rotation": false,
-        "capture": false,
-        "stopMotion": true,
-        "particleAlpha": 0,
-        "inputAudio": false,
-        "audio": null,
-        "detector": false,
-        "effect": "none",
-        "effect2": "shake",
-        "lastEffect": "toon",
-        "custom": 0.7,
-        "customSwitch": false,
-        "video": null,
-        "videoZoom": 1,
-        "videoAlpha": 1
-      }
-    },
     "Glitch": {
       "0": {
         "animation": "warp",
@@ -249,63 +218,32 @@
         "videoAlpha": 1
       }
     },
-    "Flash": {
+    "Toon": {
       "0": {
-        "animation": "warp",
-        "mode": 3,
+        "animation": "none",
+        "mode": 0,
         "pointShape": 1,
         "pointSize": 5,
         "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
-        "bgColor": 0,
+        "bgColor": 1,
         "zPosition": 2.5,
         "pointer": false,
         "accel": false,
         "rotation": false,
         "capture": false,
-        "stopMotion": false,
+        "stopMotion": true,
         "particleAlpha": 0,
         "inputAudio": false,
         "audio": null,
         "detector": false,
-        "effect": "glitch",
+        "effect": "none",
         "effect2": "shake",
-        "lastEffect": "flash",
+        "lastEffect": "toon",
         "custom": 0.7,
-        "customSwitch": true,
-        "video": null,
-        "videoZoom": 1,
-        "videoAlpha": 0.9
-      }
-    },
-    "Heaven": {
-      "0": {
-        "animation": "warp",
-        "mode": 3,
-        "pointShape": 1,
-        "pointSize": 5,
-        "lineShape": "line",
-        "deformation": 0,
-        "autoDeformation": false,
-        "deformationProgress": 0,
-        "bgColor": 0,
-        "zPosition": 2.5,
-        "pointer": false,
-        "accel": false,
-        "rotation": false,
-        "capture": false,
-        "stopMotion": false,
-        "particleAlpha": 0,
-        "inputAudio": true,
-        "audio": null,
-        "detector": false,
-        "effect": "toon",
-        "effect2": "dotScreen",
-        "lastEffect": "rock",
-        "custom": 0.7,
-        "customSwitch": true,
+        "customSwitch": false,
         "video": null,
         "videoZoom": 1,
         "videoAlpha": 1
@@ -373,6 +311,37 @@
         "videoAlpha": 1
       }
     },
+    "Comic": {
+      "0": {
+        "animation": "warp",
+        "mode": 3,
+        "pointShape": 1,
+        "pointSize": 5,
+        "lineShape": "line",
+        "deformation": 0,
+        "autoDeformation": false,
+        "deformationProgress": 0,
+        "bgColor": 0,
+        "zPosition": 2.5,
+        "pointer": false,
+        "accel": false,
+        "rotation": false,
+        "capture": false,
+        "stopMotion": false,
+        "particleAlpha": 0,
+        "inputAudio": true,
+        "audio": null,
+        "detector": false,
+        "effect": "toon",
+        "effect2": "dotScreen",
+        "lastEffect": "rock",
+        "custom": 0.7,
+        "customSwitch": true,
+        "video": null,
+        "videoZoom": 1,
+        "videoAlpha": 1
+      }
+    },
     "Fank": {
       "0": {
         "animation": "none",
@@ -403,6 +372,37 @@
         "videoZoom": 1,
         "videoAlpha": 1
       }
+    }
+  },
+  "Flash": {
+    "0": {
+      "animation": "warp",
+      "mode": 3,
+      "pointShape": 1,
+      "pointSize": 5,
+      "lineShape": "line",
+      "deformation": 0,
+      "autoDeformation": false,
+      "deformationProgress": 0,
+      "bgColor": 0,
+      "zPosition": 2.5,
+      "pointer": false,
+      "accel": false,
+      "rotation": false,
+      "capture": false,
+      "stopMotion": false,
+      "particleAlpha": 0,
+      "inputAudio": false,
+      "audio": null,
+      "detector": false,
+      "effect": "glitch",
+      "effect2": "shake",
+      "lastEffect": "flash",
+      "custom": 0.7,
+      "customSwitch": true,
+      "video": null,
+      "videoZoom": 1,
+      "videoAlpha": 0.9
     }
   },
   "closed": false,
