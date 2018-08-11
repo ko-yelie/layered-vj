@@ -5,10 +5,8 @@ import json from '../../assets/json/js/webcamParticle/scene.json'
 import {
   MIN_ZOOM,
   MAX_ZOOM,
+  MODE_LIST,
   POST_LIST,
-  POINTS,
-  LINE_STRIP,
-  TRIANGLES,
   DEFORMATION_LIST
 } from '../../../visual/webcamParticle/script/modules/constant.js'
 
@@ -20,7 +18,6 @@ export default async function (argConfig, store) {
     preset: preset
   })
   let pointFolder
-  let lineFolder
   let bgColorController
   let deformationMap
   let autoDeformationTimer
@@ -56,11 +53,7 @@ export default async function (argConfig, store) {
     particleFolder.add(settings, 'animation', animationMap).onChange(dispatchVisual)
 
     // mode
-    const modeMap = {
-      'gl.POINTS': POINTS,
-      'gl.LINE_STRIP': LINE_STRIP,
-      'gl.TRIANGLES': TRIANGLES
-    }
+    const modeMap = MODE_LIST
     particleFolder.add(settings, 'mode', modeMap).onChange(dispatchVisual)
 
     // point folder
@@ -74,22 +67,14 @@ export default async function (argConfig, store) {
     const pointSizeMap = [0.1, 30]
     pointFolder.add(settings, 'pointSize', ...pointSizeMap).onChange(dispatchVisual)
 
-    // line folder
-    lineFolder = particleFolder.addFolder('gl.LINE_STRIP')
-
-    // lineShape
-    const lineShapeMap = ['line', 'mesh']
-    lineFolder.add(settings, 'lineShape', lineShapeMap).onChange(dispatchVisual)
-
     // deformation
     deformationMap = {}
-    let deformationCount = 0
     let deformationList = DEFORMATION_LIST
     if (argConfig && argConfig.deformation) {
       deformationList = deformationList.concat(argConfig.deformation)
     }
-    deformationList.forEach(({ key }) => {
-      deformationMap[key] = deformationCount++
+    deformationList.forEach(({ key, value }) => {
+      deformationMap[key] = value
     })
     particleFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
 
@@ -167,15 +152,9 @@ export default async function (argConfig, store) {
         break
       case 'mode':
         pointFolder.close()
-        lineFolder.close()
 
-        switch (Number(val)) {
-          case LINE_STRIP:
-          case TRIANGLES:
-            lineFolder.open()
-            break
-          case POINTS:
-          default:
+        switch (val) {
+          case 'POINTS':
             pointFolder.open()
         }
         break

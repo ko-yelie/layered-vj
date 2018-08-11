@@ -268,14 +268,58 @@ export function start (draw, mode, count) {
   requestAnimationFrame(render)
 }
 
-export function getPointVbo (interval) {
-  let pointTexCoord = []
+export function getPointVbo (segments) {
+  const interval = 1 / segments
+
+  let vertices = []
   for (let t = 0; t < 1; t += interval) {
     const back = t % (interval * 2) === interval
     for (let s = 0; s < 1; s += interval) {
       const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
-      pointTexCoord.push(cS, t, Math.random(), Math.random())
+      vertices.push(cS, t, Math.random(), Math.random())
     }
   }
-  return createVbo(pointTexCoord)
+
+  return createVbo(vertices)
+}
+
+export function getPlaneVbo (segments) {
+  const interval = 1 / segments
+
+  const vertices = []
+  for (let t = 1; t >= interval; t -= interval) {
+    for (let s = 0; s < 1 - interval; s += interval) {
+      vertices.push(s, t, Math.random(), Math.random())
+      vertices.push(s + interval, t - interval, Math.random(), Math.random())
+      vertices.push(s + interval, t, Math.random(), Math.random())
+
+      vertices.push(s, t, Math.random(), Math.random())
+      vertices.push(s, t - interval, Math.random(), Math.random())
+      vertices.push(s + interval, t - interval, Math.random(), Math.random())
+    }
+  }
+
+  return {
+    vbo: createVbo(vertices),
+    count: vertices.length / 4
+  }
+}
+
+export function getModelVbo (geometry, arrayLength) {
+  const verticesLength = geometry.vertices.length
+  if (arrayLength === void 0) {
+    arrayLength = verticesLength
+  }
+
+  const torusCoord = []
+  for (let i = 0; i < arrayLength; i++) {
+    const cI = i % verticesLength
+    const { a, b, c } = geometry.faces[cI]
+    ;[a, b, c].forEach(v => {
+      const { x, y, z } = geometry.vertices[v]
+      torusCoord.push(x, y, z, Math.random())
+    })
+  }
+
+  return createVbo(torusCoord)
 }

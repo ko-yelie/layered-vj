@@ -1,13 +1,12 @@
 {
-  "preset": "Default",
+  "preset": "Particle",
   "remembered": {
     "Default": {
       "0": {
         "animation": "none",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -35,10 +34,9 @@
     "Particle": {
       "0": {
         "animation": "normal",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -66,10 +64,9 @@
     "Warp": {
       "0": {
         "animation": "warp",
-        "mode": 1,
+        "mode": "LINE_STRIP",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -97,10 +94,9 @@
     "Pop": {
       "0": {
         "animation": "pop",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -128,10 +124,9 @@
     "Rock": {
       "0": {
         "animation": "warp",
-        "mode": 3,
+        "mode": "TRIANGLES",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -159,10 +154,9 @@
     "Glitch": {
       "0": {
         "animation": "warp",
-        "mode": 3,
+        "mode": "TRIANGLES",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -190,10 +184,9 @@
     "Dorolitch": {
       "0": {
         "animation": "warp",
-        "mode": 3,
+        "mode": "TRIANGLES",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -221,10 +214,9 @@
     "Toon": {
       "0": {
         "animation": "none",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -252,10 +244,9 @@
     "Water": {
       "0": {
         "animation": "pop",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 2,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -283,10 +274,9 @@
     "Floating": {
       "0": {
         "animation": "pop",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 2,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -314,10 +304,9 @@
     "Comic": {
       "0": {
         "animation": "warp",
-        "mode": 3,
+        "mode": "TRIANGLES",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -345,10 +334,9 @@
     "Fank": {
       "0": {
         "animation": "none",
-        "mode": 0,
+        "mode": "POINTS",
         "pointShape": 1,
         "pointSize": 5,
-        "lineShape": "line",
         "deformation": 0,
         "autoDeformation": false,
         "deformationProgress": 0,
@@ -377,10 +365,9 @@
   "Flash": {
     "0": {
       "animation": "warp",
-      "mode": 3,
+      "mode": "TRIANGLES",
       "pointShape": 1,
       "pointSize": 5,
-      "lineShape": "line",
       "deformation": 0,
       "autoDeformation": false,
       "deformationProgress": 0,

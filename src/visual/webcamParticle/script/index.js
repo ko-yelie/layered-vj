@@ -7,7 +7,8 @@ import {
   GPGPU_FRAMEBUFFERS_COUNT,
   CAPTURE_FRAMEBUFFERS_COUNT,
   POST_LIST,
-  DEFORMATION_LIST
+  DEFORMATION_LIST,
+  TORUS_SIZE
 } from './modules/constant.js'
 import MatIV from './modules/minMatrix.js'
 import {
@@ -25,10 +26,13 @@ import {
   useProgram,
   bindFramebuffer,
   clearColor,
-  getPointVbo
+  getPointVbo,
+  getPlaneVbo,
+  getModelVbo
 } from './modules/gl-utils.js'
 import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
+import * as THREE from 'three'
 
 const POINT_RESOLUTION_RATE = POINT_RESOLUTION / BASE_RESOLUTION
 
@@ -41,7 +45,6 @@ let mat
 
 let planeIndex
 let pointVBO
-let meshPointVBO
 let popPointVBO
 let mMatrix
 let vMatrix
@@ -60,7 +63,7 @@ let video
 let animation
 let focusPosList = []
 // let detectorMessage
-let vbo
+let vbo = {}
 let arrayLength
 let popArrayLength
 let isRun
@@ -90,6 +93,7 @@ let prevDeformation = 0
 let nextDeformation = 0
 let deformationProgressTl
 let stopMotionTimer
+let mode
 
 export async function run (options) {
   settings = options.settings
@@ -280,27 +284,16 @@ function initGlsl () {
   }
 
   // point
-  const interval = 1 / POINT_RESOLUTION
+  const { vbo, count } = getPlaneVbo(POINT_RESOLUTION)
+  pointVBO = vbo
+  arrayLength = count
+  vbo.video = pointVBO
 
-  pointVBO = getPointVbo(interval)
+  // torus
+  vbo.torus = getModelVbo(new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100), count)
 
-  const meshTexCoord = []
-  for (let t = 0; t < 1 - interval; t += interval) {
-    for (let s = 0; s < 1; s += interval) {
-      if (s === 1 - interval) {
-        meshTexCoord.push(s, t, Math.random(), Math.random())
-        meshTexCoord.push(s, t + interval, Math.random(), Math.random())
-      } else {
-        meshTexCoord.push(s, t, Math.random(), Math.random())
-        meshTexCoord.push(s, t + interval, Math.random(), Math.random())
-        meshTexCoord.push(s + interval, t + interval, Math.random(), Math.random())
-        meshTexCoord.push(s, t, Math.random(), Math.random())
-      }
-    }
-  }
-  meshPointVBO = createVbo(meshTexCoord)
-
-  popPointVBO = getPointVbo(1 / POP_RESOLUTION)
+  // pop
+  popPointVBO = getPointVbo(POP_RESOLUTION)
   popArrayLength = POP_RESOLUTION * POP_RESOLUTION
 
   // video
@@ -441,7 +434,11 @@ function initGlsl () {
   prgs.particleScene.createAttribute({
     data: {
       stride: 4,
-      vbo: pointVBO
+      vbo: vbo.video
+    },
+    torus: {
+      stride: 4,
+      vbo: vbo.torus
     }
   })
   prgs.particleScene.createUniform({
@@ -457,15 +454,15 @@ function initGlsl () {
     positionTexture: {
       type: '1i'
     },
-    logoTexture: {
-      type: '1i'
-    },
-    logo2Texture: {
-      type: '1i'
-    },
-    faceTexture: {
-      type: '1i'
-    },
+    // logoTexture: {
+    //   type: '1i'
+    // },
+    // logo2Texture: {
+    //   type: '1i'
+    // },
+    // faceTexture: {
+    //   type: '1i'
+    // },
     bgColor: {
       type: '1f'
     },
@@ -740,9 +737,6 @@ function init () {
   let time
   isRun = true
 
-  vbo = pointVBO
-  arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
-
   render = () => {
     targetbufferIndex = loopCount % 2
     prevbufferIndex = 1 - targetbufferIndex
@@ -893,7 +887,8 @@ function init () {
         rotation.y += (pointer.y - rotation.y) * 0.01
         updateCamera()
 
-        prgs.particleScene.setAttribute('data', vbo)
+        prgs.particleScene.setAttribute('data', vbo.video)
+        prgs.particleScene.setAttribute('torus')
         prgs.particleScene.setUniform('mvpMatrix', mvpMatrix)
         prgs.particleScene.setUniform('pointSize', pointSize)
         prgs.particleScene.setUniform('videoTexture', textures.videoBuffer[capturedbufferIndex].index)
@@ -905,14 +900,14 @@ function init () {
         prgs.particleScene.setUniform('bgColor', settings.bgColor)
         prgs.particleScene.setUniform('volume', volume)
         prgs.particleScene.setUniform('isAudio', isAudio)
-        prgs.particleScene.setUniform('mode', settings.mode)
+        prgs.particleScene.setUniform('mode', mode)
         prgs.particleScene.setUniform('pointShape', settings.pointShape)
         prgs.particleScene.setUniform('prevDeformation', prevDeformation)
         prgs.particleScene.setUniform('nextDeformation', nextDeformation)
         prgs.particleScene.setUniform('deformationProgress', settings.deformationProgress)
         prgs.particleScene.setUniform('loopCount', loopCount)
         prgs.particleScene.setUniform('animation', animation)
-        gl.drawArrays(settings.mode, 0, arrayLength)
+        gl.drawArrays(mode, 0, arrayLength)
       } else if (settings.animation === 'pop') {
         // Pop
 
@@ -1058,20 +1053,11 @@ export function update (property, value) {
           animation = -1
       }
       break
+    case 'mode':
+      mode = gl[settings.mode || 'POINTS']
+      break
     case 'pointSize':
       pointSize = settings.pointSize * canvasHeight / 930 / Math.pow(POINT_RESOLUTION_RATE, 0.4)
-      break
-    case 'lineShape':
-      switch (settings.lineShape) {
-        case 'mesh':
-          vbo = meshPointVBO
-          arrayLength = (4 * (POINT_RESOLUTION - 1) + 2) * (POINT_RESOLUTION - 1)
-          break
-        case 'line':
-        default:
-          vbo = pointVBO
-          arrayLength = POINT_RESOLUTION * POINT_RESOLUTION
-      }
       break
     case 'deformation':
       if (deformationProgressTl.target.deformationProgress === 1) {
