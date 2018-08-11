@@ -51,6 +51,8 @@ let vMatrix
 let pMatrix
 let vpMatrix
 let mvpMatrix
+let invMatrix
+let lightDirection = [0, 0, 0]
 
 let textures = {}
 let prgs = {}
@@ -63,7 +65,7 @@ let video
 let animation
 let focusPosList = []
 // let detectorMessage
-let vbo = {}
+let vbos = {}
 let arrayLength
 let popArrayLength
 let isRun
@@ -113,17 +115,6 @@ export async function run (options) {
 
   canvasWidth = canvas.width
   canvasHeight = canvas.height
-
-  mat = new MatIV()
-  // matrix
-  mMatrix = mat.identity(mat.create())
-  vMatrix = mat.identity(mat.create())
-  pMatrix = mat.identity(mat.create())
-  vpMatrix = mat.identity(mat.create())
-  mvpMatrix = mat.identity(mat.create())
-
-  // 拡張機能を有効化
-  ext = getWebGLExtensions()
 
   // Esc キーで実行を止められるようにイベントを設定
   window.addEventListener('keydown', e => {
@@ -284,17 +275,28 @@ function initGlsl () {
   }
 
   // point
-  const { vbo, count } = getPlaneVbo(POINT_RESOLUTION)
-  pointVBO = vbo
-  arrayLength = count
-  vbo.video = pointVBO
+  {
+    const { vbo, count } = getPlaneVbo(POINT_RESOLUTION)
+    pointVBO = vbo
+    arrayLength = count
+    vbos.video = pointVBO
+  }
 
   // torus
-  vbo.torus = getModelVbo(new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100), count)
+  {
+    const geometry = new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100)
+    console.log(geometry, arrayLength)
+    const { vbo, normalVbo } = getModelVbo(geometry, arrayLength)
+    vbos.torus = vbo
+    vbos.normal = normalVbo
+  }
 
   // pop
-  popPointVBO = getPointVbo(POP_RESOLUTION)
-  popArrayLength = POP_RESOLUTION * POP_RESOLUTION
+  {
+    const { vbo, count } = getPointVbo(POP_RESOLUTION)
+    popPointVBO = vbo
+    popArrayLength = count
+  }
 
   // video
   prgs.video.createAttribute(planeAttribute)
@@ -434,16 +436,26 @@ function initGlsl () {
   prgs.particleScene.createAttribute({
     data: {
       stride: 4,
-      vbo: vbo.video
+      vbo: vbos.video
     },
     torus: {
       stride: 4,
-      vbo: vbo.torus
+      vbo: vbos.torus
+    },
+    normal: {
+      stride: 3,
+      vbo: vbos.normal
     }
   })
   prgs.particleScene.createUniform({
     mvpMatrix: {
       type: 'Matrix4fv'
+    },
+    invMatrix: {
+      type: 'Matrix4fv'
+    },
+    lightDirection: {
+      type: '3fv'
     },
     pointSize: {
       type: '1f'
@@ -592,6 +604,9 @@ function initGlsl () {
 
   // framebuffer
 
+  // 拡張機能を有効化
+  ext = getWebGLExtensions()
+
   // video
   textures.videoBuffer = []
   for (var i = 0; i < CAPTURE_FRAMEBUFFERS_COUNT; i++) {
@@ -723,6 +738,18 @@ function init () {
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
   }
+
+  // matrix
+  mat = new MatIV()
+  mMatrix = mat.identity(mat.create())
+  vMatrix = mat.identity(mat.create())
+  pMatrix = mat.identity(mat.create())
+  vpMatrix = mat.identity(mat.create())
+  mvpMatrix = mat.identity(mat.create())
+  invMatrix = mat.identity(mat.create())
+
+  // lighting
+  lightDirection = [-0.5, 0.5, 0.5]
 
   // flags
   gl.disable(gl.DEPTH_TEST)
@@ -887,9 +914,12 @@ function init () {
         rotation.y += (pointer.y - rotation.y) * 0.01
         updateCamera()
 
-        prgs.particleScene.setAttribute('data', vbo.video)
+        prgs.particleScene.setAttribute('data', vbos.video)
         prgs.particleScene.setAttribute('torus')
+        prgs.particleScene.setAttribute('normal')
         prgs.particleScene.setUniform('mvpMatrix', mvpMatrix)
+        prgs.particleScene.setUniform('invMatrix', invMatrix)
+        prgs.particleScene.setUniform('lightDirection', lightDirection)
         prgs.particleScene.setUniform('pointSize', pointSize)
         prgs.particleScene.setUniform('videoTexture', textures.videoBuffer[capturedbufferIndex].index)
         prgs.particleScene.setUniform('positionTexture', textures.position[capturedbufferIndex].index)
@@ -976,6 +1006,7 @@ function init () {
 
     // render to canvas -------------------------------------------
     gl.enable(gl.BLEND)
+    gl.enable(gl.CULL_FACE)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clearDepth(1.0)
 
@@ -1028,6 +1059,7 @@ function updateCamera () {
   mat.rotate(mMatrix, rotation.x, [0.0, 1.0, 0.0], mMatrix)
   mat.rotate(mMatrix, rotation.y, [-1.0, 0.0, 0.0], mMatrix)
   mat.multiply(vpMatrix, mMatrix, mvpMatrix)
+  mat.inverse(mMatrix, invMatrix)
 }
 
 export function update (property, value) {

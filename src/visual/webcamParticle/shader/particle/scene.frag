@@ -12,6 +12,7 @@ uniform float nextDeformation;
 uniform float deformationProgress;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
+varying float vDiffuse;
 
 float lengthN(vec2 v, float n) {
   vec2 tmp = pow(abs(v), vec2(n));
@@ -39,6 +40,7 @@ void main(){
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
 
   vec4 modelColor = vec4(1.);
+  modelColor *= vec4(vec3(vDiffuse), 1.0);
 
   // vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
   // vec4 logoColor = texture2D(logoTexture, imageTexCoord);

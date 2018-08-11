@@ -1,6 +1,9 @@
 attribute vec4 data;
 attribute vec4 torus;
+attribute vec3 normal;
 uniform mat4 mvpMatrix;
+uniform mat4 invMatrix;
+uniform vec3 lightDirection;
 uniform float pointSize;
 uniform sampler2D positionTexture;
 // uniform sampler2D logoTexture;
@@ -15,6 +18,7 @@ uniform float deformationProgress;
 uniform float loopCount;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
+varying float vDiffuse;
 
 #pragma glslify: random = require(glsl-random)
 
@@ -51,6 +55,10 @@ void main(){
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);
   // vec4 logo2Position = vec4(texCoord * 2. - 1., 0., texture2D(logo2Texture, imageTexCoord).a);
   // vec4 facePosition = vec4(texCoord * 2. - 1., 0., texture2D(faceTexture, imageTexCoord).a);
+
+  // lighting
+  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
+  vDiffuse = clamp(dot(normal, invLight), 0.1, 1.0);
 
   vTexCoord = texCoord;
   vPosition = position;
