@@ -319,9 +319,10 @@ export function getModelVbo (geometry, arrayLength) {
   for (let i = 0; i < arrayLength; i++) {
     const cI = i % verticesLength
     const { a, b, c, normal } = geometry.faces[cI]
+    const random = Math.random()
     ;[a, b, c].forEach(v => {
       const { x, y, z } = geometry.vertices[v]
-      torusCoord.push(x, y, z, Math.random())
+      torusCoord.push(x, y, z, random)
       normals.push(normal.x, normal.y, normal.z)
     })
   }

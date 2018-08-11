@@ -16,8 +16,7 @@ export const MODE_LIST = [
   'POINTS',
   'LINE',
   'LINE_STRIP',
-  'TRIANGLES',
-  'TRIANGLE_FAN'
+  'TRIANGLES'
 ]
 
 export const POST_LIST = [

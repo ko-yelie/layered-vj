@@ -285,7 +285,6 @@ function initGlsl () {
   // torus
   {
     const geometry = new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100)
-    console.log(geometry, arrayLength)
     const { vbo, normalVbo } = getModelVbo(geometry, arrayLength)
     vbos.torus = vbo
     vbos.normal = normalVbo
@@ -475,6 +474,9 @@ function initGlsl () {
     // faceTexture: {
     //   type: '1i'
     // },
+    time: {
+      type: '1f'
+    },
     bgColor: {
       type: '1f'
     },
@@ -927,6 +929,7 @@ function init () {
           if (!src) return
           prgs.particleScene.setUniform(`${key}Texture`, textures[key].index)
         })
+        prgs.particleScene.setUniform('time', time)
         prgs.particleScene.setUniform('bgColor', settings.bgColor)
         prgs.particleScene.setUniform('volume', volume)
         prgs.particleScene.setUniform('isAudio', isAudio)
@@ -1006,7 +1009,6 @@ function init () {
 
     // render to canvas -------------------------------------------
     gl.enable(gl.BLEND)
-    gl.enable(gl.CULL_FACE)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clearDepth(1.0)
 

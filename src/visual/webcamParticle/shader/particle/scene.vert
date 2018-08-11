@@ -9,6 +9,7 @@ uniform sampler2D positionTexture;
 // uniform sampler2D logoTexture;
 // uniform sampler2D logo2Texture;
 // uniform sampler2D faceTexture;
+uniform float time;
 uniform float volume;
 uniform float isAudio;
 uniform float pointShape;
@@ -21,6 +22,7 @@ varying vec4 vPosition;
 varying float vDiffuse;
 
 #pragma glslify: random = require(glsl-random)
+#pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
 
 const float speed = 0.3;
 const float amplitude = 0.1;
@@ -49,7 +51,7 @@ void main(){
   float radius = standardRadius + randomValue * amplitude - halfAmplitude;
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
-  vec4 torusPosition = vec4(torus.xyz, 1.);
+  vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
 
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);
