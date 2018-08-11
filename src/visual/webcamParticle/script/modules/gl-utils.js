@@ -281,7 +281,7 @@ export function getPointVbo (segments) {
   }
 
   return {
-    vbo: createVbo(vertices),
+    vertices: createVbo(vertices),
     count: vertices.length / 4
   }
 }
@@ -303,32 +303,32 @@ export function getPlaneVbo (segments) {
   }
 
   return {
-    vbo: createVbo(vertices),
+    vertices: createVbo(vertices),
     count: vertices.length / 4
   }
 }
 
-export function getModelVbo (geometry, arrayLength) {
-  const verticesLength = geometry.vertices.length
-  if (arrayLength === void 0) {
-    arrayLength = verticesLength
+export function getModelVbo (geometry, particleCount) {
+  const facesCount = geometry.faces.length
+  if (particleCount === void 0) {
+    particleCount = facesCount
   }
 
-  const torusCoord = []
+  const vertices = []
   const normals = []
-  for (let i = 0; i < arrayLength; i++) {
-    const cI = i % verticesLength
+  for (let i = 0; i < particleCount; i++) {
+    const cI = i % facesCount
     const { a, b, c, normal } = geometry.faces[cI]
     const random = Math.random()
     ;[a, b, c].forEach(v => {
       const { x, y, z } = geometry.vertices[v]
-      torusCoord.push(x, y, z, random)
+      vertices.push(x, y, z, random)
       normals.push(normal.x, normal.y, normal.z)
     })
   }
 
   return {
-    vbo: createVbo(torusCoord),
-    normalVbo: createVbo(normals)
+    vertices: createVbo(vertices),
+    normal: createVbo(normals)
   }
 }

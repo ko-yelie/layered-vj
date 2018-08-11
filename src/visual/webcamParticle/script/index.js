@@ -34,6 +34,8 @@ import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
 import * as THREE from 'three'
 
+Math.PI2 = Math.PI * 2
+
 const POINT_RESOLUTION_RATE = POINT_RESOLUTION / BASE_RESOLUTION
 
 let canvas
@@ -280,8 +282,8 @@ function initGlsl () {
 
   // point
   {
-    const { vbo, count } = getPlaneVbo(POINT_RESOLUTION)
-    pointVBO = vbo
+    const { vertices, count } = getPlaneVbo(POINT_RESOLUTION)
+    pointVBO = vertices
     arrayLength = count
     vbos.video = pointVBO
   }
@@ -289,15 +291,15 @@ function initGlsl () {
   // torus
   {
     const geometry = new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100)
-    const { vbo, normalVbo } = getModelVbo(geometry, arrayLength)
-    vbos.torus = vbo
-    vbos.normal = normalVbo
+    const { vertices, normal } = getModelVbo(geometry, arrayLength)
+    vbos.torus = vertices
+    vbos.normal = normal
   }
 
   // pop
   {
-    const { vbo, count } = getPointVbo(POP_RESOLUTION)
-    popPointVBO = vbo
+    const { vertices, count } = getPointVbo(POP_RESOLUTION)
+    popPointVBO = vertices
     popArrayLength = count
   }
 
@@ -910,6 +912,7 @@ function init () {
           gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
         }
 
+        gl[settings.deformation === 0 ? 'disable' : 'enable'](gl.DEPTH_TEST)
         gl.enable(gl.BLEND)
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
@@ -918,8 +921,10 @@ function init () {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
         gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-        rotation.x += (pointer.x - rotation.x) * 0.01
-        rotation.y += (pointer.y - rotation.y) * 0.01
+        rotation.x += settings.deformation === 0
+          ? ((pointer.x - rotation.x) * 0.02)
+          : 0.02
+        rotation.y += (pointer.y - rotation.y) * 0.02
         updateCamera()
 
         prgs.particleScene.setAttribute('data', vbos.video)
@@ -1066,6 +1071,8 @@ function updateCamera () {
   mat.perspective(60, canvasWidth / canvasHeight, 0.1, 20.0, pMatrix)
   mat.multiply(pMatrix, vMatrix, vpMatrix)
 
+  rotation.x = rotation.x % Math.PI2
+  rotation.y = rotation.y % Math.PI2
   mat.rotate(mMatrix, rotation.x, [0.0, 1.0, 0.0], mMatrix)
   mat.rotate(mMatrix, rotation.y, [-1.0, 0.0, 0.0], mMatrix)
   mat.multiply(vpMatrix, mMatrix, mvpMatrix)
@@ -1108,6 +1115,10 @@ export function update (property, value) {
       } else {
         nextDeformation = settings.deformation
         deformationProgressTl.play()
+      }
+      // webcam のときはカメラ回転を元の位置に戻す
+      if (settings.deformation === 0) {
+        rotation.x += (pointer.x - rotation.x) * settings.deformationProgress
       }
       break
     case 'bgColor':

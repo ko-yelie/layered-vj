@@ -14,7 +14,6 @@ export const CAPTURE_FRAMEBUFFERS_COUNT = 3
 
 export const MODE_LIST = [
   'POINTS',
-  'LINE',
   'LINE_STRIP',
   'TRIANGLES'
 ]

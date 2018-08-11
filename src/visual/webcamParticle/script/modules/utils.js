@@ -14,3 +14,8 @@ export function shuffle (array) {
 export function clamp (n, min, max) {
   return Math.min(max, Math.max(min, n))
 }
+
+export function floorDicimal (number, digits) {
+  const pow = Math.pow(10, digits)
+  return Math.floor(number * pow) / pow
+}
