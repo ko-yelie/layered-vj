@@ -4,6 +4,8 @@ attribute vec3 normal;
 uniform mat4 mvpMatrix;
 uniform mat4 invMatrix;
 uniform vec3 lightDirection;
+uniform vec4 ambientColor;
+uniform vec4 modelColor;
 uniform float pointSize;
 uniform sampler2D positionTexture;
 // uniform sampler2D logoTexture;
@@ -19,7 +21,7 @@ uniform float deformationProgress;
 uniform float loopCount;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
-varying float vDiffuse;
+varying vec4 vModelColor;
 
 #pragma glslify: random = require(glsl-random)
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
@@ -53,17 +55,21 @@ void main(){
 
   vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
 
+  // lighting
+  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
+  float diffuse = clamp(dot(normal, invLight), 0.1, 1.0);
+  vModelColor = modelColor;
+  vModelColor *= vec4(vec3(diffuse), 1.0);
+  vModelColor += ambientColor;
+
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);
   // vec4 logo2Position = vec4(texCoord * 2. - 1., 0., texture2D(logo2Texture, imageTexCoord).a);
   // vec4 facePosition = vec4(texCoord * 2. - 1., 0., texture2D(faceTexture, imageTexCoord).a);
 
-  // lighting
-  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
-  vDiffuse = clamp(dot(normal, invLight), 0.1, 1.0);
-
   vTexCoord = texCoord;
   vPosition = position;
+
   gl_Position = mvpMatrix * mix(
     // (prevDeformation == 4.) ? logo2Position :
     // (prevDeformation == 3.) ? facePosition :
@@ -80,6 +86,7 @@ void main(){
     videoPosition,
 
     deformationProgress);
+
   gl_PointSize = mix(
     (prevDeformation == 0.) ? videoSize : pointSize,
     (nextDeformation == 0.) ? videoSize : pointSize,

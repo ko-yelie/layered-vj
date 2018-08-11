@@ -3,6 +3,10 @@ uniform sampler2D videoTexture;
 // uniform sampler2D logoTexture;
 // uniform sampler2D logo2Texture;
 // uniform sampler2D faceTexture;
+uniform mat4 invMatrix;
+uniform vec3 lightDirection;
+uniform vec4 ambientColor;
+uniform vec4 torusColor;
 uniform float     bgColor;
 uniform float     mode;
 uniform float     pointShape;
@@ -12,7 +16,7 @@ uniform float nextDeformation;
 uniform float deformationProgress;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
-varying float vDiffuse;
+varying vec4 vModelColor;
 
 float lengthN(vec2 v, float n) {
   vec2 tmp = pow(abs(v), vec2(n));
@@ -39,8 +43,8 @@ void main(){
   vec4 currentColor = mix(vec4(minCurrentColor), vec4(maxCurrentColor), video);
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
 
-  vec4 modelColor = vec4(1.);
-  modelColor *= vec4(vec3(vDiffuse), 1.0);
+  // model
+  vec4 modelColor = vModelColor;
 
   // vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
   // vec4 logoColor = texture2D(logoTexture, imageTexCoord);

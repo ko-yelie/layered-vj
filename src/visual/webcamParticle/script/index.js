@@ -52,7 +52,11 @@ let pMatrix
 let vpMatrix
 let mvpMatrix
 let invMatrix
-let lightDirection = [0, 0, 0]
+
+// lighting
+let lightDirection = [-0.5, 0.5, 0.5]
+let ambientColor = [0.1, 0.1, 0.1, 1.0]
+let modelColor = [1, 1, 1, 1]
 
 let textures = {}
 let prgs = {}
@@ -456,6 +460,9 @@ function initGlsl () {
     lightDirection: {
       type: '3fv'
     },
+    ambientColor: {
+      type: '4fv'
+    },
     pointSize: {
       type: '1f'
     },
@@ -479,6 +486,9 @@ function initGlsl () {
     },
     bgColor: {
       type: '1f'
+    },
+    modelColor: {
+      type: '4fv'
     },
     volume: {
       type: '1f'
@@ -750,11 +760,7 @@ function init () {
   mvpMatrix = mat.identity(mat.create())
   invMatrix = mat.identity(mat.create())
 
-  // lighting
-  lightDirection = [-0.5, 0.5, 0.5]
-
   // flags
-  gl.disable(gl.DEPTH_TEST)
   gl.enable(gl.BLEND)
   gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE)
 
@@ -922,6 +928,7 @@ function init () {
         prgs.particleScene.setUniform('mvpMatrix', mvpMatrix)
         prgs.particleScene.setUniform('invMatrix', invMatrix)
         prgs.particleScene.setUniform('lightDirection', lightDirection)
+        prgs.particleScene.setUniform('ambientColor', ambientColor)
         prgs.particleScene.setUniform('pointSize', pointSize)
         prgs.particleScene.setUniform('videoTexture', textures.videoBuffer[capturedbufferIndex].index)
         prgs.particleScene.setUniform('positionTexture', textures.position[capturedbufferIndex].index)
@@ -931,6 +938,7 @@ function init () {
         })
         prgs.particleScene.setUniform('time', time)
         prgs.particleScene.setUniform('bgColor', settings.bgColor)
+        prgs.particleScene.setUniform('modelColor', modelColor)
         prgs.particleScene.setUniform('volume', volume)
         prgs.particleScene.setUniform('isAudio', isAudio)
         prgs.particleScene.setUniform('mode', mode)
