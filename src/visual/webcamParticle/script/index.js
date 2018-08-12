@@ -48,13 +48,13 @@ let pointVBO
 let popPointVBO
 
 // matrix
-let mat = new MatIV()
-let mMatrix = mat.identity(mat.create())
-let vMatrix = mat.identity(mat.create())
-let pMatrix = mat.identity(mat.create())
-let vpMatrix = mat.identity(mat.create())
-let mvpMatrix = mat.identity(mat.create())
-let invMatrix = mat.identity(mat.create())
+const mat = new MatIV()
+const mMatrix = mat.identity(mat.create())
+const vMatrix = mat.identity(mat.create())
+const pMatrix = mat.identity(mat.create())
+const vpMatrix = mat.identity(mat.create())
+const mvpMatrix = mat.identity(mat.create())
+const invMatrix = mat.identity(mat.create())
 
 // lighting
 let lightDirection = [-0.5, 0.5, 0.5]
@@ -103,6 +103,10 @@ let nextDeformation = 0
 let deformationProgressTl
 let stopMotionTimer
 let mode
+let isChangeDeformation = false
+let prevDeformationProgress = 0
+let modelRadian = 0
+let modelRadianTime = 0
 
 let loopCount = 0
 let targetbufferIndex
@@ -266,9 +270,12 @@ function importShader () {
 function initSettings () {
   deformationProgressTl = new Tween(settings, {
     property: 'deformationProgress',
-    duration: 700,
-    easing: 'easeOutExpo',
-    isAuto: false
+    duration: 800,
+    easing: 'easeInOutQuart',
+    isAuto: false,
+    onFinish: () => {
+      isChangeDeformation = false
+    }
   })
 
   // init settings
@@ -519,6 +526,9 @@ function initShader () {
     },
     modelColor: {
       type: '4fv'
+    },
+    modelRadian: {
+      type: '1f'
     },
     volume: {
       type: '1f'
@@ -950,11 +960,22 @@ function render () {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.viewport(0, 0, canvasWidth, canvasHeight)
 
-      rotation.x += settings.deformation === 0
-        ? ((pointer.x - rotation.x) * 0.02)
-        : 0.02
+      if (settings.deformation === 0 && !isChangeDeformation) {
+        rotation.x += (pointer.x - rotation.x) * 0.02
+      }
       rotation.y += (pointer.y - rotation.y) * 0.02
       updateCamera()
+
+      if (settings.deformation === 0 && !isChangeDeformation) {
+      } else if (isChangeDeformation) {
+        const rate = Math.abs((1 - prevDeformationProgress) - settings.deformationProgress)
+        modelRadianTime *= rate
+        modelRadian *= rate
+      } else {
+        modelRadianTime += 1 / 60
+        modelRadianTime %= PI2
+        modelRadian = Math.sin(modelRadianTime) * 40 / 360 * PI2
+      }
 
       prgs.particleScene.setAttribute('data', vbos.video)
       prgs.particleScene.setAttribute('torus')
@@ -973,6 +994,7 @@ function render () {
       prgs.particleScene.setUniform('time', time)
       prgs.particleScene.setUniform('bgColor', settings.bgColor)
       prgs.particleScene.setUniform('modelColor', modelColor)
+      prgs.particleScene.setUniform('modelRadian', modelRadian)
       prgs.particleScene.setUniform('volume', volume)
       prgs.particleScene.setUniform('isAudio', isAudio)
       prgs.particleScene.setUniform('mode', mode)
@@ -1082,6 +1104,7 @@ function render () {
 }
 
 export function update (property, value) {
+  isChangeDeformation = true
   settings[property] = value
 
   switch (property) {
@@ -1111,16 +1134,13 @@ export function update (property, value) {
       pointSize = settings.pointSize * canvasHeight / 930 / Math.pow(POINT_RESOLUTION_RATE, 0.4)
       break
     case 'deformation':
-      if (deformationProgressTl.target.deformationProgress === 1) {
+      prevDeformationProgress = deformationProgressTl.target.deformationProgress
+      if (prevDeformationProgress === 1) {
         prevDeformation = settings.deformation
         deformationProgressTl.reverse()
       } else {
         nextDeformation = settings.deformation
         deformationProgressTl.play()
-      }
-      // webcam のときはカメラ回転を元の位置に戻す
-      if (settings.deformation === 0) {
-        rotation.x += (pointer.x - rotation.x) * settings.deformationProgress
       }
       break
     case 'bgColor':

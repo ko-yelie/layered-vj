@@ -1,4 +1,5 @@
 import * as easingFunctions from 'js-easing-functions'
+import { noop } from './utils'
 
 easingFunctions.linear = (elapsed, initialValue, amountOfChange, duration) => amountOfChange * (elapsed / duration) + initialValue
 
@@ -10,7 +11,8 @@ export default class Tween {
       to = 1,
       duration = 1000,
       easing = 'linear',
-      isAuto = true
+      isAuto = true,
+      onFinish = noop
     } = options
 
     this.target = target
@@ -19,6 +21,7 @@ export default class Tween {
     this.property = property || Object.keys(target)[0]
     this.originalFrom = from || target[property]
     this.originalTo = to
+    this.onFinish = onFinish
 
     isAuto && this.play()
   }
@@ -30,6 +33,8 @@ export default class Tween {
 
     if (elapsed < this.duration) {
       this.id = requestAnimationFrame(this.tick.bind(this))
+    } else {
+      this.onFinish()
     }
   }
 

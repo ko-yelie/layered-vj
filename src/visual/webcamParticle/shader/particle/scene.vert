@@ -6,6 +6,7 @@ uniform mat4 invMatrix;
 uniform vec3 lightDirection;
 uniform vec4 ambientColor;
 uniform vec4 modelColor;
+uniform float modelRadian;
 uniform float pointSize;
 uniform sampler2D positionTexture;
 // uniform sampler2D logoTexture;
@@ -25,6 +26,11 @@ varying vec4 vModelColor;
 
 #pragma glslify: random = require(glsl-random)
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
+#pragma glslify: rotateQ = require(glsl-y-rotate/rotateQ)
+#pragma glslify: hsv = require(../modules/color.glsl)
+
+const float PI = 3.1415926;
+const float PI2 = PI * 2.0;
 
 const float speed = 0.3;
 const float amplitude = 0.1;
@@ -32,6 +38,7 @@ const float halfAmplitude = amplitude / 2.;
 const float standardRadius = 1.1;
 const float maxDeformationDistance = 2.;
 const float deformationMaxSize = 1. / maxDeformationDistance;
+const float colorInterval = PI2 * 6.;
 
 void main(){
   vec2 texCoord = data.xy;
@@ -54,12 +61,16 @@ void main(){
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
   vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
+  vec3 axis = normalize(vec3(0., 1., 0.));
+  torusPosition.xyz = rotateQ(axis, modelRadian) * torusPosition.xyz;
 
   // lighting
-  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
-  float diffuse = clamp(dot(normal, invLight), 0.1, 1.0);
-  vModelColor = modelColor;
-  vModelColor *= vec4(vec3(diffuse), 1.0);
+  float colorNTime = mod(time, colorInterval) / colorInterval;
+  vec4 cModelColor = vec4(hsv(colorNTime * PI2, 0.25 + 0.7 * colorNTime, 0.85 + 0.1 * colorNTime), 1.);
+  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
+  float diffuse = clamp(dot(normal, invLight), 0.1, 1.);
+  vModelColor = cModelColor;
+  vModelColor *= vec4(vec3(diffuse), 1.);
   vModelColor += ambientColor;
 
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);

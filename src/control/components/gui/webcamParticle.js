@@ -160,7 +160,7 @@ export default async function (argConfig, store) {
         break
       case 'autoDeformation':
         if (settings.autoDeformation) {
-          autoDeformationTimer = setInterval(settings.changeDeformation, 1000)
+          autoDeformationTimer = setInterval(settings.changeDeformation, 1200)
         } else {
           clearTimeout(autoDeformationTimer)
         }

@@ -16,6 +16,7 @@
     "dat.gui": "^0.7.2",
     "glsl-noise": "^0.0.0",
     "glsl-random": "^0.0.5",
+    "glsl-y-rotate": "^3.0.0",
     "gsap": "^2.0.1",
     "js-easing-functions": "^1.0.2",
     "noisejs": "^2.1.0",
