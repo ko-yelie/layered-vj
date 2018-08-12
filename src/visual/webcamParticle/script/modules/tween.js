@@ -9,43 +9,49 @@ export default class Tween {
       from = 0,
       to = 1,
       duration = 1000,
-      easing = 'linear'
+      easing = 'linear',
+      isAuto = true
     } = options
 
     this.target = target
     this.duration = duration
-    this.easing = easing
+    this.easingFunction = easingFunctions[easing]
     this.property = property || Object.keys(target)[0]
     this.originalFrom = from || target[property]
     this.originalTo = to
+
+    isAuto && this.play()
   }
 
-  tick () {
-    const elapsed = Date.now() - this.startTime
+  tick (timestamp) {
+    const elapsed = Math.min(timestamp - this.startTime, this.duration)
+
+    this.target[this.property] = this.easingFunction(elapsed, this.from, this.diff, this.duration)
 
     if (elapsed < this.duration) {
-      this.target[this.property] = easingFunctions[this.easing](elapsed, this.from, this.to - this.from, this.duration)
-      this.id = requestAnimationFrame(() => { this.tick() })
-    } else {
-      this.target[this.property] = this.to
+      this.id = requestAnimationFrame(this.tick.bind(this))
     }
   }
 
   animate () {
     this.stop()
-    this.startTime = Date.now()
-    this.id = requestAnimationFrame(() => { this.tick() })
+    this.id = requestAnimationFrame(timestamp => {
+      this.startTime = timestamp
+      this.tick(timestamp)
+    })
   }
 
   play () {
     this.from = this.originalFrom
     this.to = this.originalTo
+    this.diff = this.to - this.from
     this.animate()
   }
 
   reverse () {
     this.from = this.originalTo
     this.to = this.originalFrom
+    this.diff = this.to - this.from
     this.animate()
   }
 

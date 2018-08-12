@@ -4,7 +4,7 @@ let textureCount = 0
 export function initWebGL (myCanvas) {
   canvas = myCanvas
   gl = canvas.getContext('webgl')
-  return { canvas, gl }
+  return gl
 }
 
 export function createShader (source, type) {
