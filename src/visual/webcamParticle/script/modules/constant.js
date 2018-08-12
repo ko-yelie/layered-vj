@@ -37,14 +37,19 @@ export const DEFORMATION_LIST = [
     key: 'video',
     value: 0
   },
-  // {
-  //   key: 'circle',
-  //   value: 1
-  // },
+  {
+    key: 'circle',
+    value: 1
+  },
   {
     key: 'torus',
     value: 2
+  },
+  {
+    key: 'male',
+    value: 3
   }
 ]
 
-export const TORUS_SIZE = 1
+export const TORUS_SIZE = 0.8
+export const MALE_SIZE = 0.012

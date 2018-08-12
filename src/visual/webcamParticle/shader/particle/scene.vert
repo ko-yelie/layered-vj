@@ -1,6 +1,8 @@
 attribute vec4 data;
 attribute vec4 torus;
-attribute vec3 normal;
+attribute vec3 torusNormal;
+attribute vec4 male;
+attribute vec3 maleNormal;
 uniform mat4 mvpMatrix;
 uniform mat4 invMatrix;
 uniform vec3 lightDirection;
@@ -33,9 +35,9 @@ const float PI = 3.1415926;
 const float PI2 = PI * 2.0;
 
 const float speed = 0.3;
-const float amplitude = 0.1;
+const float amplitude = 1.;
 const float halfAmplitude = amplitude / 2.;
-const float standardRadius = 1.1;
+const float standardRadius = 0.5;
 const float maxDeformationDistance = 2.;
 const float deformationMaxSize = 1. / maxDeformationDistance;
 const float colorInterval = PI2 * 6.;
@@ -46,9 +48,9 @@ void main(){
   float deformationValue = 1. - abs(deformationProgress - 0.5) * 2.;
   float deformationDistance = mix(1., maxDeformationDistance, deformationValue);
   float deformationSize = mix(1., deformationMaxSize, deformationValue);
+
   vec4 position = texture2D(positionTexture, texCoord);
-  position.xy *= pow(deformationDistance, 1.5);
-  position.z *= ((isAudio == 1.) ? volume : 1.) * deformationDistance;
+  position.z *= ((isAudio == 1.) ? volume : 1.);
   vec4 videoPosition = vec4(position.xyz, 1.);
   float videoSize = min(position.z, 10.) * pointSize * deformationSize;
   videoSize *= (pointShape == 2.) ? 4. :
@@ -57,18 +59,24 @@ void main(){
 
   float randomValue = (data.w + random(texCoord + mod(loopCount, 10.))) / 2.;
   float radian = loopCount * speed * randomValue;
-  float radius = standardRadius + randomValue * amplitude - halfAmplitude;
+  float radius = standardRadius + sin(time * 10.) * 0.1 + randomValue * amplitude - halfAmplitude;
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
-  vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
   vec3 axis = normalize(vec3(0., 1., 0.));
+
+  // torus
+  vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
   torusPosition.xyz = rotateQ(axis, modelRadian) * torusPosition.xyz;
+
+  // male
+  vec4 malePosition = vec4(male.xyz + (snoise3(male.xyz + time) - 0.5) * 0.01, 1.);
+  malePosition.xyz = rotateQ(axis, modelRadian) * malePosition.xyz;
 
   // lighting
   float colorNTime = mod(time, colorInterval) / colorInterval;
   vec4 cModelColor = vec4(hsv(colorNTime * PI2, 0.25 + 0.7 * colorNTime, 0.85 + 0.1 * colorNTime), 1.);
   vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
-  float diffuse = clamp(dot(normal, invLight), 0.1, 1.);
+  float diffuse = clamp(dot(torusNormal, invLight), 0.1, 1.);
   vModelColor = cModelColor;
   vModelColor *= vec4(vec3(diffuse), 1.);
   vModelColor += ambientColor;
@@ -81,10 +89,11 @@ void main(){
   vTexCoord = texCoord;
   vPosition = position;
 
-  gl_Position = mvpMatrix * mix(
+  vec4 resultPosition = mix(
     // (prevDeformation == 4.) ? logo2Position :
     // (prevDeformation == 3.) ? facePosition :
     // (prevDeformation == 2.) ? logoPosition :
+    (prevDeformation == 3.) ? malePosition :
     (prevDeformation == 2.) ? torusPosition :
     (prevDeformation == 1.) ? circlePosition :
     videoPosition,
@@ -92,11 +101,14 @@ void main(){
     // (nextDeformation == 4.) ? logo2Position :
     // (nextDeformation == 3.) ? facePosition :
     // (nextDeformation == 2.) ? logoPosition :
+    (nextDeformation == 3.) ? malePosition :
     (nextDeformation == 2.) ? torusPosition :
     (nextDeformation == 1.) ? circlePosition :
     videoPosition,
 
     deformationProgress);
+  resultPosition.xyz *= deformationDistance;
+  gl_Position = mvpMatrix * resultPosition;
 
   gl_PointSize = mix(
     (prevDeformation == 0.) ? videoSize : pointSize,

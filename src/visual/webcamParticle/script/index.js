@@ -8,7 +8,8 @@ import {
   CAPTURE_FRAMEBUFFERS_COUNT,
   POST_LIST,
   DEFORMATION_LIST,
-  TORUS_SIZE
+  TORUS_SIZE,
+  MALE_SIZE
 } from './modules/constant.js'
 import MatIV from './modules/minMatrix.js'
 import {
@@ -27,9 +28,9 @@ import {
   bindFramebuffer,
   clearColor,
   getPointVbo,
-  getPlaneVbo,
-  getModelVbo
+  getPlaneVbo
 } from './modules/gl-utils.js'
+import { loadJSON, getModelVbo } from './modules/three-utils.js'
 import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
 import * as THREE from 'three'
@@ -121,7 +122,8 @@ export async function run (options) {
 
   gl = initWebGL(canvas)
   initCanvas()
-  if (!importShader()) {
+  const isSuccessShader = await importShader()
+  if (!isSuccessShader) {
     console.error('Shader program generation failed.')
     return
   }
@@ -271,7 +273,7 @@ function initSettings () {
   deformationProgressTl = new Tween(settings, {
     property: 'deformationProgress',
     duration: 800,
-    easing: 'easeInOutQuart',
+    easing: 'easeInOutQuint',
     isAuto: false,
     onFinish: () => {
       isChangeDeformation = false
@@ -301,7 +303,7 @@ async function initMedia () {
   })
 }
 
-function initShader () {
+async function initShader () {
   // vertices
   // plane
   let planeCoord = [1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]
@@ -323,12 +325,26 @@ function initShader () {
     vbos.video = pointVBO
   }
 
+  // models
+
   // torus
   {
     const geometry = new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100)
     const { vertices, normal } = getModelVbo(geometry, arrayLength)
     vbos.torus = vertices
-    vbos.normal = normal
+    vbos.torusNormal = normal
+  }
+
+  // male
+  {
+    const geometry = await loadJSON('/src/visual/assets/models/Male02_dds.json')
+    const { vertices, normal } = getModelVbo(geometry, arrayLength, MALE_SIZE, {
+      x: 0,
+      y: -1,
+      z: 0
+    })
+    vbos.male = vertices
+    vbos.maleNormal = normal
   }
 
   // pop
@@ -482,9 +498,17 @@ function initShader () {
       stride: 4,
       vbo: vbos.torus
     },
-    normal: {
+    torusNormal: {
       stride: 3,
-      vbo: vbos.normal
+      vbo: vbos.torusNormal
+    },
+    male: {
+      stride: 4,
+      vbo: vbos.male
+    },
+    maleNormal: {
+      stride: 3,
+      vbo: vbos.maleNormal
     }
   })
   prgs.particleScene.createUniform({
@@ -979,7 +1003,9 @@ function render () {
 
       prgs.particleScene.setAttribute('data', vbos.video)
       prgs.particleScene.setAttribute('torus')
-      prgs.particleScene.setAttribute('normal')
+      prgs.particleScene.setAttribute('torusNormal')
+      prgs.particleScene.setAttribute('male')
+      prgs.particleScene.setAttribute('maleNormal')
       prgs.particleScene.setUniform('mvpMatrix', mvpMatrix)
       prgs.particleScene.setUniform('invMatrix', invMatrix)
       prgs.particleScene.setUniform('lightDirection', lightDirection)
