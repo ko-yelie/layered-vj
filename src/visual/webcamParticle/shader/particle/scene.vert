@@ -52,7 +52,7 @@ void main(){
   vec4 position = texture2D(positionTexture, texCoord);
   position.z *= ((isAudio == 1.) ? volume : 1.);
   vec4 videoPosition = vec4(position.xyz, 1.);
-  float videoSize = min(position.z, 10.) * pointSize * deformationSize;
+  float videoSize = min(position.z, 5.) * pointSize * deformationSize;
   videoSize *= (pointShape == 2.) ? 4. :
     (pointShape == 1.) ? 1.3 :
     1.;

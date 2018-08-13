@@ -443,8 +443,8 @@ async function initShader () {
     resolution: {
       type: '2fv'
     },
-    videoTexture: {
-      type: '1i'
+    z: {
+      type: '1f'
     }
   })
 
@@ -774,10 +774,10 @@ function resetFramebuffer () {
   useProgram(prgs.reset)
   prgs.reset.setAttribute('position')
   prgs.reset.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
-  prgs.reset.setUniform('videoTexture', textures.video.index)
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
   for (let targetbufferIndex = 0; targetbufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetbufferIndex) {
     // velocity buffer
+    prgs.reset.setUniform('z', 0)
     bindFramebuffer(textures.velocity[targetbufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -785,6 +785,7 @@ function resetFramebuffer () {
   }
   for (let targetbufferIndex = 0; targetbufferIndex < CAPTURE_FRAMEBUFFERS_COUNT; ++targetbufferIndex) {
     // position buffer
+    prgs.reset.setUniform('z', 1)
     bindFramebuffer(textures.position[targetbufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -795,7 +796,7 @@ function resetFramebuffer () {
   useProgram(prgs.reset)
   prgs.reset.setAttribute('position')
   prgs.reset.setUniform('resolution', [POP_RESOLUTION, POP_RESOLUTION])
-  prgs.reset.setUniform('videoTexture', textures.video.index)
+  prgs.reset.setUniform('z', 1)
   gl.viewport(0, 0, POP_RESOLUTION, POP_RESOLUTION)
   for (let targetbufferIndex = 0; targetbufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetbufferIndex) {
     // pop velocity buffer
@@ -940,32 +941,22 @@ function render () {
     if (settings.animation === 'normal' || settings.animation === 'warp') {
       // Particle
 
-      // velocity update
-      useProgram(prgs.velocity)
-      bindFramebuffer(textures.velocity[targetbufferIndex].framebuffer)
-      prgs.velocity.setAttribute('position')
-      prgs.velocity.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
-      prgs.velocity.setUniform('prevVelocityTexture', textures.velocity[prevbufferIndex].index)
-      prgs.velocity.setUniform('pictureTexture', textures.picture[targetbufferIndex].index)
-      prgs.velocity.setUniform('animation', animation)
-      prgs.velocity.setUniform('isAccel', settings.accel)
-      prgs.velocity.setUniform('isRotation', settings.rotation)
-      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+      if (settings.deformation === 0) {
+        // velocity update
+        useProgram(prgs.velocity)
+        bindFramebuffer(textures.velocity[targetbufferIndex].framebuffer)
+        prgs.velocity.setAttribute('position')
+        prgs.velocity.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
+        prgs.velocity.setUniform('prevVelocityTexture', textures.velocity[prevbufferIndex].index)
+        prgs.velocity.setUniform('pictureTexture', textures.picture[targetbufferIndex].index)
+        prgs.velocity.setUniform('animation', animation)
+        prgs.velocity.setUniform('isAccel', settings.accel)
+        prgs.velocity.setUniform('isRotation', settings.rotation)
+        gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
 
-      // position update
-      useProgram(prgs.position)
-      bindFramebuffer(textures.position[targetbufferIndex].framebuffer)
-      prgs.position.setAttribute('position')
-      prgs.position.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
-      prgs.position.setUniform('prevPositionTexture', textures.position[prevbufferIndex].index)
-      prgs.position.setUniform('velocityTexture', textures.velocity[targetbufferIndex].index)
-      prgs.position.setUniform('pictureTexture', textures.picture[targetbufferIndex].index)
-      prgs.position.setUniform('animation', animation)
-      gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
-
-      if (isCapture) {
+        // position update
         useProgram(prgs.position)
-        bindFramebuffer(textures.position[capturedbufferIndex].framebuffer)
+        bindFramebuffer(textures.position[targetbufferIndex].framebuffer)
         prgs.position.setAttribute('position')
         prgs.position.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
         prgs.position.setUniform('prevPositionTexture', textures.position[prevbufferIndex].index)
@@ -973,6 +964,18 @@ function render () {
         prgs.position.setUniform('pictureTexture', textures.picture[targetbufferIndex].index)
         prgs.position.setUniform('animation', animation)
         gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+
+        if (isCapture) {
+          useProgram(prgs.position)
+          bindFramebuffer(textures.position[capturedbufferIndex].framebuffer)
+          prgs.position.setAttribute('position')
+          prgs.position.setUniform('resolution', [POINT_RESOLUTION, POINT_RESOLUTION])
+          prgs.position.setUniform('prevPositionTexture', textures.position[prevbufferIndex].index)
+          prgs.position.setUniform('velocityTexture', textures.velocity[targetbufferIndex].index)
+          prgs.position.setUniform('pictureTexture', textures.picture[targetbufferIndex].index)
+          prgs.position.setUniform('animation', animation)
+          gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
+        }
       }
 
       gl[settings.deformation === 0 ? 'disable' : 'enable'](gl.DEPTH_TEST)
