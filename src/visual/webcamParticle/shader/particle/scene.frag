@@ -43,9 +43,6 @@ void main(){
   vec4 currentColor = mix(vec4(minCurrentColor), vec4(maxCurrentColor), video);
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
 
-  // model
-  vec4 modelColor = vModelColor;
-
   // vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
   // vec4 logoColor = texture2D(logoTexture, imageTexCoord);
   // vec4 logo2Color = texture2D(logo2Texture, imageTexCoord);
@@ -55,14 +52,14 @@ void main(){
     // (prevDeformation == 4.) ? logo2Color :
     // (prevDeformation == 3.) ? faceColor :
     // (prevDeformation == 2.) ? logoColor :
-    (prevDeformation != 0.) ? modelColor :
-    videoColor,
+    (prevDeformation == 0.) ? videoColor :
+    vModelColor,
 
     // (nextDeformation == 4.) ? logo2Color :
     // (nextDeformation == 3.) ? faceColor :
     // (nextDeformation == 2.) ? logoColor :
-    (nextDeformation != 0.) ? modelColor :
-    videoColor,
+    (nextDeformation == 0.) ? videoColor :
+    vModelColor,
 
     deformationProgress);
 }

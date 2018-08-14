@@ -72,15 +72,6 @@ void main(){
   vec4 malePosition = vec4(male.xyz + (snoise3(male.xyz + time) - 0.5) * 0.01, 1.);
   malePosition.xyz = rotateQ(axis, modelRadian) * malePosition.xyz;
 
-  // lighting
-  float colorNTime = mod(time, colorInterval) / colorInterval;
-  vec4 cModelColor = vec4(hsv(colorNTime * PI2, 0.25 + 0.7 * colorNTime, 0.85 + 0.1 * colorNTime), 1.);
-  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
-  float diffuse = clamp(dot(torusNormal, invLight), 0.1, 1.);
-  vModelColor = cModelColor;
-  vModelColor *= vec4(vec3(diffuse), 1.);
-  vModelColor += ambientColor;
-
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);
   // vec4 logo2Position = vec4(texCoord * 2. - 1., 0., texture2D(logo2Texture, imageTexCoord).a);
@@ -88,6 +79,25 @@ void main(){
 
   vTexCoord = texCoord;
   vPosition = position;
+
+  // lighting
+  vec3 circleNormal = torusNormal;
+  vec3 resultNormal = mix(
+    (prevDeformation == 3.) ? maleNormal :
+    (prevDeformation == 2.) ? torusNormal :
+    circleNormal,
+
+    (nextDeformation == 3.) ? maleNormal :
+    (nextDeformation == 2.) ? torusNormal :
+    circleNormal,
+
+    deformationProgress);
+  float colorNTime = mod(time, colorInterval) / colorInterval;
+  vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
+  float diffuse = clamp(dot(resultNormal, invLight), 0.1, 1.);
+  vModelColor = vec4(hsv(colorNTime * PI2, 0.25 + 0.7 * colorNTime, 0.85 + 0.1 * colorNTime), 1.);
+  vModelColor *= vec4(vec3(diffuse), 1.);
+  vModelColor += ambientColor;
 
   vec4 resultPosition = mix(
     // (prevDeformation == 4.) ? logo2Position :

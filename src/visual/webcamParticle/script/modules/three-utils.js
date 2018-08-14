@@ -23,8 +23,7 @@ export function getModelVbo (
   const vertices = []
   const normals = []
   for (let i = 0; i < particleCount; i++) {
-    const cI = i % facesCount
-    const { a, b, c, normal } = geometry.faces[cI]
+    const { a, b, c, normal } = geometry.faces[i % facesCount]
     const random = Math.random()
     ;[a, b, c].forEach(v => {
       const { x, y, z } = geometry.vertices[v]
