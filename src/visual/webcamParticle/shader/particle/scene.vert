@@ -92,6 +92,7 @@ void main(){
     circleNormal,
 
     deformationProgress);
+  resultNormal = rotateQ(axis, modelRadian) * resultNormal;
   float colorNTime = mod(time, colorInterval) / colorInterval;
   vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
   float diffuse = clamp(dot(resultNormal, invLight), 0.1, 1.);
