@@ -10,6 +10,8 @@ uniform vec4 ambientColor;
 uniform vec4 modelColor;
 uniform float modelRadian;
 uniform float pointSize;
+uniform vec2 resolution;
+uniform vec2 videoResolution;
 uniform sampler2D positionTexture;
 // uniform sampler2D logoTexture;
 // uniform sampler2D logo2Texture;
@@ -30,6 +32,7 @@ varying vec4 vModelColor;
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
 #pragma glslify: rotateQ = require(glsl-y-rotate/rotateQ)
 #pragma glslify: hsv = require(../modules/color.glsl)
+#pragma glslify: adjustRatio = require(../modules/ratio.glsl)
 
 const float PI = 3.1415926;
 const float PI2 = PI * 2.0;
@@ -42,6 +45,14 @@ const float maxDeformationDistance = 2.;
 const float deformationMaxSize = 1. / maxDeformationDistance;
 const float colorInterval = PI2 * 6.;
 
+vec2 adjustRatio2(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
+  vec2 ratio = vec2(
+    min((outputResolution.x / outputResolution.y) / (inputResolution.x / inputResolution.y), 1.0),
+    min((outputResolution.y / outputResolution.x) / (inputResolution.y / inputResolution.x), 1.0)
+  );
+  return coord * ratio;
+}
+
 void main(){
   vec2 texCoord = data.xy;
 
@@ -49,7 +60,7 @@ void main(){
   float deformationDistance = mix(1., maxDeformationDistance, deformationValue);
   float deformationSize = mix(1., deformationMaxSize, deformationValue);
 
-  vec4 position = texture2D(positionTexture, texCoord);
+  vec4 position = texture2D(positionTexture, adjustRatio(texCoord, videoResolution, resolution));
   position.z *= ((isAudio == 1.) ? volume : 1.);
   vec4 videoPosition = vec4(position.xyz, 1.);
   float videoSize = min(position.z, 5.) * pointSize * deformationSize;
@@ -119,6 +130,7 @@ void main(){
 
     deformationProgress);
   resultPosition.xyz *= deformationDistance;
+  resultPosition.xy = adjustRatio2(resultPosition.xy, resolution, vec2(1.));
   gl_Position = mvpMatrix * resultPosition;
 
   gl_PointSize = mix(

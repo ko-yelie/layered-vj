@@ -11,6 +11,7 @@ export const MAX_VIDEO_ZOOM = 3
 
 export const GPGPU_FRAMEBUFFERS_COUNT = 2
 export const CAPTURE_FRAMEBUFFERS_COUNT = 3
+export const VIDEO_FRAMEBUFFERS_COUNT = 5
 
 export const MODE_LIST = [
   'POINTS',

@@ -39,6 +39,20 @@ export class Program {
     this.uniforms = {}
   }
 
+  createVariables (data) {
+    this.createAttribute(data.attribute)
+    this.createUniform(data.uniform)
+  }
+
+  setVariables (data) {
+    data.attribute && Object.keys(data.attribute).forEach(name => {
+      this.setAttribute(name, data.attribute[name])
+    })
+    data.uniform && Object.keys(data.uniform).forEach(name => {
+      this.setUniform(name, data.uniform[name])
+    })
+  }
+
   createAttribute (data) {
     Object.keys(data).forEach(name => {
       const { stride, vbo, ibo } = data[name]

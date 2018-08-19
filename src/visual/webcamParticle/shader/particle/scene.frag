@@ -1,4 +1,6 @@
 precision highp float;
+uniform vec2 resolution;
+uniform vec2 videoResolution;
 uniform sampler2D videoTexture;
 // uniform sampler2D logoTexture;
 // uniform sampler2D logo2Texture;
@@ -18,13 +20,16 @@ varying vec2 vTexCoord;
 varying vec4 vPosition;
 varying vec4 vModelColor;
 
+#pragma glslify: adjustRatio = require(../modules/ratio.glsl)
+
 float lengthN(vec2 v, float n) {
   vec2 tmp = pow(abs(v), vec2(n));
   return pow(tmp.x + tmp.y, 1. / n);
 }
 
 void main(){
-  vec4 video = texture2D(videoTexture, vTexCoord);
+  vec2 videoTexcoord = adjustRatio(vTexCoord, videoResolution, resolution);
+  vec4 video = texture2D(videoTexture, videoTexcoord);
   float rate = max(vPosition.z / vPosition.w, 0.);
 
   vec2 pointCoord = gl_PointCoord.st * 2. - 1.;

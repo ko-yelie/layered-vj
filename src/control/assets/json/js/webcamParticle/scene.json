@@ -34,7 +34,7 @@
     "Particle": {
       "0": {
         "animation": "normal",
-        "mode": "POINTS",
+        "mode": "TRIANGLES",
         "pointShape": 1,
         "pointSize": 5,
         "deformation": 0,
@@ -42,7 +42,7 @@
         "deformationProgress": 0,
         "bgColor": 0,
         "zPosition": 2.5,
-        "pointer": false,
+        "pointer": true,
         "accel": false,
         "rotation": false,
         "capture": false,
