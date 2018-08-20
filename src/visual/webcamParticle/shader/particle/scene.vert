@@ -44,6 +44,7 @@ const float standardRadius = 0.5;
 const float maxDeformationDistance = 2.;
 const float deformationMaxSize = 1. / maxDeformationDistance;
 const float colorInterval = PI2 * 6.;
+const vec3 axis = normalize(vec3(0., 1., 0.));
 
 vec2 adjustRatio2(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
   vec2 ratio = vec2(
@@ -51,6 +52,12 @@ vec2 adjustRatio2(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
     min((outputResolution.y / outputResolution.x) / (inputResolution.y / inputResolution.x), 1.0)
   );
   return coord * ratio;
+}
+
+vec4 modelPosition (vec4 model) {
+  vec4 modelPosition = vec4(model.xyz + maleNormal * pow(snoise3(model.xyz + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01, 1.);
+  modelPosition.xyz = rotateQ(axis, modelRadian) * modelPosition.xyz;
+  return modelPosition;
 }
 
 void main(){
@@ -73,15 +80,11 @@ void main(){
   float radius = standardRadius + sin(time * 10.) * 0.1 + randomValue * amplitude - halfAmplitude;
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
-  vec3 axis = normalize(vec3(0., 1., 0.));
-
   // torus
-  vec4 torusPosition = vec4(torus.xyz + (snoise3(torus.xyz + time) - 0.5) * 0.01, 1.);
-  torusPosition.xyz = rotateQ(axis, modelRadian) * torusPosition.xyz;
+  vec4 torusPosition = modelPosition(torus);
 
   // male
-  vec4 malePosition = vec4(male.xyz + (snoise3(male.xyz + time) - 0.5) * 0.01, 1.);
-  malePosition.xyz = rotateQ(axis, modelRadian) * malePosition.xyz;
+  vec4 malePosition = modelPosition(male);
 
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);

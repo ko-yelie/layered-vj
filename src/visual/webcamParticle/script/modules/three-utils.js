@@ -20,10 +20,26 @@ export function getModelVbo (
     particleCount = facesCount
   }
 
+  const storedNormals = {}
+  for (let i = 0; i < facesCount; i++) {
+    const face = geometry.faces[i]
+    const { a, b, c, normal } = face
+    ;[a, b, c].forEach(v => {
+      const { x, y, z } = geometry.vertices[v]
+      const key = `${x}${y}${z}`
+      let storedNormal = storedNormals[key]
+      if (storedNormal) {
+        storedNormal += normal
+      } else {
+        storedNormals[key] = normal
+      }
+    })
+  }
+
   const vertices = []
   const normals = []
   for (let i = 0; i < particleCount; i++) {
-    const { a, b, c, normal } = geometry.faces[i % facesCount]
+    const { a, b, c } = geometry.faces[i % facesCount]
     const random = Math.random()
     ;[a, b, c].forEach(v => {
       const { x, y, z } = geometry.vertices[v]
@@ -33,7 +49,8 @@ export function getModelVbo (
         z * scale + offset.z,
         random
       )
-      normals.push(normal.x, normal.y, normal.z)
+      const storedNormal = storedNormals[`${x}${y}${z}`]
+      normals.push(storedNormal.x, storedNormal.y, storedNormal.z)
     })
   }
 
