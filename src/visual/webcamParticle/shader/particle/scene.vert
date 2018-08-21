@@ -7,6 +7,7 @@ uniform mat4 mvpMatrix;
 uniform mat4 invMatrix;
 uniform vec3 lightDirection;
 uniform vec4 ambientColor;
+uniform vec3 eyeDirection;
 uniform vec4 modelColor;
 uniform float modelRadian;
 uniform float pointSize;
@@ -109,9 +110,12 @@ void main(){
   resultNormal = rotateQ(axis, modelRadian) * resultNormal;
   float colorNTime = mod(time, colorInterval) / colorInterval;
   vec3 invLight = normalize(invMatrix * vec4(lightDirection, 0.)).xyz;
+  vec3 invEye = normalize(invMatrix * vec4(eyeDirection, 0.)).xyz;
+  vec3 halfLE = normalize(invLight + invEye);
   float diffuse = clamp(dot(resultNormal, invLight), 0.1, 1.);
+  float specular = pow(clamp(dot(resultNormal, halfLE), 0., 1.), 50.);
   vModelColor = vec4(hsv(colorNTime * PI2, 0.25 + 0.7 * colorNTime, 0.85 + 0.1 * colorNTime), 1.);
-  vModelColor *= vec4(vec3(diffuse), 1.);
+  vModelColor *= vec4(vec3(diffuse), 1.) + vec4(vec3(specular), 1.);
   vModelColor += ambientColor;
 
   vec4 resultPosition = mix(

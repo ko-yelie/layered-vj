@@ -43,6 +43,7 @@ const POINT_RESOLUTION_RATE = POINT_RESOLUTION / BASE_RESOLUTION
 let canvas
 let canvasWidth
 let canvasHeight
+let resolution
 let gl
 
 let planeIndex
@@ -58,18 +59,15 @@ const vpMatrix = mat.identity(mat.create())
 const mvpMatrix = mat.identity(mat.create())
 const invMatrix = mat.identity(mat.create())
 
-// lighting
-let lightDirection = [-0.5, 0.5, 0.5]
-let ambientColor = [0.1, 0.1, 0.1, 1.0]
-let modelColor = [1, 1, 1, 1]
-
 let textures = {}
 let prgs = {}
 let postPrgs = {}
 
 let media
 let settings = {}
+let pointResolution = [POINT_RESOLUTION, POINT_RESOLUTION]
 let video
+let videoResolution
 let animation
 let focusPosList = []
 let focusCount
@@ -110,6 +108,12 @@ let prevDeformationProgress = 0
 let modelRadian = 0
 let modelRadianTime = 0
 
+// lighting
+let lightDirection = [-0.5, 0.5, 0.5]
+let eyeDirection = [cameraPosition.x, cameraPosition.y, cameraPosition.z]
+let ambientColor = [0.1, 0.1, 0.1, 1]
+let modelColor = [1, 1, 1, 1]
+
 let loopCount = 0
 let targetbufferIndex
 let prevbufferIndex
@@ -139,15 +143,13 @@ export async function run (options) {
 
 function initCanvas () {
   // canvas element を取得しサイズをウィンドウサイズに設定
-  initSize({
-    onResize () {
-      canvasWidth = canvas.width
-      canvasHeight = canvas.height
-    }
-  })
-
-  canvasWidth = canvas.width
-  canvasHeight = canvas.height
+  function onResize () {
+    canvasWidth = canvas.width
+    canvasHeight = canvas.height
+    resolution = [canvasWidth, canvasHeight]
+  }
+  initSize({ onResize })
+  onResize()
 
   // Esc キーで実行を止められるようにイベントを設定
   window.addEventListener('keydown', e => {
@@ -264,6 +266,7 @@ function initSettings () {
 async function initMedia () {
   // init media value
   video = media.currentVideo
+  videoResolution = [video.videoWidth, video.videoHeight]
   videoZoom = settings.videoZoom
   settings.zoomPos = zoomPos
 
@@ -536,6 +539,9 @@ async function initShader () {
       lightDirection: {
         type: '3fv'
       },
+      eyeDirection: {
+        type: '3fv'
+      },
       ambientColor: {
         type: '4fv'
       },
@@ -772,12 +778,12 @@ function resetFramebuffer () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
-      videoResolution: [video.videoWidth, video.videoHeight],
+      resolution,
+      videoResolution,
       videoTexture: textures.video.index,
       zoom: videoZoom,
-      zoomPos: zoomPos,
-      focusCount: focusCount,
+      zoomPos,
+      focusCount,
       focusPos1: focusPosList[0] || defaultFocus,
       focusPos2: focusPosList[1] || defaultFocus,
       focusPos3: focusPosList[2] || defaultFocus,
@@ -799,7 +805,7 @@ function resetFramebuffer () {
       position: null
     },
     uniform: {
-      resolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+      resolution: pointResolution,
       videoTexture: textures.video.index
     }
   })
@@ -819,7 +825,7 @@ function resetFramebuffer () {
       position: null
     },
     uniform: {
-      resolution: [POINT_RESOLUTION, POINT_RESOLUTION]
+      resolution: pointResolution
     }
   })
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
@@ -873,6 +879,7 @@ function updateCamera () {
   cameraPosition.x += (pointer.x * cameraPositionRate - cameraPosition.x) * 0.1
   cameraPosition.y += (pointer.y * cameraPositionRate - cameraPosition.y) * 0.1
   cameraPosition.z += (settings.zPosition - cameraPosition.z) * 0.1
+  eyeDirection = [cameraPosition.x, cameraPosition.y, cameraPosition.z]
 
   mat.identity(mMatrix)
   mat.lookAt(
@@ -925,12 +932,12 @@ function render () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
-      videoResolution: [video.videoWidth, video.videoHeight],
+      resolution,
+      videoResolution,
       videoTexture: textures.video.index,
       zoom: videoZoom,
-      zoomPos: zoomPos,
-      focusCount: focusCount,
+      zoomPos,
+      focusCount,
       focusPos1: focusPosList[0] || defaultFocus,
       focusPos2: focusPosList[1] || defaultFocus,
       focusPos3: focusPosList[2] || defaultFocus,
@@ -946,12 +953,12 @@ function render () {
         position: null
       },
       uniform: {
-        resolution: [canvasWidth, canvasHeight],
-        videoResolution: [video.videoWidth, video.videoHeight],
+        resolution,
+        videoResolution,
         videoTexture: textures.video.index,
         zoom: videoZoom,
-        zoomPos: zoomPos,
-        focusCount: focusCount,
+        zoomPos,
+        focusCount,
         focusPos1: focusPosList[0] || defaultFocus,
         focusPos2: focusPosList[1] || defaultFocus,
         focusPos3: focusPosList[2] || defaultFocus,
@@ -968,8 +975,8 @@ function render () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
-      videoResolution: [video.videoWidth, video.videoHeight],
+      resolution,
+      videoResolution,
       videoTexture: textures.videoBuffer[videoBufferIndex].index
     }
   })
@@ -986,13 +993,13 @@ function render () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
+      resolution,
       texture: textures.videoBuffer[3].index,
-      time: time,
-      volume: volume,
-      isAudio: isAudio,
+      time,
+      volume,
+      isAudio,
       custom: settings.custom,
-      customSwitch: customSwitch
+      customSwitch
     }
   })
   gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1008,13 +1015,13 @@ function render () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
+      resolution,
       texture: textures.postScene.index,
-      time: time,
-      volume: volume,
-      isAudio: isAudio,
+      time,
+      volume,
+      isAudio,
       custom: settings.custom,
-      customSwitch: customSwitch
+      customSwitch
     }
   })
   gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1027,8 +1034,8 @@ function render () {
         position: null
       },
       uniform: {
-        resolution: [canvasWidth, canvasHeight],
-        videoResolution: [video.videoWidth, video.videoHeight],
+        resolution,
+        videoResolution,
         videoTexture: textures.videoBuffer[videoBufferIndex].index
       }
     })
@@ -1044,7 +1051,7 @@ function render () {
         position: null
       },
       uniform: {
-        resolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+        resolution: pointResolution,
         videoTexture: textures.videoBuffer[targetbufferIndex].index,
         prevVideoTexture: textures.videoBuffer[prevbufferIndex].index,
         prevPictureTexture: textures.picture[prevbufferIndex].index
@@ -1064,10 +1071,10 @@ function render () {
             position: null
           },
           uniform: {
-            resolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+            resolution: pointResolution,
             prevVelocityTexture: textures.velocity[prevbufferIndex].index,
             pictureTexture: textures.picture[targetbufferIndex].index,
-            animation: animation,
+            animation,
             isAccel: settings.accel,
             isRotation: settings.rotation
           }
@@ -1082,11 +1089,11 @@ function render () {
             position: null
           },
           uniform: {
-            resolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+            resolution: pointResolution,
             prevPositionTexture: textures.position[prevbufferIndex].index,
             velocityTexture: textures.velocity[targetbufferIndex].index,
             pictureTexture: textures.picture[targetbufferIndex].index,
-            animation: animation
+            animation
           }
         })
         gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1099,11 +1106,11 @@ function render () {
               position: null
             },
             uniform: {
-              resolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+              resolution: pointResolution,
               prevPositionTexture: textures.position[prevbufferIndex].index,
               velocityTexture: textures.velocity[targetbufferIndex].index,
               pictureTexture: textures.picture[targetbufferIndex].index,
-              animation: animation
+              animation
             }
           })
           gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1145,28 +1152,29 @@ function render () {
           maleNormal: null
         },
         uniform: {
-          mvpMatrix: mvpMatrix,
-          invMatrix: invMatrix,
-          lightDirection: lightDirection,
-          ambientColor: ambientColor,
-          pointSize: pointSize,
-          resolution: [canvasWidth, canvasHeight],
-          videoResolution: [video.videoWidth, video.videoHeight],
+          mvpMatrix,
+          invMatrix,
+          lightDirection,
+          eyeDirection,
+          ambientColor,
+          pointSize,
+          resolution,
+          videoResolution,
           videoTexture: textures.videoBuffer[currentBufferIndex].index,
           positionTexture: textures.position[positionBufferIndex].index,
-          time: time,
+          time,
           bgColor: settings.bgColor,
-          modelColor: modelColor,
-          modelRadian: modelRadian,
-          volume: volume,
-          isAudio: isAudio,
-          mode: mode,
+          modelColor,
+          modelRadian,
+          volume,
+          isAudio,
+          mode,
           pointShape: settings.pointShape,
-          prevDeformation: prevDeformation,
-          nextDeformation: nextDeformation,
+          prevDeformation,
+          nextDeformation,
           deformationProgress: settings.deformationProgress,
-          loopCount: loopCount,
-          animation: animation
+          loopCount,
+          animation
         }
       })
       DEFORMATION_LIST.forEach(({ key, src }) => {
@@ -1226,16 +1234,16 @@ function render () {
           data: null
         },
         uniform: {
-          mvpMatrix: mvpMatrix,
-          resolution: [canvasWidth, canvasHeight],
-          pointSize: pointSize,
+          mvpMatrix,
+          resolution,
+          pointSize,
           videoTexture: textures.videoBuffer[targetbufferIndex].index,
           positionTexture: textures.popPosition[targetbufferIndex].index,
           velocityTexture: textures.popVelocity[targetbufferIndex].index,
           bgColor: settings.bgColor,
-          volume: volume,
-          isAudio: isAudio,
-          time: time
+          volume,
+          isAudio,
+          time
         }
       })
       gl.drawArrays(gl.POINTS, 0, popArrayLength)
@@ -1255,11 +1263,11 @@ function render () {
     uniform: {
       particleTexture: textures.particleScene.index,
       postTexture: textures.postSceneLast.index,
-      resolution: [canvasWidth, canvasHeight],
-      pointResolution: [POINT_RESOLUTION, POINT_RESOLUTION],
+      resolution,
+      pointResolution,
       videoAlpha: settings.videoAlpha,
       particleAlpha: settings.particleAlpha,
-      animation: animation
+      animation
     }
   })
   gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1280,13 +1288,13 @@ function render () {
       position: null
     },
     uniform: {
-      resolution: [canvasWidth, canvasHeight],
+      resolution,
       texture: textures.lastPost.index,
-      time: time,
-      volume: volume,
-      isAudio: isAudio,
+      time,
+      volume,
+      isAudio,
       custom: settings.custom,
-      customSwitch: customSwitch
+      customSwitch
     }
   })
   gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
