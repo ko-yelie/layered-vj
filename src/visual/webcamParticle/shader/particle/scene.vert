@@ -3,6 +3,8 @@ attribute vec4 torus;
 attribute vec3 torusNormal;
 attribute vec4 male;
 attribute vec3 maleNormal;
+attribute vec4 text;
+attribute vec3 textNormal;
 uniform mat4 mvpMatrix;
 uniform mat4 invMatrix;
 uniform vec3 lightDirection;
@@ -55,8 +57,8 @@ vec2 adjustRatio2(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
   return coord * ratio;
 }
 
-vec4 modelPosition (vec4 model) {
-  vec4 modelPosition = vec4(model.xyz + maleNormal * pow(snoise3(model.xyz + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01, 1.);
+vec4 modelPosition (vec4 model, vec3 normal) {
+  vec4 modelPosition = vec4(model.xyz + normal * pow(snoise3(model.xyz + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01, 1.);
   modelPosition.xyz = rotateQ(axis, modelRadian) * modelPosition.xyz;
   return modelPosition;
 }
@@ -82,10 +84,13 @@ void main(){
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
   // torus
-  vec4 torusPosition = modelPosition(torus);
+  vec4 torusPosition = modelPosition(torus, torusNormal);
 
   // male
-  vec4 malePosition = modelPosition(male);
+  vec4 malePosition = modelPosition(male, maleNormal);
+
+  // text
+  vec4 textPosition = modelPosition(text, textNormal);
 
   // vec2 imageTexCoord = vec2(texCoord.x, 1. - texCoord.y);
   // vec4 logoPosition = vec4(texCoord * 2. - 1., 0., texture2D(logoTexture, imageTexCoord).a);
@@ -98,10 +103,12 @@ void main(){
   // lighting
   vec3 circleNormal = torusNormal;
   vec3 resultNormal = mix(
+    (prevDeformation == 4.) ? textNormal :
     (prevDeformation == 3.) ? maleNormal :
     (prevDeformation == 2.) ? torusNormal :
     circleNormal,
 
+    (nextDeformation == 4.) ? textNormal :
     (nextDeformation == 3.) ? maleNormal :
     (nextDeformation == 2.) ? torusNormal :
     circleNormal,
@@ -122,6 +129,7 @@ void main(){
     // (prevDeformation == 4.) ? logo2Position :
     // (prevDeformation == 3.) ? facePosition :
     // (prevDeformation == 2.) ? logoPosition :
+    (prevDeformation == 4.) ? textPosition :
     (prevDeformation == 3.) ? malePosition :
     (prevDeformation == 2.) ? torusPosition :
     (prevDeformation == 1.) ? circlePosition :
@@ -130,6 +138,7 @@ void main(){
     // (nextDeformation == 4.) ? logo2Position :
     // (nextDeformation == 3.) ? facePosition :
     // (nextDeformation == 2.) ? logoPosition :
+    (nextDeformation == 4.) ? textPosition :
     (nextDeformation == 3.) ? malePosition :
     (nextDeformation == 2.) ? torusPosition :
     (nextDeformation == 1.) ? circlePosition :

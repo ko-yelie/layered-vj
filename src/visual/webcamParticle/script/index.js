@@ -31,7 +31,11 @@ import {
   getPointVbo,
   getPlaneVbo
 } from './modules/gl-utils.js'
-import { loadJSON, getModelVbo } from './modules/three-utils.js'
+import {
+  loadJSON,
+  loadFont,
+  getModelVbo
+} from './modules/three-utils.js'
 import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
 import * as THREE from 'three'
@@ -323,6 +327,21 @@ async function initShader () {
     vbos.maleNormal = normal
   }
 
+  // text
+  {
+    const geometry = await loadFont('/src/visual/assets/fonts/helvetiker_regular.typeface.json', '!?')
+    geometry.computeBoundingBox()
+    const centerOffsetX = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x) / 100
+    const centerOffsetY = -0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y) / 100
+    const { vertices, normal } = getModelVbo(geometry, arrayLength, MALE_SIZE, {
+      x: centerOffsetX,
+      y: centerOffsetY,
+      z: 0
+    })
+    vbos.text = vertices
+    vbos.textNormal = normal
+  }
+
   // pop
   {
     const { vertices, count } = getPointVbo(POP_RESOLUTION)
@@ -527,6 +546,14 @@ async function initShader () {
       maleNormal: {
         stride: 3,
         vbo: vbos.maleNormal
+      },
+      text: {
+        stride: 4,
+        vbo: vbos.text
+      },
+      textNormal: {
+        stride: 3,
+        vbo: vbos.textNormal
       }
     },
     uniform: {
@@ -1149,7 +1176,9 @@ function render () {
           torus: null,
           torusNormal: null,
           male: null,
-          maleNormal: null
+          maleNormal: null,
+          text: null,
+          textNormal: null
         },
         uniform: {
           mvpMatrix,

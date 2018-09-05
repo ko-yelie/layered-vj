@@ -49,6 +49,10 @@ export const DEFORMATION_LIST = [
   {
     key: 'male',
     value: 3
+  },
+  {
+    key: 'text',
+    value: 4
   }
 ]
 

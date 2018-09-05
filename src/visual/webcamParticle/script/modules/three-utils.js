@@ -1,11 +1,36 @@
 import * as THREE from 'three'
 import { createVbo } from './gl-utils'
+import { noop } from './utils'
 
-const loader = new THREE.JSONLoader()
+const jsonLoader = new THREE.JSONLoader()
+const fontLoader = new THREE.FontLoader()
 
 export function loadJSON (url) {
   return new Promise(resolve => {
-    loader.load(url, resolve)
+    jsonLoader.load(url, resolve)
+  })
+}
+
+export function loadFont (url, text) {
+  return new Promise((resolve, reject) => {
+    fontLoader.load(
+      url,
+      font => {
+        const geometry = new THREE.TextGeometry(text, {
+          font: font,
+          size: 60 / (text.length / 4),
+          height: 20,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 1,
+          bevelSize: 1,
+          bevelSegments: 5
+        })
+        resolve(geometry)
+      },
+      noop,
+      reject
+    )
   })
 }
 
