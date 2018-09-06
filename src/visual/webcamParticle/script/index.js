@@ -1159,12 +1159,7 @@ function render () {
       rotation.y += (pointer.y - rotation.y) * 0.02
       updateCamera()
 
-      if (settings.deformation === 0 && !isChangeDeformation) {
-      } else if (isChangeDeformation) {
-        const rate = Math.abs((1 - prevDeformationProgress) - settings.deformationProgress)
-        modelRadianTime *= rate
-        modelRadian *= rate
-      } else {
+      if (settings.deformation !== 0) {
         modelRadianTime += 1 / 60
         modelRadianTime %= PI2
         modelRadian = Math.sin(modelRadianTime) * 40 / 360 * PI2
