@@ -7,7 +7,8 @@ import {
   MAX_ZOOM,
   MODE_LIST,
   POST_LIST,
-  DEFORMATION_LIST
+  DEFORMATION_LIST,
+  NOISE_LIST
 } from '../../../visual/webcamParticle/script/modules/constant.js'
 
 export default async function (argConfig, store) {
@@ -67,30 +68,51 @@ export default async function (argConfig, store) {
     const pointSizeMap = [0.1, 30]
     pointFolder.add(settings, 'pointSize', ...pointSizeMap).onChange(dispatchVisual)
 
-    // deformation
-    deformationMap = {}
-    let deformationList = DEFORMATION_LIST
-    if (argConfig && argConfig.deformation) {
-      deformationList = deformationList.concat(argConfig.deformation)
-    }
-    deformationList.forEach(({ key, value }) => {
-      deformationMap[key] = value
-    })
-    particleFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
+    {
+      const deformationFolder = particleFolder.addFolder('Deformation')
+      deformationFolder.open()
 
-    // changeDeformation
-    settings.changeDeformation = () => {
-      const array = Object.keys(deformationMap)
-      array.some((v, i) => {
-        if (deformationMap[v] === settings.deformation) array.splice(i, 1)
+      // deformation
+      deformationMap = {}
+      let deformationList = DEFORMATION_LIST
+      if (argConfig && argConfig.deformation) {
+        deformationList = deformationList.concat(argConfig.deformation)
+      }
+      deformationList.forEach(({ key, value }) => {
+        deformationMap[key] = value
       })
-      settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
-      ipc.send('dispatch-webcam-particle', 'update', 'deformation', settings.deformation)
-    }
-    particleFolder.add(settings, 'changeDeformation').onChange(dispatchVisual)
+      deformationFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
 
-    // autoDeformation
-    particleFolder.add(settings, 'autoDeformation').onChange(dispatchVisual)
+      // changeDeformation
+      settings.changeDeformation = () => {
+        const array = Object.keys(deformationMap)
+        array.some((v, i) => {
+          if (deformationMap[v] === settings.deformation) array.splice(i, 1)
+        })
+        settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
+        ipc.send('dispatch-webcam-particle', 'update', 'deformation', settings.deformation)
+      }
+      deformationFolder.add(settings, 'changeDeformation').onChange(dispatchVisual)
+
+      // autoDeformation
+      deformationFolder.add(settings, 'autoDeformation').onChange(dispatchVisual)
+    }
+
+    {
+      const noiseFolder = particleFolder.addFolder('Noise')
+      noiseFolder.open()
+
+      // noise type
+      const noiseMap = {}
+      let noiseList = NOISE_LIST
+      if (argConfig && argConfig.noiseType) {
+        noiseList = noiseList.concat(argConfig.noiseType)
+      }
+      noiseList.forEach(({ key, value }) => {
+        noiseMap[key] = value
+      })
+      noiseFolder.add(settings, 'noiseType', noiseMap).onChange(dispatchVisual).listen()
+    }
 
     // canvas folder
     const canvasFolder = particleFolder.addFolder('canvas')

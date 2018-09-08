@@ -1,4 +1,6 @@
 attribute vec4 data;
+attribute vec4 sphere;
+attribute vec3 sphereNormal;
 attribute vec4 torus;
 attribute vec3 torusNormal;
 attribute vec4 male;
@@ -26,6 +28,7 @@ uniform float pointShape;
 uniform float prevDeformation;
 uniform float nextDeformation;
 uniform float deformationProgress;
+uniform float noiseType;
 uniform float loopCount;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
@@ -58,7 +61,11 @@ vec2 adjustRatio2(vec2 coord, vec2 inputResolution, vec2 outputResolution) {
 }
 
 vec4 modelPosition (vec4 model, vec3 normal) {
-  vec4 modelPosition = vec4(model.xyz + normal * pow(snoise3(model.xyz + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01, 1.);
+  float noiseValue =
+    noiseType == 2. ? pow(snoise3(model.xyz + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01 :
+    noiseType == 1. ? pow(random(model.xy + time * 0.5) * 2., 3.) * (sin(time * 2.) + 0.7) * 0.01 :
+    0.;
+  vec4 modelPosition = vec4(model.xyz + normal * noiseValue, 1.);
   modelPosition.xyz = rotateQ(axis, modelRadian) * modelPosition.xyz;
   return modelPosition;
 }
@@ -83,6 +90,9 @@ void main(){
   float radius = standardRadius + sin(time * 10.) * 0.1 + randomValue * amplitude - halfAmplitude;
   vec4 circlePosition = vec4(cos(radian) * radius, sin(radian) * radius, data.z * 0.1, 1.);
 
+  // sphere
+  vec4 spherePosition = modelPosition(sphere, sphereNormal);
+
   // torus
   vec4 torusPosition = modelPosition(torus, torusNormal);
 
@@ -106,11 +116,13 @@ void main(){
     (prevDeformation == 4.) ? textNormal :
     (prevDeformation == 3.) ? maleNormal :
     (prevDeformation == 2.) ? torusNormal :
+    (prevDeformation == 5.) ? sphereNormal :
     circleNormal,
 
     (nextDeformation == 4.) ? textNormal :
     (nextDeformation == 3.) ? maleNormal :
     (nextDeformation == 2.) ? torusNormal :
+    (nextDeformation == 5.) ? sphereNormal :
     circleNormal,
 
     deformationProgress);
@@ -132,6 +144,7 @@ void main(){
     (prevDeformation == 4.) ? textPosition :
     (prevDeformation == 3.) ? malePosition :
     (prevDeformation == 2.) ? torusPosition :
+    (prevDeformation == 5.) ? spherePosition :
     (prevDeformation == 1.) ? circlePosition :
     videoPosition,
 
@@ -141,6 +154,7 @@ void main(){
     (nextDeformation == 4.) ? textPosition :
     (nextDeformation == 3.) ? malePosition :
     (nextDeformation == 2.) ? torusPosition :
+    (nextDeformation == 5.) ? spherePosition :
     (nextDeformation == 1.) ? circlePosition :
     videoPosition,
 

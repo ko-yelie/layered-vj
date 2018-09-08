@@ -43,6 +43,10 @@ export const DEFORMATION_LIST = [
     value: 1
   },
   {
+    key: 'sphere',
+    value: 5
+  },
+  {
     key: 'torus',
     value: 2
   },
@@ -56,5 +60,20 @@ export const DEFORMATION_LIST = [
   }
 ]
 
-export const TORUS_SIZE = 0.8
+export const NOISE_LIST = [
+  {
+    key: 'none',
+    value: 0
+  },
+  {
+    key: 'random',
+    value: 1
+  },
+  {
+    key: 'simplex',
+    value: 2
+  }
+]
+
+export const MODEL_SIZE = 0.8
 export const MALE_SIZE = 0.012

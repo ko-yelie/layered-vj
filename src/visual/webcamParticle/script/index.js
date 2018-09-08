@@ -9,7 +9,7 @@ import {
   VIDEO_FRAMEBUFFERS_COUNT,
   POST_LIST,
   DEFORMATION_LIST,
-  TORUS_SIZE,
+  MODEL_SIZE,
   MALE_SIZE
 } from './modules/constant.js'
 import MatIV from './modules/minMatrix.js'
@@ -307,9 +307,17 @@ async function initShader () {
 
   // models
 
+  // sphere
+  {
+    const geometry = new THREE.SphereGeometry(MODEL_SIZE, 32, 32)
+    const { vertices, normal } = getModelVbo(geometry, arrayLength)
+    vbos.sphere = vertices
+    vbos.sphereNormal = normal
+  }
+
   // torus
   {
-    const geometry = new THREE.TorusGeometry(TORUS_SIZE, 0.3 * TORUS_SIZE, 16, 100)
+    const geometry = new THREE.TorusGeometry(MODEL_SIZE, 0.3 * MODEL_SIZE, 16, 100)
     const { vertices, normal } = getModelVbo(geometry, arrayLength)
     vbos.torus = vertices
     vbos.torusNormal = normal
@@ -531,6 +539,14 @@ async function initShader () {
         stride: 4,
         vbo: vbos.video
       },
+      sphere: {
+        stride: 4,
+        vbo: vbos.sphere
+      },
+      sphereNormal: {
+        stride: 3,
+        vbo: vbos.sphereNormal
+      },
       torus: {
         stride: 4,
         vbo: vbos.torus
@@ -627,6 +643,9 @@ async function initShader () {
         type: '1f'
       },
       deformationProgress: {
+        type: '1f'
+      },
+      noiseType: {
         type: '1f'
       },
       loopCount: {
@@ -1168,6 +1187,8 @@ function render () {
       prgs.particleScene.setVariables({
         attribute: {
           data: vbos.video,
+          sphere: null,
+          sphereNormal: null,
           torus: null,
           torusNormal: null,
           male: null,
@@ -1197,6 +1218,7 @@ function render () {
           prevDeformation,
           nextDeformation,
           deformationProgress: settings.deformationProgress,
+          noiseType: settings.noiseType,
           loopCount,
           animation
         }
