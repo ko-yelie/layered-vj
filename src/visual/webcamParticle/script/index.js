@@ -41,6 +41,7 @@ import {
 } from './modules/three-utils.js'
 import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
+import { getUrl } from '../../../modules/url'
 
 const PI2 = Math.PI * 2
 
@@ -334,7 +335,7 @@ async function initShader () {
 
   // male
   {
-    const geometry = await loadJSON('/src/visual/assets/models/Male02_dds.json')
+    const geometry = await loadJSON(getUrl('/src/visual/assets/models/Male02_dds.json'))
     const { vertices, normal } = getModelVbo(geometry, arrayLength, MALE_SIZE, {
       x: 0,
       y: -1,
@@ -346,7 +347,7 @@ async function initShader () {
 
   // text
   {
-    const geometry = await loadFont('/src/visual/assets/fonts/helvetiker_regular.typeface.json', '!?')
+    const geometry = await loadFont(getUrl('/src/visual/assets/fonts/helvetiker_regular.typeface.json'), '!?')
     geometry.computeBoundingBox()
     const centerOffsetX = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x) / 100
     const centerOffsetY = -0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y) / 100
