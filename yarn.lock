@@ -3746,6 +3746,10 @@ glsl-tokenizer@^2.0.0, glsl-tokenizer@^2.0.2:
   dependencies:
     through2 "^0.6.3"
 
+glsl-y-rotate@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/glsl-y-rotate/-/glsl-y-rotate-3.0.0.tgz#7adc7718f5c4fe621306e904dbacea29095a871f"
+
 glslify-bundle@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/glslify-bundle/-/glslify-bundle-2.0.4.tgz#795df119818078861aa1989a0c75d59c20ecfdd6"

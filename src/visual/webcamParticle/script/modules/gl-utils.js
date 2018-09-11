@@ -4,7 +4,7 @@ let textureCount = 0
 export function initWebGL (myCanvas) {
   canvas = myCanvas
   gl = canvas.getContext('webgl')
-  return { canvas, gl }
+  return gl
 }
 
 export function createShader (source, type) {
@@ -37,6 +37,20 @@ export class Program {
     this.program = program
     this.attributes = {}
     this.uniforms = {}
+  }
+
+  createVariables (data) {
+    this.createAttribute(data.attribute)
+    this.createUniform(data.uniform)
+  }
+
+  setVariables (data) {
+    data.attribute && Object.keys(data.attribute).forEach(name => {
+      this.setAttribute(name, data.attribute[name])
+    })
+    data.uniform && Object.keys(data.uniform).forEach(name => {
+      this.setUniform(name, data.uniform[name])
+    })
   }
 
   createAttribute (data) {
@@ -268,14 +282,42 @@ export function start (draw, mode, count) {
   requestAnimationFrame(render)
 }
 
-export function getPointVbo (interval) {
-  let pointTexCoord = []
+export function getPointVbo (segments) {
+  const interval = 1 / segments
+
+  let vertices = []
   for (let t = 0; t < 1; t += interval) {
     const back = t % (interval * 2) === interval
     for (let s = 0; s < 1; s += interval) {
       const cS = (back ? 1 : 0) + s * (back ? -1 : 1)
-      pointTexCoord.push(cS, t, Math.random(), Math.random())
+      vertices.push(cS, t, Math.random(), Math.random())
     }
   }
-  return createVbo(pointTexCoord)
+
+  return {
+    vertices: createVbo(vertices),
+    count: vertices.length / 4
+  }
+}
+
+export function getPlaneVbo (segments) {
+  const interval = 1 / segments
+
+  const vertices = []
+  for (let t = 1; t >= interval; t -= interval) {
+    for (let s = 0; s < 1 - interval; s += interval) {
+      vertices.push(s, t, Math.random(), Math.random())
+      vertices.push(s + interval, t - interval, Math.random(), Math.random())
+      vertices.push(s + interval, t, Math.random(), Math.random())
+
+      vertices.push(s, t, Math.random(), Math.random())
+      vertices.push(s, t - interval, Math.random(), Math.random())
+      vertices.push(s + interval, t - interval, Math.random(), Math.random())
+    }
+  }
+
+  return {
+    vertices: createVbo(vertices),
+    count: vertices.length / 4
+  }
 }

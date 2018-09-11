@@ -3,7 +3,7 @@ uniform sampler2D videoTexture;
 uniform sampler2D prevVideoTexture;
 uniform sampler2D prevPictureTexture;
 uniform vec2      resolution;
-const float threshold = 0.1;
+const float threshold = 0.08;
 const float fadeoutSpeed = 0.04;
 const float attenuationRate = 1. - fadeoutSpeed;
 

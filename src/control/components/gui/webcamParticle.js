@@ -5,11 +5,11 @@ import json from '../../assets/json/js/webcamParticle/scene.json'
 import {
   MIN_ZOOM,
   MAX_ZOOM,
+  MODE_LIST,
   POST_LIST,
-  POINTS,
-  LINE_STRIP,
-  TRIANGLES,
-  DEFORMATION_LIST
+  DEFORMATION_LIST,
+  NOISE_LIST,
+  MODEL_ROTATE_DURATION
 } from '../../../visual/webcamParticle/script/modules/constant.js'
 
 export default async function (argConfig, store) {
@@ -20,7 +20,6 @@ export default async function (argConfig, store) {
     preset: preset
   })
   let pointFolder
-  let lineFolder
   let bgColorController
   let deformationMap
   let autoDeformationTimer
@@ -56,11 +55,7 @@ export default async function (argConfig, store) {
     particleFolder.add(settings, 'animation', animationMap).onChange(dispatchVisual)
 
     // mode
-    const modeMap = {
-      'gl.POINTS': POINTS,
-      'gl.LINE_STRIP': LINE_STRIP,
-      'gl.TRIANGLES': TRIANGLES
-    }
+    const modeMap = MODE_LIST
     particleFolder.add(settings, 'mode', modeMap).onChange(dispatchVisual)
 
     // point folder
@@ -74,38 +69,58 @@ export default async function (argConfig, store) {
     const pointSizeMap = [0.1, 30]
     pointFolder.add(settings, 'pointSize', ...pointSizeMap).onChange(dispatchVisual)
 
-    // line folder
-    lineFolder = particleFolder.addFolder('gl.LINE_STRIP')
+    {
+      const deformationFolder = particleFolder.addFolder('Deformation')
+      deformationFolder.open()
 
-    // lineShape
-    const lineShapeMap = ['line', 'mesh']
-    lineFolder.add(settings, 'lineShape', lineShapeMap).onChange(dispatchVisual)
-
-    // deformation
-    deformationMap = {}
-    let deformationCount = 0
-    let deformationList = DEFORMATION_LIST
-    if (argConfig && argConfig.deformation) {
-      deformationList = deformationList.concat(argConfig.deformation)
-    }
-    deformationList.forEach(({ key }) => {
-      deformationMap[key] = deformationCount++
-    })
-    particleFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
-
-    // changeDeformation
-    settings.changeDeformation = () => {
-      const array = Object.keys(deformationMap)
-      array.some((v, i) => {
-        if (deformationMap[v] === settings.deformation) array.splice(i, 1)
+      // deformation
+      deformationMap = {}
+      let deformationList = DEFORMATION_LIST
+      if (argConfig && argConfig.deformation) {
+        deformationList = deformationList.concat(argConfig.deformation)
+      }
+      deformationList.forEach(({ key, value }) => {
+        deformationMap[key] = value
       })
-      settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
-      ipc.send('dispatch-webcam-particle', 'update', 'deformation', settings.deformation)
-    }
-    particleFolder.add(settings, 'changeDeformation').onChange(dispatchVisual)
+      deformationFolder.add(settings, 'deformation', deformationMap).onChange(dispatchVisual).listen()
 
-    // autoDeformation
-    particleFolder.add(settings, 'autoDeformation').onChange(dispatchVisual)
+      // changeDeformation
+      settings.changeDeformation = () => {
+        if (settings.randomDeformation) {
+          const array = Object.keys(deformationMap)
+          array.some((v, i) => {
+            if (deformationMap[v] === settings.deformation) array.splice(i, 1)
+          })
+          settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
+        } else {
+          settings.deformation = DEFORMATION_LIST[(DEFORMATION_LIST.map(el => el.value).indexOf(settings.deformation) + 1) % DEFORMATION_LIST.length].value
+        }
+        ipc.send('dispatch-webcam-particle', 'update', 'deformation', settings.deformation)
+      }
+      deformationFolder.add(settings, 'changeDeformation').onChange(dispatchVisual)
+
+      // autoDeformation
+      deformationFolder.add(settings, 'autoDeformation').onChange(dispatchVisual)
+
+      // randomDeformation
+      deformationFolder.add(settings, 'randomDeformation')
+    }
+
+    {
+      const noiseFolder = particleFolder.addFolder('Noise')
+      noiseFolder.open()
+
+      // noise type
+      const noiseMap = {}
+      let noiseList = NOISE_LIST
+      if (argConfig && argConfig.noiseType) {
+        noiseList = noiseList.concat(argConfig.noiseType)
+      }
+      noiseList.forEach(({ key, value }) => {
+        noiseMap[key] = value
+      })
+      noiseFolder.add(settings, 'noiseType', noiseMap).onChange(dispatchVisual).listen()
+    }
 
     // canvas folder
     const canvasFolder = particleFolder.addFolder('canvas')
@@ -167,21 +182,15 @@ export default async function (argConfig, store) {
         break
       case 'mode':
         pointFolder.close()
-        lineFolder.close()
 
-        switch (Number(val)) {
-          case LINE_STRIP:
-          case TRIANGLES:
-            lineFolder.open()
-            break
-          case POINTS:
-          default:
+        switch (val) {
+          case 'POINTS':
             pointFolder.open()
         }
         break
       case 'autoDeformation':
         if (settings.autoDeformation) {
-          autoDeformationTimer = setInterval(settings.changeDeformation, 1000)
+          autoDeformationTimer = setInterval(settings.changeDeformation, MODEL_ROTATE_DURATION)
         } else {
           clearTimeout(autoDeformationTimer)
         }

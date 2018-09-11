@@ -1,17 +1,22 @@
 precision highp float;
+uniform vec2 resolution;
+uniform vec2 videoResolution;
 uniform sampler2D videoTexture;
-uniform sampler2D logoTexture;
-uniform sampler2D logo2Texture;
-uniform sampler2D faceTexture;
-uniform float     bgColor;
-uniform float     mode;
-uniform float     pointShape;
-uniform float     animation;
+// uniform sampler2D logoTexture;
+// uniform sampler2D logo2Texture;
+// uniform sampler2D faceTexture;
+uniform float bgColor;
+uniform float mode;
+uniform float pointShape;
+uniform float animation;
 uniform float prevDeformation;
 uniform float nextDeformation;
 uniform float deformationProgress;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
+varying vec4 vModelColor;
+
+#pragma glslify: adjustRatio = require(../modules/ratio.glsl)
 
 float lengthN(vec2 v, float n) {
   vec2 tmp = pow(abs(v), vec2(n));
@@ -19,7 +24,8 @@ float lengthN(vec2 v, float n) {
 }
 
 void main(){
-  vec4 video = texture2D(videoTexture, vTexCoord);
+  vec2 videoTexcoord = adjustRatio(vTexCoord, videoResolution, resolution);
+  vec4 video = texture2D(videoTexture, videoTexcoord);
   float rate = max(vPosition.z / vPosition.w, 0.);
 
   vec2 pointCoord = gl_PointCoord.st * 2. - 1.;
@@ -38,19 +44,23 @@ void main(){
   vec4 currentColor = mix(vec4(minCurrentColor), vec4(maxCurrentColor), video);
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
 
-  vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
-  vec4 logoColor = texture2D(logoTexture, imageTexCoord);
-  vec4 logo2Color = texture2D(logo2Texture, imageTexCoord);
-  vec4 faceColor = texture2D(faceTexture, imageTexCoord);
+  // vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
+  // vec4 logoColor = texture2D(logoTexture, imageTexCoord);
+  // vec4 logo2Color = texture2D(logo2Texture, imageTexCoord);
+  // vec4 faceColor = texture2D(faceTexture, imageTexCoord);
 
   gl_FragColor = mix(
-    (prevDeformation == 4.) ? logo2Color :
-    (prevDeformation == 3.) ? faceColor :
-    (prevDeformation == 2.) ? logoColor :
-    videoColor,
-    (nextDeformation == 4.) ? logo2Color :
-    (nextDeformation == 3.) ? faceColor :
-    (nextDeformation == 2.) ? logoColor :
-    videoColor,
+    // (prevDeformation == 4.) ? logo2Color :
+    // (prevDeformation == 3.) ? faceColor :
+    // (prevDeformation == 2.) ? logoColor :
+    (prevDeformation == 0.) ? videoColor :
+    vModelColor,
+
+    // (nextDeformation == 4.) ? logo2Color :
+    // (nextDeformation == 3.) ? faceColor :
+    // (nextDeformation == 2.) ? logoColor :
+    (nextDeformation == 0.) ? videoColor :
+    vModelColor,
+
     deformationProgress);
 }
