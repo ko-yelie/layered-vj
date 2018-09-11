@@ -86,17 +86,24 @@ export default async function (argConfig, store) {
 
       // changeDeformation
       settings.changeDeformation = () => {
-        const array = Object.keys(deformationMap)
-        array.some((v, i) => {
-          if (deformationMap[v] === settings.deformation) array.splice(i, 1)
-        })
-        settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
+        if (settings.randomDeformation) {
+          const array = Object.keys(deformationMap)
+          array.some((v, i) => {
+            if (deformationMap[v] === settings.deformation) array.splice(i, 1)
+          })
+          settings.deformation = deformationMap[array[Math.floor(Math.random() * array.length)]]
+        } else {
+          settings.deformation = DEFORMATION_LIST[(DEFORMATION_LIST.map(el => el.value).indexOf(settings.deformation) + 1) % DEFORMATION_LIST.length].value
+        }
         ipc.send('dispatch-webcam-particle', 'update', 'deformation', settings.deformation)
       }
       deformationFolder.add(settings, 'changeDeformation').onChange(dispatchVisual)
 
       // autoDeformation
       deformationFolder.add(settings, 'autoDeformation').onChange(dispatchVisual)
+
+      // randomDeformation
+      deformationFolder.add(settings, 'randomDeformation')
     }
 
     {
