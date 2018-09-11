@@ -77,3 +77,4 @@ export const NOISE_LIST = [
 
 export const MODEL_SIZE = 0.8
 export const MALE_SIZE = 0.012
+export const MODEL_ROTATE_DURATION = 2400

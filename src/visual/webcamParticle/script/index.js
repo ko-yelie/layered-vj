@@ -1,3 +1,5 @@
+import * as THREE from 'three'
+import { TweenMax, SlowMo } from 'gsap/TweenMax'
 import {
   POINT_RESOLUTION,
   POP_RESOLUTION,
@@ -10,7 +12,8 @@ import {
   POST_LIST,
   DEFORMATION_LIST,
   MODEL_SIZE,
-  MALE_SIZE
+  MALE_SIZE,
+  MODEL_ROTATE_DURATION
 } from './modules/constant.js'
 import MatIV from './modules/minMatrix.js'
 import {
@@ -38,7 +41,6 @@ import {
 } from './modules/three-utils.js'
 import { clamp } from './modules/utils.js'
 import Tween from './modules/tween.js'
-import * as THREE from 'three'
 
 const PI2 = Math.PI * 2
 
@@ -109,8 +111,6 @@ let stopMotionTimer
 let mode
 let isChangeDeformation = false
 let prevDeformationProgress = 0
-let modelRadian = 0
-let modelRadianTime = 0
 
 // lighting
 let lightDirection = [-0.5, 0.5, 0.5]
@@ -249,6 +249,7 @@ function importShader () {
 }
 
 function initSettings () {
+  // deformation progress
   deformationProgressTl = new Tween(settings, {
     property: 'deformationProgress',
     duration: 800,
@@ -257,6 +258,14 @@ function initSettings () {
     onFinish: () => {
       isChangeDeformation = false
     }
+  })
+
+  TweenMax.fromTo(settings, MODEL_ROTATE_DURATION / 1000, {
+    modelRadian: Math.PI
+  }, {
+    modelRadian: Math.PI * 3,
+    ease: SlowMo.ease.config(0.3, 0.7, false),
+    repeat: -1
   })
 
   // init settings
@@ -1178,12 +1187,6 @@ function render () {
       rotation.y += (pointer.y - rotation.y) * 0.02
       updateCamera()
 
-      if (settings.deformation !== 0) {
-        modelRadianTime += 1 / 60
-        modelRadianTime %= PI2
-        modelRadian = Math.sin(modelRadianTime) * 40 / 360 * PI2
-      }
-
       prgs.particleScene.setVariables({
         attribute: {
           data: vbos.video,
@@ -1210,7 +1213,7 @@ function render () {
           time,
           bgColor: settings.bgColor,
           modelColor,
-          modelRadian,
+          modelRadian: settings.modelRadian,
           volume,
           isAudio,
           mode,

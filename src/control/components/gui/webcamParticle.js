@@ -8,7 +8,8 @@ import {
   MODE_LIST,
   POST_LIST,
   DEFORMATION_LIST,
-  NOISE_LIST
+  NOISE_LIST,
+  MODEL_ROTATE_DURATION
 } from '../../../visual/webcamParticle/script/modules/constant.js'
 
 export default async function (argConfig, store) {
@@ -182,7 +183,7 @@ export default async function (argConfig, store) {
         break
       case 'autoDeformation':
         if (settings.autoDeformation) {
-          autoDeformationTimer = setInterval(settings.changeDeformation, 1200)
+          autoDeformationTimer = setInterval(settings.changeDeformation, MODEL_ROTATE_DURATION)
         } else {
           clearTimeout(autoDeformationTimer)
         }
