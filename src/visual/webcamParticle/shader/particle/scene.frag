@@ -15,6 +15,7 @@ uniform float deformationProgress;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
 varying vec4 vModelColor;
+varying float vAlpha;
 
 #pragma glslify: adjustRatio = require(../modules/ratio.glsl)
 
@@ -43,13 +44,14 @@ void main(){
   float maxCurrentColor = (bgColor == 1.) ? 0.8 : 1.;
   vec4 currentColor = mix(vec4(minCurrentColor), vec4(maxCurrentColor), video);
   vec4 videoColor = vec4(currentColor.rgb, sqrt(rate)) * particleColor;
+  videoColor.a *= vAlpha;
 
   // vec2 imageTexCoord = vec2(vTexCoord.x, 1. - vTexCoord.y);
   // vec4 logoColor = texture2D(logoTexture, imageTexCoord);
   // vec4 logo2Color = texture2D(logo2Texture, imageTexCoord);
   // vec4 faceColor = texture2D(faceTexture, imageTexCoord);
 
-  gl_FragColor = mix(
+  vec4 color = mix(
     // (prevDeformation == 4.) ? logo2Color :
     // (prevDeformation == 3.) ? faceColor :
     // (prevDeformation == 2.) ? logoColor :
@@ -63,4 +65,6 @@ void main(){
     vModelColor,
 
     deformationProgress);
+  if (color.a == 0.) discard;
+  gl_FragColor = color;
 }
