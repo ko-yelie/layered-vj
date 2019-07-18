@@ -66,7 +66,7 @@ export default async function (argConfig, store) {
     pointFolder.add(settings, 'pointShape', pointShapeMap).onChange(dispatchVisual)
 
     // pointSize
-    const pointSizeMap = [0.1, 30]
+    const pointSizeMap = [0.1, 10]
     pointFolder.add(settings, 'pointSize', ...pointSizeMap).onChange(dispatchVisual)
 
     {
@@ -154,6 +154,13 @@ export default async function (argConfig, store) {
     // particleAlpha
     const particleAlphaMap = [0, 1]
     particleFolder.add(settings, 'particleAlpha', ...particleAlphaMap).onChange(dispatchVisual).listen()
+
+    particleFolder.add(settings, 'speed', 0, 10).listen().onChange(dispatchVisual)
+    particleFolder.add(settings, 'density', 0, 10).listen().onChange(dispatchVisual)
+    particleFolder.add(settings, 'ease', 0, 1).listen().onChange(dispatchVisual)
+    particleFolder.add(settings, 'spread', 0, 2).listen().onChange(dispatchVisual)
+    particleFolder.add(settings, 'alphaSpeed', 0, 2).listen().onChange(dispatchVisual)
+    particleFolder.add(settings, 'threshold', 0, 1).listen().onChange(dispatchVisual)
   }
 
   function dispatchVisual (val) {

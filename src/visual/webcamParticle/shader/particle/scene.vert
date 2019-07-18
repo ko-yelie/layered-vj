@@ -18,11 +18,14 @@ uniform float pointSize;
 uniform vec2 resolution;
 uniform vec2 videoResolution;
 uniform sampler2D positionTexture;
+uniform sampler2D velocityTexture;
 // uniform sampler2D logoTexture;
 // uniform sampler2D logo2Texture;
 // uniform sampler2D faceTexture;
 uniform float time;
 uniform float volume;
+uniform float volumeStrength;
+uniform float volumePow;
 uniform float isAudio;
 uniform float pointShape;
 uniform float prevDeformation;
@@ -30,9 +33,12 @@ uniform float nextDeformation;
 uniform float deformationProgress;
 uniform float noiseType;
 uniform float loopCount;
+uniform float spread;
+uniform float alphaSpeed;
 varying vec2 vTexCoord;
 varying vec4 vPosition;
 varying vec4 vModelColor;
+varying float vAlpha;
 
 #pragma glslify: random = require(glsl-random)
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
@@ -73,17 +79,27 @@ vec4 modelPosition (vec4 model, vec3 normal) {
 void main(){
   vec2 texCoord = data.xy;
 
+  float cVolume = (isAudio == 1.) ? pow(volume - 1., volumePow) : 1.;
+
   float deformationValue = 1. - abs(deformationProgress - 0.5) * 2.;
   float deformationDistance = mix(1., maxDeformationDistance, deformationValue);
   float deformationSize = mix(1., deformationMaxSize, deformationValue);
 
-  vec4 position = texture2D(positionTexture, adjustRatio(texCoord, videoResolution, resolution));
-  position.z *= ((isAudio == 1.) ? volume : 1.);
+  vec2 videoUv = adjustRatio(texCoord, videoResolution, resolution);
+  vec4 position = texture2D(positionTexture, videoUv);
+  position.xy *= spread;
+  position.z *= (isAudio == 1.) ? mix(1., 1.5, cVolume) : 1.;
+
+  float life = texture2D(velocityTexture, videoUv).w;
+  life = smoothstep(0., 1., pow(life, alphaSpeed));
+  vAlpha = life;
+
   vec4 videoPosition = vec4(position.xyz, 1.);
   float videoSize = min(position.z, 5.) * pointSize * deformationSize;
   videoSize *= (pointShape == 2.) ? 4. :
     (pointShape == 1.) ? 1.3 :
     1.;
+  videoSize *= (isAudio == 1.) ? mix(1., volumeStrength, cVolume) : 1.;
 
   float randomValue = (data.w + random(texCoord + mod(loopCount, 10.))) / 2.;
   float radian = loopCount * speed * randomValue;

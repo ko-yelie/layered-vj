@@ -233,6 +233,7 @@ function importShader () {
     createProgram('particleVideo', 'particle/video')
     createProgram('picture', 'particle/picture')
     createProgram('reset', 'particle/reset')
+    createProgram('resetVelocity', 'particle/resetVelocity')
     createProgram('position', 'particle/position')
     createProgram('velocity', 'particle/velocity')
     createProgram('particleScene', 'particle/scene', createVertexShader('particle/scene'))
@@ -482,6 +483,9 @@ async function initShader () {
       },
       prevPictureTexture: {
         type: '1i'
+      },
+      threshold: {
+        type: '1f'
       }
     }
   })
@@ -498,6 +502,15 @@ async function initShader () {
     }
   })
 
+  prgs.resetVelocity.createVariables({
+    attribute: planeAttribute,
+    uniform: {
+      z: {
+        type: '1f'
+      }
+    }
+  })
+
   prgs.velocity.createVariables({
     attribute: planeAttribute,
     uniform: {
@@ -507,10 +520,22 @@ async function initShader () {
       prevVelocityTexture: {
         type: '1i'
       },
+      prevPositionTexture: {
+        type: '1i'
+      },
       pictureTexture: {
         type: '1i'
       },
       animation: {
+        type: '1f'
+      },
+      speed: {
+        type: '1f'
+      },
+      density: {
+        type: '1f'
+      },
+      ease: {
         type: '1f'
       },
       isAccel: {
@@ -613,6 +638,12 @@ async function initShader () {
       positionTexture: {
         type: '1i'
       },
+      velocityTexture: {
+        type: '1i'
+      },
+      alphaSpeed: {
+        type: '1f'
+      },
       // logoTexture: {
       //   type: '1i'
       // },
@@ -637,6 +668,12 @@ async function initShader () {
       volume: {
         type: '1f'
       },
+      volumeStrength: {
+        type: '1f'
+      },
+      volumePow: {
+        type: '1f'
+      },
       isAudio: {
         type: '1f'
       },
@@ -659,6 +696,9 @@ async function initShader () {
         type: '1f'
       },
       loopCount: {
+        type: '1f'
+      },
+      spread: {
         type: '1f'
       },
       animation: {
@@ -875,8 +915,8 @@ function resetFramebuffer () {
   }
 
   // reset particle position
-  useProgram(prgs.reset)
-  prgs.reset.setVariables({
+  useProgram(prgs.resetVelocity)
+  prgs.resetVelocity.setVariables({
     attribute: {
       position: null
     },
@@ -887,12 +927,22 @@ function resetFramebuffer () {
   gl.viewport(0, 0, POINT_RESOLUTION, POINT_RESOLUTION)
   for (let targetbufferIndex = 0; targetbufferIndex < GPGPU_FRAMEBUFFERS_COUNT; ++targetbufferIndex) {
     // velocity buffer
-    prgs.reset.setUniform('z', 0)
+    prgs.resetVelocity.setUniform('z', 0)
     bindFramebuffer(textures.velocity[targetbufferIndex].framebuffer)
     clearColor(0.0, 0.0, 0.0, 0.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
   }
+
+  useProgram(prgs.reset)
+  prgs.reset.setVariables({
+    attribute: {
+      position: null
+    },
+    uniform: {
+      resolution: pointResolution
+    }
+  })
   for (let targetbufferIndex = 0; targetbufferIndex < CAPTURE_FRAMEBUFFERS_COUNT; ++targetbufferIndex) {
     // position buffer
     prgs.reset.setUniform('z', 1)
@@ -1110,7 +1160,8 @@ function render () {
         resolution: pointResolution,
         videoTexture: textures.videoBuffer[targetbufferIndex].index,
         prevVideoTexture: textures.videoBuffer[prevbufferIndex].index,
-        prevPictureTexture: textures.picture[prevbufferIndex].index
+        prevPictureTexture: textures.picture[prevbufferIndex].index,
+        threshold: settings.threshold
       }
     })
     gl.drawElements(gl.TRIANGLES, planeIndex.length, gl.UNSIGNED_SHORT, 0)
@@ -1129,8 +1180,12 @@ function render () {
           uniform: {
             resolution: pointResolution,
             prevVelocityTexture: textures.velocity[prevbufferIndex].index,
+            prevPositionTexture: textures.position[prevbufferIndex].index,
             pictureTexture: textures.picture[targetbufferIndex].index,
             animation,
+            speed: settings.speed,
+            density: settings.density,
+            ease: settings.ease,
             isAccel: settings.accel,
             isRotation: settings.rotation
           }
@@ -1211,11 +1266,14 @@ function render () {
           videoResolution,
           videoTexture: textures.videoBuffer[currentBufferIndex].index,
           positionTexture: textures.position[positionBufferIndex].index,
+          velocityTexture: textures.velocity[targetbufferIndex].index,
           time,
           bgColor: settings.bgColor,
           modelColor,
           modelRadian: settings.modelRadian,
           volume,
+          volumeStrength: settings.volumeStrength,
+          volumePow: settings.volumePow,
           isAudio,
           mode,
           pointShape: settings.pointShape,
@@ -1224,6 +1282,8 @@ function render () {
           deformationProgress: settings.deformationProgress,
           noiseType: settings.noiseType,
           loopCount,
+          spread: settings.spread,
+          alphaSpeed: settings.alphaSpeed,
           animation
         }
       })

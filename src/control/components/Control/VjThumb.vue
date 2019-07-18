@@ -202,6 +202,8 @@ export default {
 
         // inputAudio
         audioFolder.add(settings, 'inputAudio').onChange(dispatchMedia).listen()
+        audioFolder.add(settings, 'volumeStrength', 0, 10).listen().onChange(dispatchMedia)
+        audioFolder.add(settings, 'volumePow', 0, 1).listen().onChange(dispatchMedia)
 
         // audio
         settings.audio = controlMedia.audioSource
