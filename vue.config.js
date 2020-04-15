@@ -3,7 +3,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const packageJson = require('./package.json')
 
 const baseUrl = process.env.NODE_ENV === 'production'
-  ? '/layered-vj/'
+  ? process.env.NODE_NETLIFY === 'true'
+    ? '/'
+    : '/layered-vj/'
   : '/'
 const outputDir = process.env.NODE_ENV === 'production'
   ? 'docs'

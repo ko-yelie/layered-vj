@@ -8,6 +8,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build:netlify": "NODE_NETLIFY=true vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
