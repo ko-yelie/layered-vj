@@ -117,8 +117,8 @@ export default class Media {
         // get webcam
         await navigator.mediaDevices
           .getUserMedia({
-            audio: this.audioSource && { deviceId: this.audioSource },
-            video: this.videoSource && { deviceId: this.videoSource }
+            audio: this.audioSource && { deviceId: this.audioSource } || true,
+            video: this.videoSource && { deviceId: this.videoSource } || true
           })
           .then(stream => {
             // on webcam enabled
