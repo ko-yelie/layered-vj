@@ -16,7 +16,7 @@
     p.vj-note
       strong.md-body-2 Note:
         br
-        | The pop-up for visual will automatically open on the control page.
+        | The pop-up for visual will automatically open on the control page that appears after clicking the play button.
         br
         | Please allow pop-ups for this site.
   ul.vj-links
