@@ -65,7 +65,7 @@
         "detector": false,
         "effect": "rock",
         "effect2": "flash",
-        "lastEffect": "glitch",
+        "lastEffect": "none",
         "custom": 0.7,
         "customSwitch": false,
         "video": null,
