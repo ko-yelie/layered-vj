@@ -40,7 +40,6 @@
     "@vue/cli-service": "^3.0.0-rc.4",
     "@vue/eslint-config-standard": "^3.0.0-rc.4",
     "glslify-loader": "^1.0.2",
-    "lint-staged": "^7.2.0",
     "node-sass": "^4.9.0",
     "pug-html-loader": "^1.1.5",
     "pug-plain-loader": "^1.0.0",
@@ -48,19 +47,6 @@
     "sass-loader": "^7.0.1",
     "vue-auto-routing": "^0.1.2",
     "vue-template-compiler": "^2.5.16"
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": [
-      "vue-cli-service lint",
-      "git add"
-    ],
-    "*.vue": [
-      "vue-cli-service lint",
-      "git add"
-    ]
   },
   "volta": {
     "node": "10.16.1",
